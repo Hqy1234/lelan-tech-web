@@ -77,6 +77,26 @@
 - **D-DOCS-003** — `docs/ROADMAP.md` 为阶段计划来源。
 - **D-DOCS-004** — 本文件 `docs/DECISIONS.md` 为冲突仲裁来源。
 
+## D-PHASE0 · Phase 0 工程修复
+
+- **D-PHASE0-001** — `robots.ts` / `sitemap.ts` 在 Next.js 16 + `output: "export"` 下
+  必须保留 `export const dynamic = "force-static"`。
+- **D-PHASE0-002** — 正式域名未确认前（`siteUrl` 为空字符串）：
+  - SEO `index: false, follow: false`
+  - 不输出 `canonical` URL
+  - 不输出 Open Graph URL
+  - sitemap 返回空 entries
+  - robots.txt 不输出 sitemap URL
+- **D-PHASE0-003** — `plannedRoutes`（规划 IA）与 `publishedRoutes`（已上线）分离；
+  sitemap / nav 等模块应使用 `publishedRoutes`。
+- **D-PHASE0-004** — 每个正式页面负责自行传入 `buildMetadata` 的 `path` 参数，
+  **不得继承 homepage 的 "/" canonical**。
+- **D-PHASE0-005** — 静态导出（`output: "export"`）不使用 `next start`；
+  `package.json` 移除 `"start"` script。
+- **D-PHASE0-006** — Node engine 声明 `">=20.9.0"`。
+- **D-PHASE0-007** — Open Graph `locale` 使用 `zh_CN`（下划线），
+  与 HTML `lang="zh-CN"`（连字符）保持正确区分。
+
 ---
 
 ## 修改规范

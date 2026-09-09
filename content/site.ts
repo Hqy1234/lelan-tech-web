@@ -10,21 +10,55 @@
  */
 
 export const siteName = "LELAN TECHNOLOGY";
-export const brandName = "乐岚科技";
+export const brandName = "乐懒科技";
 
 /**
- * 网站对外一句话描述（用于 metadata.description / OG）。
- * 简短、可对外发布；待产品文案最终定稿后由产品侧替换。
+ * 网站对外一句话描述。
+ * 简洁、真实、不夸大。
  */
 export const siteDescription =
-  "LELAN TECHNOLOGY (乐岚科技) — 智能光谱与机器视觉技术驱动的产品与方案。";
+  "乐懒科技 — 一家将科研能力、数据与 AI 转化为真实可用产品与服务的科技公司。";
 
 /**
- * TODO(configurable): 正式生产域名确认后，统一修改此处。
- * 临时使用占位常量，metadataBase 仅用于 SEO 元数据拼接。
- * 不得在此处编造未经确认的真实域名。
+ * 正式生产域名。
+ *
+ * 未确认前为空字符串，触发 SEO 安全降级：
+ * - noindex / nofollow
+ * - 不输出 canonical
+ * - 不输出 OG URL
+ * - sitemap 返回空 entries
+ *
+ * 确认后填入，例如："https://lelan.tech"。
  */
-export const siteUrl = "https://example.com";
+export const siteUrl = "";
+
+/** 域名是否已正式确认。供 SEO / sitemap / robots 模块使用。 */
+export const hasConfirmedSiteUrl: boolean = siteUrl.length > 0;
+
+/**
+ * 规划路由清单（Planned IA）。
+ * 未来页面不一定全部上线；此处仅记录规划意图。
+ */
+export const plannedRoutes = [
+  "/",
+  "/products",
+  "/ai",
+  "/town",
+  "/guardian",
+  "/team",
+  "/about",
+  "/contact",
+  "/privacy",
+  "/terms",
+] as const;
+
+/**
+ * 已上线且可被搜索引擎索引的路由。
+ * 在 siteUrl 确认 + 页面实际发布之前，本数组应保持为空。
+ */
+export const publishedRoutes: string[] = [];
+
+export type PlannedRoute = (typeof plannedRoutes)[number];
 
 /**
  * TODO(configurable): 联系邮箱 — 待用户确认。
@@ -41,24 +75,3 @@ export const betaEmail: string = "";
 
 /** 默认语言 */
 export const locale = "zh-CN";
-
-/**
- * 公开路由清单。
- *
- * 用于 sitemap.ts / robots.ts / 后续导航组件。
- * 页面本身可能在后续 Phase 才创建；sitemap 已先行声明结构。
- */
-export const publicRoutes = [
-  "/",
-  "/products",
-  "/ai",
-  "/town",
-  "/guardian",
-  "/team",
-  "/about",
-  "/contact",
-  "/privacy",
-  "/terms",
-] as const;
-
-export type PublicRoute = (typeof publicRoutes)[number];

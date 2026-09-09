@@ -1,5 +1,5 @@
 /**
- * Temporary home — Phase 0.7 scaffold smoke page.
+ * Temporary home — Phase 0 scaffold smoke page.
  *
  * 仅用于验证：
  *   - App Router 正常编译
@@ -8,6 +8,8 @@
  *
  * 不含业务文案 / 假数据 / 复杂组件。正式官网首页留到后续阶段。
  */
+
+import { brandName } from "@/content/site";
 
 export default function HomePage() {
   return (
@@ -21,7 +23,7 @@ export default function HomePage() {
       </h1>
 
       <p className="mt-3 text-base text-muted">
-        乐岚科技 · 工程脚手架
+        {brandName} · 工程脚手架
       </p>
 
       <hr className="mt-12 border-rule" />
