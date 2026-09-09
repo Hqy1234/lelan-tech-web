@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* ============================================================
+ * LELAN EDITORIAL SYSTEM — Design Tokens
+ *
+ * 方向：warm white paper, dark editorial typography,
+ *       restrained green, tiny cinnabar / ochre accent,
+ *       subtle rules, generous whitespace.
+ *
+ * 原则：克制、留白、编辑设计；不使用紫色 AI 渐变、
+ *       glassmorphism、发光球、大面积阴影、过度圆角。
+ * ============================================================ */
+
+:root {
+  /* surfaces */
+  --color-paper: #f6f3ec;       /* warm white / paper */
+  --color-paper-pure: #ffffff;  /* higher-contrast paper */
+  --color-ink: #14110f;         /* near-black editorial ink */
+  --color-muted: #5b554d;       /* secondary text / captions */
+  --color-rule: #d8d2c4;        /* hairline rules, dividers */
+
+  /* restrained green (企业色 — 沉稳，非荧光) */
+  --color-green: #2f4a3a;
+  --color-green-dark: #1e2f26;
+  --color-green-soft: #6f8275;  /* 浅绿，用于次要点缀 */
+
+  /* tiny cinnabar / ochre accent (印章感，克制使用) */
+  --color-cinnabar: #9b3a2f;
+  --color-ochre: #b88746;
+
+  /* type */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --font-serif:
+    ui-serif, "Songti SC", "Source Han Serif SC", "Noto Serif CJK SC",
+    "Times New Roman", Georgia, serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
+}
+
+@theme inline {
+  /* expose to Tailwind utilities */
+  --color-paper: var(--color-paper);
+  --color-paper-pure: var(--color-paper-pure);
+  --color-ink: var(--color-ink);
+  --color-muted: var(--color-muted);
+  --color-rule: var(--color-rule);
+
+  --color-green: var(--color-green);
+  --color-green-dark: var(--color-green-dark);
+  --color-green-soft: var(--color-green-soft);
+
+  --color-cinnabar: var(--color-cinnabar);
+  --color-ochre: var(--color-ochre);
+
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
+}
+
+/* base */
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-green);
+  color: var(--color-paper);
+}
