@@ -50,6 +50,45 @@
 - **D-VISUAL-006** — 移动端**不得依赖 hover**；
   所有视觉入口必须保留真实 HTML navigation / semantic links。
 
+## D-ASSET · Placeholder Visual Assets（追加于 2026-09-10）
+
+- **D-ASSET-001** — 当前 `public/images/` 内的视觉素材
+  （Town 建筑 8 / Town 人物 8 / Guardian overview 1 /
+  Guardian 五行 5 / Guardian 八阶段 8）均为
+  **客户现有 PPT / 素材库导入的 placeholder / reference assets**，
+  **不是最终视觉定稿**。
+
+- **D-ASSET-002** — 最终视觉定稿为统一的
+  **2.5D Oriental Visual System**，将逐项替换现有 placeholder。
+
+- **D-ASSET-003** — 正式重绘时**优先保持现有 `public/images/` 路径与文件名**，
+  以尽量避免修改页面代码。
+
+- **D-ASSET-004** — `Town` 中
+  `building = service / navigation entry`，
+  `character = future Agent personality / interface`，
+  二者必须保持独立目录语义（`buildings/` 与 `characters/`）。
+
+- **D-ASSET-005** — 官网整体视觉方向 =
+  **restrained editorial UI + expressive oriental spatial visuals**：
+  文字编辑型 UI、克制色彩、东方空间图像叙事。
+
+- **D-ASSET-006** — 当前 MVP **不引入** heavy real-time 3D / WebGL；
+  Town V1 = image + CSS；后续 V2/V3 为后续阶段。
+
+- **D-ASSET-007** — PPT / 客户素材即使已复制进入 `public/`，**不得**自动视为最终可公开商用素材；
+  发布前需做版权 / 授权复核。
+
+- **D-ASSET-008** — 含水印或版权来源不明的素材，
+  正式生产发布前必须重新确认或替换。
+
+- **D-ASSET-009** — Guardian 八大神兽（含坎 / 艮两次出现的"毕方"）
+  关系**未锁定**，暂不进入 active asset set。
+
+- **D-ASSET-010** — 当前未导入 `public/` 的素材（鬼谷子 528×701、
+  伊尹 1024×1024、其他 Guardian 人物）因分辨率或规格与当前主集不匹配，
+  不作为 placeholder 导入；后续以正式重绘版本纳入。
+
 ## D-PRODUCT · 产品边界
 
 - **D-PRODUCT-001** — 现有体验版属于独立项目 `lelan-shouhu`，本仓库不得包含其代码。

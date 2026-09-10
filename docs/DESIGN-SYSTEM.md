@@ -112,6 +112,23 @@
 第一阶段优先 2.5D / pseudo-3D。
 **不直接采用** Three.js / React Three Fiber / 重 WebGL。
 
+### 3.7 当前 placeholder 资产策略（过渡期）
+
+`public/images/` 内的现有素材为客户 PPT / 素材库的 placeholder / reference assets，
+**不是最终视觉定稿**。
+
+- **当前阶段目标**：使用现有素材把官网结构与交互做出来。
+- **最终阶段目标**：升级为统一的 2.5D Oriental Visual System。
+- **替换原则**：正式重绘时**优先保持现有 `public/images/` 路径与文件名**。
+- **Town 语义**：`buildings/` = 服务入口；`characters/` = 未来 Agent 人格 / 界面入口。
+- **Guardian 语义**：`overview/` 守护官；`elements/` 五行；`stages/` 八阶段；`characters/` 文化守护使（当前未导入）。
+- **版权前置**：PPT / 客户素材即使已复制进入 `public/`，**不得**自动视为最终可公开商用素材；发布前必须做版权 / 授权复核。
+- **含水印 / 来源不明素材**：必须重新确认或替换。
+- **未锁定关系素材**（如 Guardian 神兽中的"毕方"坎 / 艮两阶段重复）暂不进入 active asset set。
+- **规格不匹配素材**（如 528×701 鬼谷子、1024×1024 伊尹）不作为 placeholder 导入。
+
+更详细的决策条目见 `docs/DECISIONS.md` 的 `D-ASSET-*` 系列。
+
 ---
 
 ## 4. Guardian 视觉语言（与小镇分离）
