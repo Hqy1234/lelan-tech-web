@@ -1,10 +1,10 @@
 /**
  * LELAN TECHNOLOGY · Demo Session Utilities
  *
- * Phase 1D-G2 — DEMO ONLY, NOT AUTHENTICATION.
+ * Phase 1D-G3 — DEMO ONLY, NOT AUTHENTICATION.
  *
- * This module manages the demo session stored in sessionStorage.
- * It is NOT real authentication — all credentials are publicly documented.
+ * All sessionStorage calls MUST be inside functions (not module-level),
+ * otherwise Next.js SSR triggers hydration mismatch.
  *
  * Future: Replace with real auth provider (Supabase Auth / NextAuth / etc.)
  * without changing the Profile page UI, as long as the session stores
@@ -26,7 +26,7 @@ import {
 } from "@/content/guardian";
 
 /* ========================================================================
-   Session read / write (client-side only)
+   Session read / write (client-side only — all inside functions to avoid SSR mismatch)
    ======================================================================== */
 
 export interface DemoSession {

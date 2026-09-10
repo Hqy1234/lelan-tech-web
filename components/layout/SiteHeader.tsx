@@ -1,10 +1,11 @@
 /**
  * LELAN TECHNOLOGY · Site Header
  *
- * Phase 1D-G2 improvements:
- * - Demo login entry via DemoAccountNav client island.
- * - "Beta 即将开放" removed from header (shown inline on hero).
- * - DemoAccountNav reads sessionStorage; prevents hydration mismatch via mounted guard.
+ * Phase 1D-G3 — Guardian-first navigation:
+ * - Nav order: 首页 / 乐懒守护 / 成果小镇 / 乐懒 AI / 关于
+ * - "产品" anchor removed (HomeArchitecture section removed)
+ * - 乐懒 AI → #ai
+ * - Demo login via DemoAccountNav client island.
  */
 import Link from "next/link";
 import { brandName, siteName } from "@/content/site";
@@ -13,9 +14,9 @@ import { DemoAccountNav } from "./DemoAccountNav";
 
 const NAV_ITEMS = [
   { href: "#hero", label: "首页" },
-  { href: "#architecture", label: "产品" },
-  { href: "#town", label: "成果小镇" },
   { href: "#guardian", label: "乐懒守护" },
+  { href: "#town", label: "成果小镇" },
+  { href: "#ai", label: "乐懒 AI" },
   { href: "#about", label: "关于" },
 ] as const;
 

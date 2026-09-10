@@ -165,6 +165,13 @@ Guardian 首页已升级为**乐懒守护符·人生坐标系统**：
 - 禁止：low/medium/high risk 等风险分级词汇
 - 所有内容须明确标注"模拟演示数据"
 
+### Homepage 产品叙事节奏
+
+- 区块视觉节奏：Guardian ★★★★★ / Town ★★★★ / AI ★★★ / Technology ★★ / About ★
+- 三大产品（Guardian / Town / AI）第一眼区别明显：档案感 vs 空间感 vs 软件工作流感
+- 不要让所有 section 等高或等权重；Guardian 可获更多垂直空间
+- 继续东方数字系统 × 现代科技产品 × 编辑式官网视觉语言
+
 ---
 
 ## 5. 排版与节奏（已落地原则）

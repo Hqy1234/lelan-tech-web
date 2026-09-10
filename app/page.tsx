@@ -1,26 +1,24 @@
 /**
  * LELAN TECHNOLOGY · Homepage
  *
- * Phase 1B · Responsive Homepage Baseline
+ * Phase 1D-G3 — Guardian-first Homepage
  *
  * 区块顺序（与 content/home.ts 完全对齐）：
  *   00 / Hero
- *   01 / Two-System Architecture
- *   02 / LeLan AI
- *   03 / LeLan Town
- *   04 / LeLan Guardian
- *   05 / Technology / Capability
+ *   01 / 乐懒守护（核心产品，坐标化系统）
+ *   03 / 乐懒成果小镇
+ *   04 / 乐懒 AI · 论文智能助手
+ *   05 / Technology
  *   06 / About
  *
- * 设计原则：80% editorial / 20% oriental-spatial；
+ * 设计原则：80% editorial / 20% oriental；
  *          Server Components only；无 hover-only 信息。
  */
 import { homeSections } from "@/content/home";
 import { HomeHero } from "@/components/home/HomeHero";
-import { HomeArchitecture } from "@/components/home/HomeArchitecture";
-import { HomeAi } from "@/components/home/HomeAi";
-import { HomeTown } from "@/components/home/HomeTown";
 import { HomeGuardian } from "@/components/home/HomeGuardian";
+import { HomeTown } from "@/components/home/HomeTown";
+import { HomeAi } from "@/components/home/HomeAi";
 import { HomeTechnology } from "@/components/home/HomeTechnology";
 import { HomeAbout } from "@/components/home/HomeAbout";
 
@@ -31,14 +29,12 @@ export default function HomePage() {
         switch (section.kind) {
           case "hero":
             return <HomeHero key={section.id} section={section} />;
-          case "architecture":
-            return <HomeArchitecture key={section.id} section={section} />;
-          case "ai":
-            return <HomeAi key={section.id} section={section} />;
+          case "guardian":
+            return <HomeGuardian key={section.id} section={section} />;
           case "town":
             return <HomeTown key={section.id} section={section} />;
-          case "guardian":
-            return <HomeGuardian key={section.id} />;
+          case "ai":
+            return <HomeAi key={section.id} section={section} />;
           case "technology":
             return <HomeTechnology key={section.id} section={section} />;
           case "about":

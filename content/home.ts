@@ -1,94 +1,75 @@
 /**
  * LELAN TECHNOLOGY · 首页内容模型
  *
- * 仅提供 Phase 1A/1B 所需的最小文案与结构骨架。
- * 文案原则：克制、真实、不夸大、不造假数据。
+ * Phase 1D-G3 — Guardian-first Homepage + LeLan AI Integration
  *
- * 重要约束：
- * - 不得在首页对 Guardian 展示五行 / 八阶段的探索式内容；
- *   Guardian 首页仅展示四步法。
- * - 不得把 Town / Guardian / AI 描述为等权的三业务并列；
- *   AI 是 LeLan 体系中一项软件产品，而非业务并列项。
- * - 内部 anchor 使用 /# + sectionId；external link 仅引用已存在路由。
+ * 产品叙事优先级：
+ *   00 Hero
+ *   01 乐懒守护（核心产品）
+ *   02 五行生活守护（Guardian 同 section）
+ *   03 乐懒成果小镇
+ *   04 乐懒 AI · 论文智能助手
+ *   05 工程能力 / 方法体系
+ *   06 关于乐懒科技
+ *
+ * 产品关系：
+ *   乐懒科技
+ *   ├─ 乐懒守护（人生档案 + 坐标系统）
+ *   └─ 乐懒成果小镇（空间服务入口）
+ *   LeLan AI = 独立软件产品 / 体验入口
+ *
+ * 文案原则：克制、真实、不夸大、不造假数据。
+ * AI 文案基于 lelan-shouhu 仓库审计确认的实际能力。
  */
 
-import { townShops } from "./town";
-
 export interface HomeSectionBase {
-  /** 语义化 sectionId（用于 anchor / analytics） */
   id: string;
-  /** 排版编号，例如 01–08，使用 editorial numbered sections 风格 */
   number: string;
-  /** 标题 */
   title: string;
-  /** 一段不超过两句的简介 */
   intro: string;
 }
 
 export interface HomeHeroSection extends HomeSectionBase {
   kind: "hero";
-  /** 单句核心立场（baseline） */
   baseline: string;
-  /** 一句话补充描述 */
   subBaseline: string;
+  pillars: ReadonlyArray<{
+    name: string;
+    description: string;
+  }>;
 }
 
-export interface HomeArchitectureSection extends HomeSectionBase {
-  kind: "architecture";
-  /** 顶层并置的两个系统（town / guardian） */
-  systems: ReadonlyArray<{
-    id: "town" | "guardian";
-    name: string;
-    oneLine: string;
-  }>;
-  /** 联系 AI 的一句桥接：AI 是 LeLan 的软件产品表达 */
-  aiBridge: string;
+export interface HomeGuardianSection extends HomeSectionBase {
+  kind: "guardian";
 }
 
 export interface HomeAiSection extends HomeSectionBase {
   kind: "ai";
-  /** AI 在 LeLan 体系中的定位：产品能力，非业务并列项 */
+  /** 基于 lelan-shouhu 仓库审计确认的实际能力 */
   positioning: string;
-  /** 体验版入口（当前阶段：占位锚点，提醒正式子域/接口尚未上线） */
-  previewEntry: {
+  verifiedFeatures: ReadonlyArray<{
     label: string;
-    /** 不指向任何虚构 URL：留 null 表示当前不存在外链 */
-    href: string | null;
-    disclaimer: string;
-  };
+    detail: string;
+  }>;
+  flowSteps: ReadonlyArray<{
+    label: string;
+    hint: string;
+  }>;
+  statusNote: string;
 }
 
 export interface HomeTownSection extends HomeSectionBase {
   kind: "town";
-  /** 8 个铺子直接引用 town.ts 的同一真相源 */
-  shopIds: ReadonlyArray<(typeof townShops)[number]["id"]>;
-  /** 6 个能力维度（与 town.ts 一致） */
   capabilities: ReadonlyArray<{
     id: string;
     label: string;
     description: string;
   }>;
-  /** 当前阶段对外说明（避免虚假上线承诺） */
   statusNote: string;
-}
-
-export interface HomeGuardianSection extends HomeSectionBase {
-  kind: "guardian";
-  /** Guardian 首页只展示四步法 */
-  steps: ReadonlyArray<{
-    id: "archive" | "cohort" | "calibration" | "risk";
-    name: string;
-    oneLine: string;
-  }>;
-  /** 当前阶段对外说明（避免临床/科研合规表述） */
-  statusNote: string;
-  /** 未来首个 MVP 场景（仅作为内容备注，不实现 UI） */
-  futureFocusNote: string;
 }
 
 export interface HomeTechnologySection extends HomeSectionBase {
   kind: "technology";
-  /** 不堆砌技术名词；保留可信、克制的措辞 */
   pillars: ReadonlyArray<{
     id: string;
     name: string;
@@ -98,142 +79,145 @@ export interface HomeTechnologySection extends HomeSectionBase {
 
 export interface HomeAboutSection extends HomeSectionBase {
   kind: "about";
-  /** 简短关于我们摘要 */
   body: string;
 }
 
 export type HomeSection =
   | HomeHeroSection
-  | HomeArchitectureSection
+  | HomeGuardianSection
   | HomeAiSection
   | HomeTownSection
-  | HomeGuardianSection
   | HomeTechnologySection
   | HomeAboutSection;
 
 /* -------------------------------------------------------------------------- */
-/* Sections                                                                   */
+/* Sections — 按优先级排序                                                  */
 /* -------------------------------------------------------------------------- */
 
 export const homeSections: ReadonlyArray<HomeSection> = [
+  /* ── 00 Hero ─────────────────────────────────────────────────────────────── */
   {
     id: "hero",
     number: "00",
     kind: "hero",
     title: "乐懒科技 · LELAN TECHNOLOGY",
-    intro:
-      "一家将科研能力、数据与 AI 转化为真实可用产品与服务的科技公司。",
+    intro: "一家将科研能力、数据与 AI 转化为真实可用产品与服务的科技公司。",
     baseline: "把科研能力，变成可被使用的产品。",
     subBaseline:
-      "面向科研工作者与科研服务方，构建可解释、可管理、可长期协作的数字系统。",
-  },
-  {
-    id: "architecture",
-    number: "01",
-    kind: "architecture",
-    title: "两大系统，一个体系",
-    intro:
-      "乐懒科技当前由两个主要系统组成，分别承载不同的服务方式。",
-    systems: [
+      "围绕人生档案系统、科研成果服务与通用 AI 软件三条主线，构建长期可信赖的数字产品。",
+    pillars: [
       {
-        id: "town",
-        name: "乐懒成果小镇",
-        oneLine:
-          "围绕论文、课题、专利、软著、申报、转化、产学研、AI 工具等八条核心服务的科研服务入口集合。",
+        name: "乐懒守护",
+        description: "人生档案 · 人生坐标 · 八阶段 · 五行生活维度",
       },
       {
-        id: "guardian",
-        name: "乐懒守护",
-        oneLine:
-          "以人生档案 + 队列建模 + 横断面校准 + 风险预警为方法论的长期生活 / 生命档案系统。",
+        name: "成果小镇",
+        description: "科研服务空间入口 · 八条服务链路",
+      },
+      {
+        name: "乐懒 AI",
+        description: "论文智能助手 · 已上线体验版",
       },
     ],
-    aiBridge:
-      "乐懒 AI 是乐懒科技在两个系统之中，以软件产品形式沉淀下来的通用 AI 能力。",
   },
+
+  /* ── 01 乐懒守护 ──────────────────────────────────────────────────────── */
   {
-    id: "ai",
-    number: "02",
-    kind: "ai",
-    title: "乐懒 AI · 论文智能助手",
-    intro:
-      "AI 不是独立第三业务，而是贯穿乐懒两个系统的软件能力。",
-    positioning:
-      "以通用大模型 + 科研垂直知识 + 可追溯编辑流为产品骨架的论文写作辅助能力。",
-    previewEntry: {
-      // 当前阶段：Beta 申请通道尚未开放；不引用任何虚构 URL。
-      label: "Beta 即将开放",
-      href: null,
-      disclaimer:
-        "Beta 申请通道即将开放；当前阶段不接收任何形式的体验申请。",
-    },
+    id: "guardian",
+    number: "01",
+    kind: "guardian",
+    title: "乐懒守护",
+    intro: "把一生，变成一张持续更新的人生坐标。",
   },
+
+  /* ── 03 乐懒成果小镇 ─────────────────────────────────────────────────── */
   {
     id: "town",
     number: "03",
     kind: "town",
     title: "乐懒成果小镇",
-    intro:
-      "八条核心服务，一条可被走通的研究工作流。",
-    shopIds: [
-      "paper-teahouse",
-      "research-shop",
-      "patent-shop",
-      "software-shop",
-      "funding-shop",
-      "transfer-shop",
-      "industry-research-shop",
-      "ai-workshop",
-    ],
+    intro: "八条核心服务，一条可被走通的研究工作流。",
     capabilities: [
-      { id: "Research", label: "Research", description: "课题立项与文献研究" },
-      { id: "Writing", label: "Writing", description: "论文与申报书写作" },
-      { id: "IP", label: "IP", description: "专利与软著" },
-      { id: "Funding", label: "Funding", description: "基金与项目申报" },
-      { id: "Transformation", label: "Transformation", description: "成果转化对接" },
-      { id: "AI Tools", label: "AI Tools", description: "AI 工具辅助" },
+      {
+        id: "Research",
+        label: "Research",
+        description: "课题立项与文献研究",
+      },
+      {
+        id: "Writing",
+        label: "Writing",
+        description: "论文与申报书写作",
+      },
+      {
+        id: "IP",
+        label: "IP",
+        description: "专利与软著",
+      },
+      {
+        id: "Funding",
+        label: "Funding",
+        description: "基金与项目申报",
+      },
+      {
+        id: "Transformation",
+        label: "Transformation",
+        description: "成果转化对接",
+      },
+      {
+        id: "AI Tools",
+        label: "AI Tools",
+        description: "AI 工具辅助",
+      },
     ],
-    statusNote:
-      "当前为小镇图谱展示阶段；各铺子的实际功能入口将随版本逐步开放。",
+    statusNote: "当前为小镇图谱展示阶段；各铺子的实际功能入口将随版本逐步开放。",
   },
+
+  /* ── 04 乐懒 AI · 论文智能助手 ──────────────────────────────────────── */
   {
-    id: "guardian",
+    id: "ai",
     number: "04",
-    kind: "guardian",
-    title: "乐懒守护",
-    intro:
-      "以四步法作为可解释的长期守护方法，不依赖神秘化符号。",
-    steps: [
+    kind: "ai",
+    title: "乐懒 AI · 论文智能助手",
+    intro: "乐懒 AI 已作为独立软件产品提供体验。",
+    positioning:
+      "基于 DeepSeek 大模型，支持文本输入或 .docx 上传，提供 AI 降重、AIGC 分析与自然化改写，可生成多份 Word 成品，无需登录即可体验。",
+    verifiedFeatures: [
       {
-        id: "archive",
-        name: "人生档案",
-        oneLine:
-          "把分散的身份 / 健康 / 生活 / 工作信息组织成可追溯的长期记录。",
+        label: "文本 / 文档输入",
+        detail: "支持直接粘贴文本或上传 .docx（≤ 10 MB）",
       },
       {
-        id: "cohort",
-        name: "队列建模",
-        oneLine:
-          "将个体数据放入对照群体，构建可比较的参照系。",
+        label: "三档降重强度",
+        detail: "轻度 · 中度 · 深度，独立调模型，互不串线",
       },
       {
-        id: "calibration",
-        name: "横断面校准",
-        oneLine:
-          "对当前状态做多维度横断面评估，并参照群体基线做校准。",
+        label: "AIGC 分析",
+        detail: "结构化输出文本的 AI 生成特征",
       },
       {
-        id: "risk",
-        name: "风险预警",
-        oneLine:
-          "基于校准结果，向用户提示值得关注的变化方向；由用户决定如何跟进。",
+        label: "降 AIGC 自然化",
+        detail: "基于分析结果的改写，降低文本 AI 特征",
+      },
+      {
+        label: "多份 Word 成品",
+        detail: "降重 Word / AIGC 报告 / 摘要 / 批注版 / 原文标注版",
+      },
+      {
+        label: "无需登录",
+        detail: "直接体验，无需注册或手机验证",
       },
     ],
+    flowSteps: [
+      { label: "上传输入", hint: "文本粘贴 / .docx 上传" },
+      { label: "选择模式", hint: "降重强度 / 成品类型" },
+      { label: "AI 处理", hint: "DeepSeek 大模型" },
+      { label: "下载成品", hint: "Word 文件可下载" },
+    ],
     statusNote:
-      "当前为 MVP 早期；不展开临床、科研或医疗合规表述；本页呈现的是方法论框架，相关能力尚未上线。",
-    futureFocusNote:
-      "未来首个聚焦场景可能围绕饮食 / 营养等日常生活维度（暂未上线）。",
+      "独立产品体验版已上线；与乐懒科技官网的账号和深度集成规划中。",
   },
+
+  /* ── 05 工程能力 ──────────────────────────────────────────────────────── */
   {
     id: "technology",
     number: "05",
@@ -244,14 +228,12 @@ export const homeSections: ReadonlyArray<HomeSection> = [
       {
         id: "data-trace",
         name: "可追溯",
-        oneLine:
-          "目标：所有生成内容可回溯到来源与编辑过程，避免黑盒结论。",
+        oneLine: "所有生成内容可回溯到来源与编辑过程，避免黑盒结论。",
       },
       {
         id: "human-loop",
         name: "人在回路",
-        oneLine:
-          "关键判断保留人类复核环节，AI 不替代最终决策。",
+        oneLine: "关键判断保留人类复核环节，AI 不替代最终决策。",
       },
       {
         id: "privacy-min",
@@ -261,6 +243,8 @@ export const homeSections: ReadonlyArray<HomeSection> = [
       },
     ],
   },
+
+  /* ── 06 关于 ─────────────────────────────────────────────────────────── */
   {
     id: "about",
     number: "06",

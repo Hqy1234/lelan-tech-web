@@ -415,3 +415,52 @@
 
 - **D-PHASE1A-015** — 内部"返回首页"等导航链接直接使用 `"/"`，**不**绑定到
   `siteUrl`（未确认时为空），避免 placeholder URL 出现在 DOM 中。
+
+---
+
+## D-PHASE1D-G3 · Guardian-first Homepage + LeLan AI Integration（追加于 2026-09-11）
+
+### Homepage 产品叙事优先级
+
+- **D-PHASE1D-G3-001** — Homepage 新顺序：Hero → 乐懒守护 → 成果小镇 → LeLan AI → Technology → About。
+  乐懒守护为第一核心产品模块，成果小镇为第二主要业务系统。
+- **D-PHASE1D-G3-002** — `HomeArchitecture` section 移除，
+  不再作为独立 section。两个系统关系在 Hero 中通过三产品 pillar cards 表达。
+- **D-PHASE1D-G3-003** — LeLan AI 作为"已上线独立软件产品"定位，
+  不是"Beta 即将开放"。文案升级为"体验版可用"。
+
+### Header 导航重排
+
+- **D-PHASE1D-G3-004** — Header nav 新顺序：首页 / 乐懒守护 / 成果小镇 / 乐懒 AI / 关于。
+  `#ai` 指向 AI section。
+- **D-PHASE1D-G3-005** — "产品" anchor（指向 #architecture）移除。
+
+### LeLan AI 文案与外链
+
+- **D-PHASE1D-G3-006** — LeLan AI 文案基于 `lelan-shouhu` 仓库 read-only audit 确认的实际能力：
+  - 文本输入或 .docx 上传（≤ 10 MB）
+  - 三档降重强度（轻度 / 中度 / 深度），独立调模型
+  - AIGC 分析（结构化 JSON 输出）
+  - 降 AIGC 自然化改写（基于分析结果）
+  - 7 个 Word 成品：降重 Word × 3 + AIGC 报告 + 摘要 + 批注版 + 原文标注版
+  - DeepSeek-v4-Flash 模型
+  - 无需登录即可体验
+- **D-PHASE1D-G3-007** — LeLan AI 当前**无确认的公开生产 URL**。
+  lelan-shouhu repo 确认部署在 Render（`lelan-shouhu` service），但无域名确认。
+  官网不硬编码未确认 URL，正确报告"体验入口整理中"。
+- **D-PHASE1D-G3-008** — LeLan AI 与官网融合说明：
+  "独立产品体验版已上线；与乐懒科技官网的账号和深度集成规划中。"
+  **不**声称已统一账号、数据或 API。
+
+### 两系统关系
+
+- **D-PHASE1D-G3-009** — "两大系统，一个体系"表达保留，
+  在 Hero 三产品 pillar 中简洁体现，不通过独立 section 呈现。
+- **D-PHASE1D-G3-010** — LeLan AI 不是第三业务翼，而是真实软件产品能力入口。
+  三产品 pillar 均作入口用途，不是等权业务线。
+
+### Repo 边界
+
+- **D-PHASE1D-G3-011** — 官网与 lelan-shouhu 保持独立部署，
+  **不**实现：代码合并 / monorepo / submodule / shared session / cross-domain SSO。
+  "融合"定义为品牌/导航/域名的长期规划，不是本阶段实现目标。

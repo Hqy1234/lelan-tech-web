@@ -28,9 +28,8 @@ interface HomeTownProps {
 }
 
 export function HomeTown({ section }: HomeTownProps) {
-  const ordered = section.shopIds
-    .map((id) => townShops.find((s) => s.id === id))
-    .filter((s): s is (typeof townShops)[number] => Boolean(s));
+  // Show all shops — no shopIds filter needed in this version
+  const ordered = [...townShops];
 
   return (
     <section

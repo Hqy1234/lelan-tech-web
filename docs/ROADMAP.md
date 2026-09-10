@@ -7,9 +7,9 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1D-G2 — Guardian Demo Login + Personal Life Archive
-- **下一阶段**：Phase 1D-G2 → Phase 3（Town spatial V2）待确认
-- **说明**：Phase 2 完成 Guardian 人生坐标系统；Phase 1D-G2 完成 Demo Login + Profile + 两个 Persona。
+- **当前阶段**：Phase 1D-G3 — Guardian-first Homepage + LeLan AI Integration
+- **下一阶段**：Phase 1D-G3 → Phase 1D-G4（/guardian detail / /town detail）待确认
+- **说明**：Phase 1D-G3 完成 Homepage 产品优先级重排（Guardian-first）、LeLan AI 文案基于 lelan-shouhu 仓库审计、Header nav 重排、HomeArchitecture section 移除。
 
 ---
 
@@ -79,6 +79,20 @@
 - 两个 Demo Persona 数据完整写入 `content/guardian.ts`（m123: 离·青少年 / n123: 兑·青年期）
 - HomeGuardian 新增"登录查看模拟人生档案"CTA
 - 页面底部 demo disclaimer
+- 文档更新：PROJECT / DESIGN-SYSTEM / DECISIONS / ROADMAP
+
+## Phase 1D-G3 · Guardian-first Homepage + LeLan AI Integration（已完成）
+
+- Homepage section 重排：Hero → 乐懒守护 → 成果小镇 → LeLan AI → Technology → About
+- HomeArchitecture section 移除（`HomeArchitecture.tsx` 删除）
+- `content/home.ts` 全面重构：移除 `HomeArchitectureSection`，新增 `HomeGuardianSection`，`HomeAiSection` 增加 `verifiedFeatures` 和 `flowSteps`
+- Header nav 重排：首页 / 乐懒守护 / 成果小镇 / 乐懒 AI / 关于（`#ai`）
+- Hero 重构：三产品 pillar cards（乐懒守护 / 成果小镇 / 乐懒 AI）
+- `HomeGuardian` 接受 `section` prop，使用 `content/home.ts` 的 `section.number` 作为 eyebrow
+- `HomeAi` 文案基于 `lelan-shouhu` read-only audit：确认 7 个真实 Word 成品 / 3 档降重 / AIGC 分析 / 降 AIGC 自然化 / DeepSeek-v4-Flash / 无需登录
+- LeLan AI 状态由"Beta 即将开放"升级为"体验版可用"
+- 无确认公开 URL → 不使用硬编码外链（正确报告）
+- lelan-shouhu read-only audit：确认 Deploy on Render / `lelan-shouhu` service name / 无生产域名确认
 - 文档更新：PROJECT / DESIGN-SYSTEM / DECISIONS / ROADMAP
 
 ## Phase 1 · Brand System + Content Model

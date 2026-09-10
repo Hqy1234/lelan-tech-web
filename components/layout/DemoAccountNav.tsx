@@ -14,11 +14,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { isDemoLoggedIn, demoLogout } from "@/lib/demo";
 
 export function DemoAccountNav() {
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   // Initialize from sessionStorage — called on client only so window is defined
   const [loggedIn] = useState(() => isDemoLoggedIn());
@@ -29,8 +27,8 @@ export function DemoAccountNav() {
 
   const handleLogout = useCallback(() => {
     demoLogout();
-    router.push("/");
-  }, [router]);
+    window.location.href = "/";
+  }, []);
 
   // SSR / pre-hydration placeholder prevents mismatch
   if (!mounted) {

@@ -1,7 +1,10 @@
 /**
- * LELAN TECHNOLOGY · Home · Guardian (乐懒守护) V2
+ * LELAN TECHNOLOGY · Home · Guardian (乐懒守护) V3
  *
- * Phase 2 — Life Coordinate System prototype.
+ * Phase 1D-G3 — Guardian-first homepage:
+ * - Prominent product identity as first core section
+ * - Uses content/home.ts section data (number: "01")
+ * - Full Guardian coordinate system + five-element dashboard
  *
  * Product hierarchy:
  *   1. 人生档案 + 乐懒守护符 · 人生坐标（主视觉）
@@ -17,7 +20,6 @@
  * Components:
  *   - GuardianArchive: client island (lifecycle + task flow state)
  *   - GuardianLifecycle: server (Y-axis rail)
- *   - GuardianTaskFlow: server (X-axis task chain)
  *   - GuardianElements: server (五行 teaser)
  *   - Methodology strip: server (method steps)
  *
@@ -29,27 +31,26 @@ import Image from "next/image";
 import { Container } from "@/components/layout/Container";
 import { StatusLabel } from "@/components/ui/StatusLabel";
 import {
-  guardianHomeContent,
   guardianMethodSteps,
   guardianArchiveCaption,
 } from "@/content/guardian";
 import { visualAssets } from "@/content/assets";
 import { GuardianArchive } from "@/components/guardian/GuardianArchive";
 import { GuardianElements } from "@/components/guardian/GuardianElements";
+import type { HomeGuardianSection } from "@/content/home";
 
 /** Resolve a visual asset by id */
 function resolveAsset(id: string) {
   return (visualAssets as Record<string, { src: string; alt: string }>)[id] ?? null;
 }
 
-export function HomeGuardian() {
+export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
   const nuwa = resolveAsset("guardianNuwa");
-  const content = guardianHomeContent;
 
   return (
     <section
-      id="guardian"
-      aria-labelledby="guardian-title"
+      id={section.id}
+      aria-labelledby={`${section.id}-title`}
       className="border-b border-rule bg-paper"
     >
       <Container as="div">
@@ -58,24 +59,25 @@ export function HomeGuardian() {
           <div className="md:col-span-8">
             <div className="flex items-center gap-3">
               <span className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted">
-                {content.eyebrow}
+                {section.number} · LELAN GUARDIAN
               </span>
               <StatusLabel tone="concept" label="坐标化系统" />
             </div>
 
             <h2
-              id="guardian-title"
+              id={`${section.id}-title`}
               className="lede mt-4 text-2xl font-medium leading-tight text-ink sm:text-3xl md:text-4xl"
             >
-              {content.title}
+              {section.title}
             </h2>
 
             <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink sm:text-xl">
-              {content.headline}
+              {section.intro}
             </p>
 
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
-              {content.body}
+              从碎片化信息归档开始，以生命周期阶段定位当下，
+              将每个阶段的重要事项与生活维度组织进同一套坐标系统。
             </p>
 
             {/* CTA */}
@@ -150,7 +152,6 @@ export function HomeGuardian() {
 
             {/* Archive content */}
             <div className="p-4 sm:p-6">
-              {/* Interactive archive — client island */}
               <GuardianArchive />
             </div>
           </div>
@@ -161,9 +162,8 @@ export function HomeGuardian() {
           <GuardianElements />
         </div>
 
-        {/* ── Methodology strip (降级为底层说明) ───────────────────── */}
+        {/* ── Methodology strip ──────────────────────────────────── */}
         <div className="mt-10">
-          {/* Header */}
           <div className="flex items-center gap-3">
             <span className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
               坐标背后的方法
@@ -171,24 +171,18 @@ export function HomeGuardian() {
             <span className="h-px flex-1 bg-rule" aria-hidden />
           </div>
 
-          {/* Method steps — open list, not cards */}
           <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-5">
             {guardianMethodSteps.map((step) => (
               <div key={step.id} className="flex flex-col gap-1">
-                {/* Step header */}
                 <div className="flex items-center gap-2">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-rule font-mono text-[0.6rem] text-muted">
                     {step.order}
                   </span>
-                  <dt className="font-serif text-sm text-ink">
-                    {step.name}
-                  </dt>
+                  <dt className="font-serif text-sm text-ink">{step.name}</dt>
                 </div>
-                {/* Phase label */}
                 <dd className="ml-7 font-mono text-[0.6rem] uppercase tracking-wider text-muted">
                   {step.phase}
                 </dd>
-                {/* Description */}
                 <dd className="mt-1 text-xs leading-relaxed text-muted">
                   {step.description}
                 </dd>

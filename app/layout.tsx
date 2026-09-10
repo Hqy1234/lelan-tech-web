@@ -19,7 +19,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang={locale} className="h-full antialiased">
-      <body className="min-h-full bg-paper text-ink">
+      <body className="min-h-full bg-paper text-ink" suppressHydrationWarning>
         {/* Skip link — first focusable element for keyboard users */}
         <a
           href="#main"
