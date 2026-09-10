@@ -90,10 +90,17 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
                 <span aria-hidden>→</span>
               </a>
               <a
-                href="/login"
-                className="inline-flex items-center gap-2 rounded-sm border border-rule px-4 py-2 text-sm text-ink transition-colors hover:border-green hover:text-green"
+                href="/guardian/demo"
+                className="inline-flex items-center gap-2 rounded-sm border border-green bg-green px-4 py-2 text-sm text-paper transition-colors hover:bg-green-dark"
               >
-                登录查看模拟人生档案
+                体验人生档案 Demo
+                <span aria-hidden>→</span>
+              </a>
+              <a
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-sm border border-rule px-4 py-2 text-sm text-muted transition-colors hover:border-green hover:text-green"
+              >
+                登录查看模拟账号
                 <span aria-hidden>→</span>
               </a>
             </div>

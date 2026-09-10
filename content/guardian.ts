@@ -1,7 +1,30 @@
 /**
  * LELAN TECHNOLOGY · Guardian Content Model
  *
- * Phase 1D-G2 — Guardian Demo Login + Personal Life Archive
+ * Phase 1E — Guardian Demo Contract Freeze + Mock Adapter
+ *
+ * Three-layer contract system:
+ *   A. GuardianDemoInput  — user step form data
+ *   B. GuardianAnalysisResult — analysis layer (future Dify output)
+ *   C. GuardianProfile     — final profile consumed by Profile UI
+ *
+ * Adapter interface (future):
+ *   createGuardianDemoProfile(input: GuardianDemoInput): Promise<GuardianProfile>
+ *
+ * Deterministic logic (done by frontend/adapter):
+ *   - age → stage mapping
+ *   - stage metadata
+ *   - scenario metadata
+ *   - task state (done/current/upcoming)
+ *   - progress calculation
+ *   - archive id
+ *
+ * AI/Dify (future):
+ *   - summary
+ *   - attention items
+ *   - dimension notes
+ *   - explanations
+ *   - suggested next steps
  *
  * Product hierarchy:
  *   1. 人生档案（Life Archive）
@@ -614,3 +637,332 @@ export const DEMO_CREDENTIALS: ReadonlyArray<DemoCredential> = [
 
 /** sessionStorage key for demo session */
 export const SESSION_KEY = "lelan_demo_session";
+
+/* ========================================================================
+   GuardianDemoInput — Step Form Data
+   User submits this from the /guardian/demo multi-step form
+   ======================================================================== */
+
+export type GuardianStageId =
+  | "zhen-infant"
+  | "xun-child"
+  | "li-adolescent"
+  | "dui-young-adult"
+  | "qian-adult"
+  | "kan-middle-age"
+  | "gen-later-life"
+  | "kun-elder";
+
+export type GuardianScenarioId =
+  | "general"
+  | "study-career"
+  | "startup"
+  | "health"
+  | "wealth";
+
+/** Five-element dimension tags selected by user in Step 4 */
+export type GuardianDimensionTagId =
+  | "budget"
+  | "insurance"
+  | "business-account"
+  | "tax-attention"
+  | "annual-checkup-pending"
+  | "sleep-attention"
+  | "exercise-record"
+  | "health-record"
+  | "frequent-travel"
+  | "document-check"
+  | "trip-planning"
+  | "irregular-meals"
+  | "nutrition-record"
+  | "meal-routine"
+  | "renting"
+  | "housing-plan"
+  | "renovation"
+  | "family-housing";
+
+export interface GuardianDemoInput {
+  version: "guardian-demo-v1";
+  identity: {
+    age: number;
+    gender: "male" | "female";
+    city?: string;
+  };
+  stage: {
+    id: GuardianStageId;
+  };
+  scenario: {
+    id: GuardianScenarioId;
+  };
+  completedTaskIds: string[];
+  selectedDimensionTags: GuardianDimensionTagId[];
+}
+
+/* ========================================================================
+   GuardianAnalysisResult — Analysis Layer (future Dify output)
+   Frontend/adapter generates this deterministically for the demo
+   Future: replaced by actual Dify JSON output
+   ======================================================================== */
+
+export interface GuardianAnalysisAttentionItem {
+  id: string;
+  dimension: "wealth" | "health" | "travel" | "food" | "housing" | "general";
+  status: "normal" | "attention" | "current" | "planned";
+  title: string;
+  explanation: string;
+  actionLabel?: string;
+  sourceHint?: string;
+}
+
+export interface GuardianAnalysisDimensionNotes {
+  wealth: string;
+  health: string;
+  travel: string;
+  food: string;
+  housing: string;
+}
+
+export interface GuardianAnalysisResult {
+  summary: string;
+  attentionItems: GuardianAnalysisAttentionItem[];
+  dimensionNotes: GuardianAnalysisDimensionNotes;
+  disclaimer: string;
+}
+
+/* ========================================================================
+   Error Contract
+   ======================================================================== */
+
+export type GuardianDemoErrorCode =
+  | "INVALID_INPUT"
+  | "STAGE_MISMATCH"
+  | "UNSUPPORTED_SCENARIO"
+  | "GENERATION_FAILED";
+
+export interface GuardianDemoError {
+  code: GuardianDemoErrorCode;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+/* ========================================================================
+   Age → Stage deterministic mapping
+   ======================================================================== */
+
+/** Map age to stage id deterministically */
+export function ageToStageId(age: number): GuardianStageId {
+  if (age < 10) return "zhen-infant";
+  if (age < 20) return "xun-child";
+  if (age < 30) return "li-adolescent";
+  if (age < 40) return "dui-young-adult";
+  if (age < 50) return "qian-adult";
+  if (age < 60) return "kan-middle-age";
+  if (age < 70) return "gen-later-life";
+  return "kun-elder";
+}
+
+/** Validate age is within reasonable range */
+export function isValidAge(age: number): boolean {
+  return Number.isInteger(age) && age >= 0 && age <= 120;
+}
+
+/* ========================================================================
+   Dimension tag → dimension mapping
+   ======================================================================== */
+
+export type GuardianDimensionId = "wealth" | "health" | "travel" | "food" | "housing";
+
+export function tagToDimension(tag: GuardianDimensionTagId): GuardianDimensionId {
+  switch (tag) {
+    case "budget":
+    case "insurance":
+    case "business-account":
+    case "tax-attention":
+      return "wealth";
+    case "annual-checkup-pending":
+    case "sleep-attention":
+    case "exercise-record":
+    case "health-record":
+      return "health";
+    case "frequent-travel":
+    case "document-check":
+    case "trip-planning":
+      return "travel";
+    case "irregular-meals":
+    case "nutrition-record":
+    case "meal-routine":
+      return "food";
+    case "renting":
+    case "housing-plan":
+    case "renovation":
+    case "family-housing":
+      return "housing";
+  }
+}
+
+/* ========================================================================
+   Scenario metadata
+   ======================================================================== */
+
+export interface GuardianScenarioMeta {
+  id: GuardianScenarioId;
+  name: string;
+  description: string;
+  /** Tasks specific to this scenario */
+  tasks: ReadonlyArray<{
+    id: string;
+    label: string;
+  }>;
+}
+
+export const GUARDIAN_SCENARIOS: ReadonlyArray<GuardianScenarioMeta> = [
+  {
+    id: "general",
+    name: "综合生活",
+    description: "当前生活阶段的基础整理",
+    tasks: [
+      { id: "general-t1", label: "档案基础信息" },
+      { id: "general-t2", label: "当前事项整理" },
+      { id: "general-t3", label: "健康记录" },
+      { id: "general-t4", label: "财务记录" },
+      { id: "general-t5", label: "居住信息" },
+    ],
+  },
+  {
+    id: "study-career",
+    name: "学习 / 职业",
+    description: "学业与职业发展阶段的整理",
+    tasks: [
+      { id: "study-t1", label: "职业方向整理" },
+      { id: "study-t2", label: "社保信息核对" },
+      { id: "study-t3", label: "年度体检计划" },
+      { id: "study-t4", label: "居住安排" },
+      { id: "study-t5", label: "基础财务规划" },
+    ],
+  },
+  {
+    id: "startup",
+    name: "创业",
+    description: "创业阶段的事项整理",
+    tasks: [
+      { id: "startup-t1", label: "公司核名" },
+      { id: "startup-t2", label: "工商注册" },
+      { id: "startup-t3", label: "公章刻印" },
+      { id: "startup-t4", label: "银行开户" },
+      { id: "startup-t5", label: "税务登记" },
+      { id: "startup-t6", label: "社保开户" },
+      { id: "startup-t7", label: "域名注册" },
+      { id: "startup-t8", label: "云服务器" },
+    ],
+  },
+  {
+    id: "health",
+    name: "健康记录",
+    description: "健康与长期状态的管理整理",
+    tasks: [
+      { id: "health-t1", label: "健康记录整理" },
+      { id: "health-t2", label: "年度体检计划" },
+      { id: "health-t3", label: "作息记录" },
+      { id: "health-t4", label: "运动记录" },
+      { id: "health-t5", label: "保障信息核对" },
+    ],
+  },
+  {
+    id: "wealth",
+    name: "财富事项",
+    description: "财务与资产管理整理",
+    tasks: [
+      { id: "wealth-t1", label: "基础预算建立" },
+      { id: "wealth-t2", label: "保障信息核对" },
+      { id: "wealth-t3", label: "资产记录" },
+      { id: "wealth-t4", label: "重要缴费事项" },
+      { id: "wealth-t5", label: "长期规划记录" },
+    ],
+  },
+] as const;
+
+/* ========================================================================
+   Dimension tag metadata
+   ======================================================================== */
+
+export interface GuardianDimensionTagMeta {
+  id: GuardianDimensionTagId;
+  label: string;
+  dimension: GuardianDimensionId;
+}
+
+export const DIMENSION_TAGS: ReadonlyArray<GuardianDimensionTagMeta> = [
+  // Wealth
+  { id: "budget", label: "预算规划", dimension: "wealth" },
+  { id: "insurance", label: "保险信息", dimension: "wealth" },
+  { id: "business-account", label: "企业账户", dimension: "wealth" },
+  { id: "tax-attention", label: "税务待核对", dimension: "wealth" },
+  // Health
+  { id: "annual-checkup-pending", label: "年度体检待安排", dimension: "health" },
+  { id: "sleep-attention", label: "作息记录", dimension: "health" },
+  { id: "exercise-record", label: "运动记录", dimension: "health" },
+  { id: "health-record", label: "健康档案", dimension: "health" },
+  // Travel
+  { id: "frequent-travel", label: "频繁出行", dimension: "travel" },
+  { id: "document-check", label: "证件信息", dimension: "travel" },
+  { id: "trip-planning", label: "出行计划", dimension: "travel" },
+  // Food
+  { id: "irregular-meals", label: "饮食不规律", dimension: "food" },
+  { id: "nutrition-record", label: "营养记录", dimension: "food" },
+  { id: "meal-routine", label: "用餐习惯", dimension: "food" },
+  // Housing
+  { id: "renting", label: "租房信息", dimension: "housing" },
+  { id: "housing-plan", label: "购房计划", dimension: "housing" },
+  { id: "renovation", label: "装修事项", dimension: "housing" },
+  { id: "family-housing", label: "家庭居住", dimension: "housing" },
+] as const;
+
+/* ========================================================================
+   Dimension metadata
+   ======================================================================== */
+
+export interface GuardianDimensionMeta {
+  id: GuardianDimensionId;
+  element: string;
+  name: string;
+  description: string;
+  assetId: VisualAssetId;
+}
+
+export const GUARDIAN_DIMENSIONS: ReadonlyArray<GuardianDimensionMeta> = [
+  {
+    id: "wealth",
+    element: "金",
+    name: "财富",
+    description: "财务与资产规划",
+    assetId: "guardianWealth",
+  },
+  {
+    id: "health",
+    element: "木",
+    name: "健康",
+    description: "健康与长期状态管理",
+    assetId: "guardianLongevity",
+  },
+  {
+    id: "travel",
+    element: "水",
+    name: "出行",
+    description: "出行与旅途安排",
+    assetId: "guardianCloud",
+  },
+  {
+    id: "food",
+    element: "火",
+    name: "饮食",
+    description: "饮食与营养场景",
+    assetId: "guardianCuisine",
+  },
+  {
+    id: "housing",
+    element: "土",
+    name: "安居",
+    description: "居住与家庭环境",
+    assetId: "guardianHarmony",
+  },
+] as const;

@@ -7,9 +7,9 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1D-G3 — Guardian-first Homepage + LeLan AI Integration
-- **下一阶段**：Phase 1D-G3 → Phase 1D-G4（/guardian detail / /town detail）待确认
-- **说明**：Phase 1D-G3 完成 Homepage 产品优先级重排（Guardian-first）、LeLan AI 文案基于 lelan-shouhu 仓库审计、Header nav 重排、HomeArchitecture section 移除。
+- **当前阶段**：Phase 1E — Guardian Demo Contract Freeze + /guardian/demo Frontend + Local Mock Adapter
+- **下一阶段**：Phase 1D-G4（/guardian detail / /town detail）待确认
+- **说明**：Phase 1E 完成 Guardian Demo 三层 Contract 冻结（GuardianDemoInput / GuardianAnalysisResult / GuardianProfile）、Local Mock Adapter 实现、6步建档 Demo 表单（/guardian/demo）、/profile 同时支持固定 Persona + generated Demo profile、sessionStorage 非真实云端档案。
 
 ---
 
@@ -79,6 +79,49 @@
 - 两个 Demo Persona 数据完整写入 `content/guardian.ts`（m123: 离·青少年 / n123: 兑·青年期）
 - HomeGuardian 新增"登录查看模拟人生档案"CTA
 - 页面底部 demo disclaimer
+- 文档更新：PROJECT / DESIGN-SYSTEM / DECISIONS / ROADMAP
+
+## Phase 1E · Guardian Demo Contract Freeze + /guardian/demo Frontend + Local Mock Adapter（已完成）
+
+- **Contract 冻结（三层）**：
+  - `GuardianDemoInput`：age / gender / city / stage.id / scenario.id / completedTaskIds / selectedDimensionTags
+  - `GuardianAnalysisResult`：summary / attentionItems / dimensionNotes / disclaimer（future Dify output）
+  - `GuardianProfile`：冻结现有 contract，保持与 `/profile` UI 兼容
+- **Type definitions** in `content/guardian.ts`：`GuardianStageId`（8个稳定ID）/ `GuardianScenarioId`（5个V1场景）/ `GuardianDimensionTagId`（18个标签）
+- **Deterministic logic 明确分离**：age→stage mapping / task state algorithm（done→current→upcoming）/ progress calculation — 由前端/adapter 负责
+- **未来 AI/Dify 职责**：summary / attention items / dimension notes — 不由 LLM 决定确定性事实
+- **`lib/guardian/mock-adapter.ts`**：Local mock adapter，接口 `createGuardianDemoProfile(input: unknown) → GuardianProfile | GuardianDemoError`
+  - 输入 validation：age 0–120 / gender male/female / stage existence / age-stage consistency
+  - STAGE_MISMATCH error：返回 expectedStage，不 silent correct
+  - Task state algorithm：用户勾选 done → adapter 计算 current/upcoming
+  - Mock analysis：基于 tag 生成简单 notices（不使用 riskScore / diseaseDiagnosis 等禁止术语）
+  - Deterministic archiveRef：`LELAN-DEMO-GEN-{age}-{M/F}-{year}`
+- **`/guardian/demo` 路由**（`app/guardian/demo/page.tsx`）：
+  - 产品演示，不建立真实医疗档案，页面顶部 disclaimer
+  - 6步表单（Client Component island）：
+    - Step 1 基础信息：年龄（0–120）/ 性别（男/女）/ 城市（可选）
+    - Step 2 人生阶段：根据年龄自动建议阶段，显示8阶段 rail，需用户点击确认
+    - Step 3 当前场景：5选1（综合生活 / 学习职业 / 创业 / 健康记录 / 财富事项）
+    - Step 4 生活维度：5维度多选，每维度 2–4 个 tag（共18个稳定ID）
+    - Step 5 当前事项：基于 stage+scenario 显示任务列表，用户勾选已完成
+    - Step 6 确认：汇总展示 + disclaimer + 生成按钮
+  - `field`/`legend` 语义 / `label` 绑定 / `role=alert` 错误 / `fieldset` 分组 / keyboard 导航
+  - 移动端 375px 单列布局
+- **sessionStorage 分离**：
+  - `lelan_generated_guardian_profile`：/guardian/demo 生成的档案
+  - `lelan_demo_session`：m123/n123 登录 session
+  - 两者独立，互不覆盖
+- **`/profile` 数据来源优先级**：
+  - 优先级1：`lelan_generated_guardian_profile`（generated profile）
+  - 优先级2：`lelan_demo_session`（demo account persona）
+  - 优先级3：空状态 + CTA
+- **来源标签**：`/profile` 顶部区分"本次 Demo 档案"（绿色标签）和"模拟账号档案"（灰色标签）
+- **登录优先级冲突**：用户登录 m123/n123 时，清除 `lelan_generated_guardian_profile`（明确选择模拟账号）
+- **Homepage Guardian CTA**：新增"体验人生档案 Demo" → `/guardian/demo`（绿色高亮）
+- **`/login` CTA**：新增"想自己建立一份演示档案？体验建档 Demo →"
+- **`/profile` CTA**：新增"重新体验建档 Demo →"
+- **无 Dify / 无 API key**：所有逻辑本地 deterministic，无网络调用
+- **静态导出兼容**：`output: "export"` 保持，`/guardian/demo` 静态生成
 - 文档更新：PROJECT / DESIGN-SYSTEM / DECISIONS / ROADMAP
 
 ## Phase 1D-G3 · Guardian-first Homepage + LeLan AI Integration（已完成）

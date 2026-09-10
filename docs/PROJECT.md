@@ -124,8 +124,9 @@
 | `/ai` | 乐懒 AI 详情（独立项目外链，URL 待确认） |
 | `/town` | 成果小镇：8 铺子 + 6 能力维度 |
 | `/guardian` | 乐懒守护：人生档案 + 坐标系统 |
+| `/guardian/demo` | 乐懒守护产品演示：6步建档 Demo（Phase 1E 新增） |
 | `/login` | 演示登录页（m123/n123 公开账号） |
-| `/profile` | 个人档案演示页（GuardianProfile contract） |
+| `/profile` | 个人档案页：支持固定 Persona + /guardian/demo 生成的档案 |
 | `/about` | 关于乐懒科技 |
 | `/team` | 团队（当前不发布具体成员） |
 | `/contact` | 联系方式（邮箱待确认，使用 fallback 文案） |
@@ -134,6 +135,55 @@
 
 > 路由清单同时声明于 `content/site.ts` 的 `publicRoutes`，
 > `app/sitemap.ts` 与 `app/robots.ts` 单一来源引用，禁止重复定义。
+
+---
+
+## 4.1 Guardian Demo 技术架构
+
+**三层 Contract**：
+
+```
+GuardianDemoInput → Mock Adapter / Future Dify → GuardianProfile → Profile UI
+```
+
+- `GuardianDemoInput`：Step 1–5 表单数据（age/gender/stage/scenario/tasks/dimensions）
+- `GuardianAnalysisResult`：分析结果（summary/attentionItems/dimensionNotes/disclaimer），future Dify 输出
+- `GuardianProfile`：冻结的最终档案数据结构，所有 Profile UI 消费同一个 contract
+
+**Adapter 接口**（`lib/guardian/mock-adapter.ts`）：
+
+```typescript
+async function createGuardianDemoProfile(
+  input: unknown
+): Promise<GuardianProfile | GuardianDemoError>
+```
+
+- 当前：本地 deterministic mock adapter，无网络调用
+- 未来：替换为 `fetch("https://api.lelan.tech/guardian/demo")`
+
+**Deterministic Logic**（前端/adapter 负责）：
+
+- `age → stage` mapping（8个稳定 ID + 年龄映射表）
+- Task state：`done`（用户勾选）→ `current`（第一个未完成）→ `upcoming`（其余）
+- Progress：`completed / total`
+- Archive ID：deterministic format `LELAN-DEMO-GEN-{age}-{M/F}-{year}`
+
+**AI/Dify（Future）**：
+
+- summary / attentionItems / dimensionNotes / explanation
+- **不**决定确定性事实（阶段、完成进度、任务状态）
+
+**sessionStorage**：
+
+- `lelan_generated_guardian_profile`：/guardian/demo 生成的档案
+- `lelan_demo_session`：m123/n123 演示账号登录 session
+- 两者独立存储；登录 m123/n123 时清除 generated profile
+
+**隐私约束**：
+
+- 不收集真实姓名、手机号、身份证、具体病名、药物信息
+- 所有标签粗粒度（如"作息记录"而非"睡眠障碍诊断"）
+- Demo disclaimer 明确："当前为产品演示，不建立真实医疗档案"
 
 ---
 

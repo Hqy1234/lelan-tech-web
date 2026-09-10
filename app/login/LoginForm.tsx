@@ -19,6 +19,7 @@ import {
   setDemoSession,
   isDemoLoggedIn,
 } from "@/lib/demo";
+import { clearGeneratedProfile } from "@/lib/guardian/mock-adapter";
 
 function QuickFillButton({
   credential,
@@ -94,7 +95,9 @@ export default function LoginForm() {
         return;
       }
 
-      // Write session synchronously — location.assign() navigates before React can disable the button
+      // Clear generated profile when switching to a demo account
+      clearGeneratedProfile();
+      // Write session synchronously
       setDemoSession({ profileId });
       location.assign("/profile");
     },
@@ -201,7 +204,13 @@ export default function LoginForm() {
         </button>
       </form>
 
-      <div className="mt-6 text-center">
+      <div className="mt-6 flex flex-col items-center gap-3">
+        <Link
+          href="/guardian/demo"
+          className="text-xs text-muted transition-colors hover:text-green"
+        >
+          想自己建立一份演示档案？体验建档 Demo →
+        </Link>
         <Link
           href="/"
           className="font-mono text-[0.65rem] uppercase tracking-wider text-muted transition-colors hover:text-ink"

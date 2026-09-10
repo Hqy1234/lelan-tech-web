@@ -464,3 +464,75 @@
 - **D-PHASE1D-G3-011** — 官网与 lelan-shouhu 保持独立部署，
   **不**实现：代码合并 / monorepo / submodule / shared session / cross-domain SSO。
   "融合"定义为品牌/导航/域名的长期规划，不是本阶段实现目标。
+
+## D-PHASE1E · Guardian Demo Contract Freeze + Mock Adapter（追加于 2026-09-11）
+
+### 三层 Contract 系统
+
+- **D-PHASE1E-001** — 明确三层 Contract 边界：
+  - `GuardianDemoInput`：用户建档输入（Step 1–5 表单数据）
+  - `GuardianAnalysisResult`：分析层（future Dify 输出，当前由 mock adapter 生成）
+  - `GuardianProfile`：最终档案（`/profile` UI 唯一消费的数据结构）
+- **D-PHASE1E-002** — `GuardianProfile` contract 保持与 Phase 1D-G2 完全兼容，
+  不因 Demo 功能重命名或扩展字段。
+
+### Deterministic vs AI/Dify 职责分离
+
+- **D-PHASE1E-003** — 以下由前端/adapter deterministic logic 负责：
+  `age → stage mapping`、`stage metadata`、`scenario metadata`、
+  `task total`、`task done/current/upcoming`、`progress completed/total`、
+  `archive id`、`basic timeline records`。
+  **LLM 不应决定确定性事实**（人生阶段、完成进度、任务是否完成）。
+- **D-PHASE1E-004** — 以下可由 Dify/rule engine 提供（future）：
+  `summary`、`attentionItems`、`dimensionNotes`、`explanation`、
+  `suggested next information direction`。
+
+### Mock Adapter
+
+- **D-PHASE1E-005** — `lib/guardian/mock-adapter.ts` 实现 `createGuardianDemoProfile(input) → GuardianProfile | GuardianDemoError`。
+  内部为本地 deterministic 逻辑，无网络调用。
+- **D-PHASE1E-006** — 未来替换方案：在 `createGuardianDemoProfile` 内部替换为
+  `fetch("https://api.lelan.tech/guardian/demo", { method: "POST", body: JSON.stringify(input) })`。
+  Profile UI 无需改动。
+- **D-PHASE1E-007** — Mock adapter validation 返回结构化错误：
+  `INVALID_INPUT`、`STAGE_MISMATCH`（含 expectedStage）、`UNSUPPORTED_SCENARIO`、`GENERATION_FAILED`。
+  UI 展示用户友好的中文错误文案，不暴露技术 stack。
+
+### Stage / Scenario / Tag IDs
+
+- **D-PHASE1E-008** — 8个稳定 Stage ID：`zhen-infant` / `xun-child` / `li-adolescent` /
+  `dui-young-adult` / `qian-adult` / `kan-middle-age` / `gen-later-life` / `kun-elder`。
+  当前版本年龄映射：0–9 / 10–19 / 20–29 / 30–39 / 40–49 / 50–59 / 60–69 / 70+。
+- **D-PHASE1E-009** — V1 5个 Scenario ID：`general` / `study-career` / `startup` / `health` / `wealth`。
+  其他场景（housing/food/travel）预留，不在 V1 UI 中开放。
+- **D-PHASE1E-010** — 18个 Dimension Tag ID（stable internal IDs，中文 label 分离）：
+  wealth: budget/insurance/business-account/tax-attention；
+  health: annual-checkup-pending/sleep-attention/exercise-record/health-record；
+  travel: frequent-travel/document-check/trip-planning；
+  food: irregular-meals/nutrition-record/meal-routine；
+  housing: renting/housing-plan/renovation/family-housing。
+
+### sessionStorage 边界
+
+- **D-PHASE1E-011** — `lelan_demo_session`：m123/n123 演示账号登录状态。
+  `lelan_generated_guardian_profile`：/guardian/demo 生成的档案。
+  两者独立存储，互不覆盖。
+- **D-PHASE1E-012** — 用户登录 m123/n123 时，清除 `lelan_generated_guardian_profile`。
+  因为用户明确选择了模拟账号，generated profile 不应残留。
+- **D-PHASE1E-013** — `/profile` 数据来源优先级：
+  优先级1：generated profile；优先级2：demo account persona；优先级3：空状态。
+
+### 禁止术语
+
+- **D-PHASE1E-014** — Guardian Analysis / Mock Notice **禁止**使用以下术语：
+  `riskScore` / `riskLevel` / `highRisk` / `mediumRisk` / `lowRisk` /
+  `疾病诊断` / `治疗方案` / `药物建议` / `投资建议` / `准确预测`。
+  全部使用粗粒度、正向/neutral 的 notices（如"作息记录值得持续关注"）。
+
+### Visual / Privacy
+
+- **D-PHASE1E-015** — `/guardian/demo` 页面顶部必须显示 disclaimer：
+  "当前为乐懒守护产品演示，不建立真实医疗档案。"
+  所有数据仅在当前浏览器中展示，关闭标签页后自动清除。
+- **D-PHASE1E-016** — `/profile` 顶部区分来源标签：
+  generated profile → "本次 Demo 档案"（绿色）；demo account → "模拟账号档案"（灰色）。
