@@ -39,6 +39,14 @@
   --font-mono:
     ui-monospace, SFMono-Regular, "SF Mono", Menlo,
     Consolas, "Liberation Mono", monospace;
+
+  /* spacing rhythm (used directly in components via inline classes too) */
+  --section-y: 5rem;
+  --section-y-tight: 3.5rem;
+
+  /* focused control outline (used by keyboard users) */
+  --focus-ring: 2px solid var(--color-cinnabar);
+  --focus-offset: 2px;
 }
 
 @theme inline {
@@ -75,4 +83,42 @@ body {
 ::selection {
   background: var(--color-green);
   color: var(--color-paper);
+}
+
+/* ============================================================
+ * Accessibility primitives (Phase 1B additions)
+ * ============================================================ */
+
+/* Visible keyboard focus for interactive elements */
+:where(a, button, [role="button"], summary, input, select, textarea):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: 2px;
+}
+
+/* Reduced motion: kill all transitions & animations site-wide */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Native disclosure: small marker; visible state for selection */
+summary::-webkit-details-marker {
+  display: none;
+}
+summary::marker {
+  content: "";
+}
+
+/* Editorial marker used inside numbered sections */
+.lede {
+  font-family: var(--font-serif);
+  font-feature-settings: "palt" 1;
+  letter-spacing: -0.005em;
 }
