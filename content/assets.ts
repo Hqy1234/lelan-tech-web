@@ -50,6 +50,16 @@ export const townPaperTeahouse: VisualAsset = {
   reference: "assets/reference/town/buildings/town-paper-teahouse.png",
 };
 
+export const townResearchShop: VisualAsset = {
+  id: "townResearchShop",
+  src: "/images/town/buildings/town-research-shop.webp",
+  width: 1200,
+  height: 900,
+  alt: "课题小铺 · 成果小镇的科研课题立项支持小铺",
+  status: "placeholder",
+  reference: "assets/reference/town/buildings/town-research-shop.png",
+};
+
 /* -------------------------------------------------------------------------- */
 /* Town · Characters                                                          */
 /* -------------------------------------------------------------------------- */
@@ -62,6 +72,16 @@ export const townWenqu: VisualAsset = {
   alt: "文曲茶娘 · 论文茶寮的服务人格形象",
   status: "placeholder",
   reference: "assets/reference/town/characters/town-wenqu.png",
+};
+
+export const townLingshu: VisualAsset = {
+  id: "townLingshu",
+  src: "/images/town/characters/town-lingshu.webp",
+  width: 800,
+  height: 800,
+  alt: "灵枢子 · 课题小铺的服务人格形象",
+  status: "placeholder",
+  reference: "assets/reference/town/characters/town-lingshu.png",
 };
 
 /* -------------------------------------------------------------------------- */
@@ -77,6 +97,8 @@ export const townWenqu: VisualAsset = {
 export const visualAssets = {
   townPaperTeahouse,
   townWenqu,
+  townResearchShop,
+  townLingshu,
 } as const satisfies Record<string, VisualAsset>;
 
 export type VisualAssetId = keyof typeof visualAssets;
@@ -99,6 +121,16 @@ export const assetReferenceIndex: ReadonlyArray<{
     reference: "assets/reference/town/characters/town-wenqu.png",
     delivery: townWenqu,
     note: "Phase 1A representative — 已生成 webp derivative",
+  },
+  {
+    reference: "assets/reference/town/buildings/town-research-shop.png",
+    delivery: townResearchShop,
+    note: "Phase 1C secondary pair — 已生成 webp derivative",
+  },
+  {
+    reference: "assets/reference/town/characters/town-lingshu.png",
+    delivery: townLingshu,
+    note: "Phase 1C secondary pair — 已生成 webp derivative",
   },
   // 其余 28 张 reference 资产为未来升级 / Phase 1B 之后的 UI 单元预备，
   // 当前不进入 delivery，亦不向浏览器暴露 src。

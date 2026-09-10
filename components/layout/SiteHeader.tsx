@@ -1,11 +1,12 @@
 /**
  * LELAN TECHNOLOGY · Site Header
  *
- * 静态顶部导航；不依赖 JS。
- * 导航链接当前全部走 Homepage 内 anchor，因为目标路由尚未发布。
+ * Phase 1C improvements:
+ * - Mobile nav: increased readability and touch target area.
+ * - Beta CTA removed from nav: "申请 Beta" → not in header.
+ *   (Beta state now "Beta 即将开放" and shown inline on hero, not as nav CTA.)
  *
- * 设计选择：sticky + 半透明纸色背景，便于长 Town 区块滚动时保留品牌锚点。
- * 选择"sticky"而不是"fixed"，避免占位与 hero 视觉打架。
+ * Static server component. Sticky + semi-transparent.
  */
 import Link from "next/link";
 import { brandName, siteName } from "@/content/site";
@@ -14,9 +15,9 @@ import { Container } from "./Container";
 const NAV_ITEMS = [
   { href: "#hero", label: "首页" },
   { href: "#architecture", label: "产品" },
+  { href: "#town", label: "成果小镇" },
+  { href: "#guardian", label: "乐懒守护" },
   { href: "#about", label: "关于" },
-  { href: "#about", label: "团队" },
-  { href: "#about", label: "联系" },
 ] as const;
 
 export function SiteHeader() {
@@ -42,7 +43,7 @@ export function SiteHeader() {
             </span>
           </Link>
 
-          {/* Primary nav */}
+          {/* Primary nav — desktop */}
           <nav
             aria-label="主导航"
             className="hidden items-center gap-6 text-sm md:flex"
@@ -58,25 +59,25 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          {/* Beta CTA — honest: scrolls to AI section which holds the beta entry */}
-          <Link
-            href="#ai"
-            className="inline-flex items-center gap-2 rounded-sm border border-green px-3 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-green transition-colors hover:bg-green hover:text-paper"
+          {/* Placeholder: no header CTA — Beta state shown inline on hero */}
+          <span
+            aria-hidden
+            className="inline-flex items-center gap-2 rounded-sm border border-rule px-3 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-muted"
           >
-            申请 Beta
-          </Link>
+            Beta 即将开放
+          </span>
         </div>
 
-        {/* Mobile nav: compact horizontal scroll */}
+        {/* Mobile nav: improved readability and touch targets */}
         <nav
           aria-label="主导航（移动）"
-          className="mt-2 flex items-center gap-4 overflow-x-auto text-xs text-muted md:hidden"
+          className="mt-2 flex items-center gap-4 overflow-x-auto pb-1 text-xs text-muted md:hidden"
         >
           {NAV_ITEMS.map((item) => (
             <Link
               key={`m-${item.label}-${item.href}`}
               href={item.href}
-              className="shrink-0 whitespace-nowrap transition-colors hover:text-ink"
+              className="shrink-0 whitespace-nowrap rounded-sm px-2 py-1.5 transition-colors hover:bg-paper-pure hover:text-ink"
             >
               {item.label}
             </Link>

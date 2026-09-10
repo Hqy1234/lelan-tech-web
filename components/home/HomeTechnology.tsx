@@ -1,11 +1,12 @@
 /**
  * LELAN TECHNOLOGY · Home · Technology & Capability
  *
- * 编辑矩阵 / 列示型能力表达：
- * - 不用"六张一样的 SaaS 卡片"；
- * - 用 typographic index + rules 表达克制、理性。
+ * Phase 1C refinement:
+ * - Semantic fix: meaningful term (e.g. "可追溯") is the <dt>, number is decorative.
+ * - Reduced card repetition: no border everywhere.
+ * - Page rhythm: tighter vertical space.
  *
- * Server component。静态。
+ * Server component. Static.
  */
 import { Container } from "@/components/layout/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -22,7 +23,7 @@ export function HomeTechnology({ section }: HomeTechnologyProps) {
       aria-labelledby={`${section.id}-title`}
       className="border-b border-rule bg-paper"
     >
-      <Container as="div">
+      <Container density="tight" as="div">
         <SectionHeading
           id={`${section.id}-title`}
           number={section.number}
@@ -31,39 +32,43 @@ export function HomeTechnology({ section }: HomeTechnologyProps) {
           systemLabel="Engineering"
         />
 
-        <dl className="mt-10 divide-y divide-rule border-y border-rule">
+        {/* Open typographic layout — meaningful term is <dt>, number is decorative */}
+        <dl className="mt-8 space-y-5 sm:mt-10">
           {section.pillars.map((pillar, idx) => (
-            <div
-              key={pillar.id}
-              className="grid grid-cols-12 items-baseline gap-3 py-5 sm:gap-6 sm:py-6"
-            >
-              <dt className="col-span-2 font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted sm:col-span-1">
+            <div key={pillar.id} className="flex items-start gap-3 sm:gap-5">
+              {/* Number as decorative — NOT the <dt> */}
+              <span
+                aria-hidden
+                className="mt-0.5 shrink-0 font-mono text-[0.7rem] uppercase tracking-wider text-muted"
+              >
                 {String(idx + 1).padStart(2, "0")}
-              </dt>
-              <dd className="col-span-10">
-                <div className="grid grid-cols-1 gap-1 sm:grid-cols-12 sm:gap-6">
-                  <p className="font-serif text-base text-ink sm:col-span-3 sm:text-lg">
+              </span>
+
+              {/* Meaningful term = <dt>, description = <dd> */}
+              <div className="flex-1">
+                <div className="grid grid-cols-1 gap-1 sm:grid-cols-12 sm:gap-4">
+                  <dt className="font-serif text-base text-ink sm:col-span-3 sm:text-lg">
                     {pillar.name}
-                  </p>
-                  <p className="text-sm leading-relaxed text-ink/85 sm:col-span-9 sm:text-base">
+                  </dt>
+                  <dd className="text-sm leading-relaxed text-muted sm:col-span-9 sm:text-base">
                     {pillar.oneLine}
-                  </p>
+                  </dd>
                 </div>
-              </dd>
+              </div>
             </div>
           ))}
         </dl>
 
-        {/* Vocabulary strip — restrained list, not a feature grid */}
+        {/* Vocabulary strip */}
         <div className="mt-8 flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-mono uppercase tracking-[0.2em] text-muted">
+          <span className="font-mono uppercase tracking-wider text-muted">
             能力词表
           </span>
           {["AI", "Data", "Workflow", "Research", "Human Expertise", "Compliance"].map(
             (term) => (
               <span
                 key={term}
-                className="rounded-sm border border-rule px-2 py-0.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink/80"
+                className="rounded-sm border border-rule px-2 py-0.5 font-mono text-[0.7rem] uppercase tracking-wider text-ink/80"
               >
                 {term}
               </span>

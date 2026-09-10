@@ -63,7 +63,11 @@ export interface HomeTownSection extends HomeSectionBase {
   /** 8 个铺子直接引用 town.ts 的同一真相源 */
   shopIds: ReadonlyArray<(typeof townShops)[number]["id"]>;
   /** 6 个能力维度（与 town.ts 一致） */
-  capabilities: ReadonlyArray<string>;
+  capabilities: ReadonlyArray<{
+    id: string;
+    label: string;
+    description: string;
+  }>;
   /** 当前阶段对外说明（避免虚假上线承诺） */
   statusNote: string;
 }
@@ -157,11 +161,11 @@ export const homeSections: ReadonlyArray<HomeSection> = [
     positioning:
       "以通用大模型 + 科研垂直知识 + 可追溯编辑流为产品骨架的论文写作辅助能力。",
     previewEntry: {
-      label: "即将上线 / 申请加入 Beta",
-      // 当前不存在正式子域或接口；首页不引用任何虚构 URL。
+      // 当前阶段：Beta 申请通道尚未开放；不引用任何虚构 URL。
+      label: "Beta 即将开放",
       href: null,
       disclaimer:
-        "产品体验版属于独立项目，当前通过官方 Beta 流程开放；本页不做具体外链。",
+        "Beta 申请通道即将开放；当前阶段不接收任何形式的体验申请。",
     },
   },
   {
@@ -182,12 +186,12 @@ export const homeSections: ReadonlyArray<HomeSection> = [
       "ai-workshop",
     ],
     capabilities: [
-      "Research",
-      "Writing",
-      "IP",
-      "Funding",
-      "Transformation",
-      "AI Tools",
+      { id: "Research", label: "Research", description: "课题立项与文献研究" },
+      { id: "Writing", label: "Writing", description: "论文与申报书写作" },
+      { id: "IP", label: "IP", description: "专利与软著" },
+      { id: "Funding", label: "Funding", description: "基金与项目申报" },
+      { id: "Transformation", label: "Transformation", description: "成果转化对接" },
+      { id: "AI Tools", label: "AI Tools", description: "AI 工具辅助" },
     ],
     statusNote:
       "当前为小镇图谱展示阶段；各铺子的实际功能入口将随版本逐步开放。",
@@ -222,11 +226,11 @@ export const homeSections: ReadonlyArray<HomeSection> = [
         id: "risk",
         name: "风险预警",
         oneLine:
-          "基于校准结果，提早发现值得关注的风险并提示跟进。",
+          "基于校准结果，向用户提示值得关注的变化方向；由用户决定如何跟进。",
       },
     ],
     statusNote:
-      "当前为 MVP 早期；不展开临床、科研或医疗合规表述，所有判定仅供用户参考。",
+      "当前为 MVP 早期；不展开临床、科研或医疗合规表述；本页呈现的是方法论框架，相关能力尚未上线。",
     futureFocusNote:
       "未来首个聚焦场景可能围绕饮食 / 营养等日常生活维度（暂未上线）。",
   },
@@ -241,7 +245,7 @@ export const homeSections: ReadonlyArray<HomeSection> = [
         id: "data-trace",
         name: "可追溯",
         oneLine:
-          "所有生成内容可回溯到来源与编辑过程，避免黑盒结论。",
+          "目标：所有生成内容可回溯到来源与编辑过程，避免黑盒结论。",
       },
       {
         id: "human-loop",
@@ -253,7 +257,7 @@ export const homeSections: ReadonlyArray<HomeSection> = [
         id: "privacy-min",
         name: "最小数据",
         oneLine:
-          "只在必要的环节收集与存储必要的数据，用户对自身数据有明确控制权。",
+          "面向最小数据原则设计：仅在必要环节收集与存储必要的数据；用户控制权作为产品目标持续推进。",
       },
     ],
   },

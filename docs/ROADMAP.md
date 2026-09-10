@@ -7,10 +7,9 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1A — Homepage Preparation Patch
-- **下一阶段**：Phase 1B — Homepage Implementation
-- **说明**：Phase 0.7/0.8/0.9 已合入 `main`；Phase 1A 在 `feat/homepage` 上
-  完成 reference/delivery 资产分层、内容模型、SEO 预览修复，**不**实现首页 UI。
+- **当前阶段**：Phase 1C — Homepage Town V1.5 + Approval Corrections
+- **下一阶段**：Phase 1C → Phase 1D（细节打磨）/ Phase 2（品牌系统）待确认
+- **说明**：Phase 1B 在 `feat/homepage` 上完成首页响应式基线；Phase 1C 完成小镇 V1.5 架构（index + selected stage）+ 审批问题修复 + 文案校正。
 
 ---
 
@@ -36,12 +35,25 @@
 - SEO 修复：移除 `robots.ts` placeholder domain；区分"路由可用"与"搜索引擎索引"；预览期 `noindex` 但允许爬取
 - **不**实现首页 UI
 
-## Phase 1B · Homepage Implementation（下一阶段）
+## Phase 1B · Homepage Implementation（已完成）
 
 - 基于 `content/home.ts` 的首页结构渲染
 - Hero / Architecture / AI / Town / Guardian / Technology / About 六段编辑型版式
 - 在 bounded image frame 中使用 representative WebP derivatives
 - 移动端不依赖 hover 的等效可达性
+
+## Phase 1C · Homepage Town V1.5 + Approval Fixes（当前）
+
+- Town V1.5 架构：8-service index + selected-shop stage（radio-group 交互）
+- Town Client Component island（仅用于选择状态 + URL hash 同步）
+- 第二套建筑/角色视觉对（02 课题小铺 + 灵枢子）derivative WebP 生成
+- Hero 关系图替代 Editorial Mark；中文身份优先层级
+- Beta journey 修复：移除"申请 Beta"CTA，改为"Beta 即将开放"
+- 修正 unsupported 能力措辞（可追溯 / 最小数据 / 风险预警）
+- Architecture 去除多余卡片边框；Guardian 四步连续进程感
+- Technology dt/dd 语义修正；微文字可读性提升
+- Mobile Header 可达性 + Sticky header anchor offset 修复
+- Header / Footer Beta 与导航对齐；About section 卡片去除
 
 ## Phase 1 · Brand System + Content Model
 

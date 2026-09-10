@@ -1,30 +1,25 @@
 /**
  * LELAN TECHNOLOGY · Site Footer
  *
- * 仅展示已存在 / 已规划的导航与品牌信息；
- * 不出现任何邮箱、地址、注册号、合作伙伴 logo 等未确认信息。
+ * Phase 1C alignment with header:
+ * - Nav items match header: 首页 / 产品 / 成果小镇 / 乐懒守护 / 关于
+ * - Beta availability shown consistently (Beta 即将开放, not "申请 Beta")
+ * - Consistent honest treatment: both header and footer show "Beta 即将开放"
  *
- * 隐私 / 条款当前**未发布**；采用 honest unavailable state：
- * 在 footer 中保留路由名但显式标注"尚未发布"，点击不跳到任何虚构 URL。
+ * Server component. Static.
  */
 import Link from "next/link";
 import { brandName, siteName } from "@/content/site";
 import { Container } from "./Container";
 
-interface FooterLink {
-  label: string;
-  href: string | null;
-  pending?: boolean;
-}
-
 const FOOTER_SECTIONS: ReadonlyArray<{
   title: string;
-  links: ReadonlyArray<FooterLink>;
+  links: ReadonlyArray<{ label: string; href: string; pending?: boolean }>;
 }> = [
   {
     title: "产品",
     links: [
-      { label: "乐懒成果小镇", href: "#town" },
+      { label: "成果小镇", href: "#town" },
       { label: "乐懒守护", href: "#guardian" },
       { label: "乐懒 AI · 论文智能助手", href: "#ai" },
     ],
@@ -32,16 +27,21 @@ const FOOTER_SECTIONS: ReadonlyArray<{
   {
     title: "了解乐懒",
     links: [
+      { label: "首页", href: "#hero" },
       { label: "关于", href: "#about" },
-      { label: "团队", href: "#about", pending: true },
-      { label: "联系", href: "#about", pending: true },
+    ],
+  },
+  {
+    title: "Beta",
+    links: [
+      { label: "Beta 即将开放", href: "#ai", pending: true },
     ],
   },
   {
     title: "法务",
     links: [
-      { label: "隐私政策", href: null, pending: true },
-      { label: "使用条款", href: null, pending: true },
+      { label: "隐私政策", href: "#privacy" },
+      { label: "使用条款", href: "#terms" },
     ],
   },
 ];
@@ -71,26 +71,23 @@ export function SiteFooter() {
               <p className="font-mono text-[0.65rem] uppercase tracking-[0.25em] text-muted">
                 {section.title}
               </p>
-              <ul className="mt-3 space-y-2 text-sm">
+              <ul className="mt-2 space-y-1.5 text-sm">
                 {section.links.map((link) => (
                   <li key={link.label}>
-                    {link.href && !link.pending ? (
+                    {link.pending ? (
+                      <span
+                        className="inline-flex items-baseline gap-2 text-muted"
+                        aria-disabled="true"
+                      >
+                        <span>{link.label}</span>
+                      </span>
+                    ) : (
                       <Link
                         href={link.href}
                         className="text-ink/80 transition-colors hover:text-ink"
                       >
                         {link.label}
                       </Link>
-                    ) : (
-                      <span
-                        className="inline-flex items-baseline gap-2 text-muted/70"
-                        aria-disabled="true"
-                      >
-                        <span>{link.label}</span>
-                        <span className="font-mono text-[0.6rem] uppercase tracking-[0.18em]">
-                          尚未发布
-                        </span>
-                      </span>
                     )}
                   </li>
                 ))}

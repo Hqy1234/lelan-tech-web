@@ -46,7 +46,7 @@ export function SectionHeading({
             {number}
           </span>
           {systemLabel && (
-            <span className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-green-soft">
+            <span className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-muted">
               {systemLabel}
             </span>
           )}

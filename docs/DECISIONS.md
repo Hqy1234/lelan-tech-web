@@ -138,6 +138,101 @@
 
 ---
 
+## D-PHASE1C · Homepage Town V1.5 + Approval Fixes（追加于 2026-09-10）
+
+### Beta Journey Truthfulness
+
+- **D-PHASE1C-001** — "申请 Beta" CTA 全部替换为"Beta 即将开放"；不指向任何虚构 URL。
+  - Header Beta 按钮 → static text "Beta 即将开放"
+  - Hero 副 CTA → `<span>` static text "Beta 即将开放"
+  - AI 区块 CTA → static text + disclaimer
+  - Footer Beta 入口 → 指向 #ai，标注 pending
+- **D-PHASE1C-002** — Beta journey 在 Phase 1C **无** form、email、external URL、submission backend。
+  未来上线时由产品侧确认后引入。
+
+### Unsupported Claims Fixed
+
+- **D-PHASE1C-003** — Technology "可追溯" 从"所有生成内容可回溯"改为
+  "目标：所有生成内容可回溯"（qualifies as future goal, not current guarantee）。
+- **D-PHASE1C-004** — Technology "最小数据" 从"用户对自身数据有明确控制权"改为
+  "用户控制权作为产品目标持续推进"（design principle, not current universal guarantee）。
+- **D-PHASE1C-005** — Guardian "风险预警" 从"提早发现值得关注的风险"改为
+  "向用户提示值得关注的变化方向；由用户决定如何跟进"（removes implied judgment service）。
+- **D-PHASE1C-006** — Guardian statusNote 移除"所有判定仅供用户参考"，
+  改为"本页呈现的是方法论框架，相关能力尚未上线"。
+- **D-PHASE1C-007** — AI Workflow "下载 · 本地导出 · 不留数据" 步骤移除；
+  替换为"人工修订 · 关键段落人工确认"。
+
+### Town V1.5 Architecture
+
+- **D-PHASE1C-008** — Town V1.5 = 紧凑 8-service index（左侧/顶部）+ selected-shop stage（右侧/下方）。
+  所有 8 个铺子的名称、编号、通俗业务描述在初始 HTML 中全部可见。
+- **D-PHASE1C-009** — Town 交互使用原生 `<input type="radio">` radio group，
+  默认选中 01（论文茶寮）；zero-JS 可用，JS 增强 URL hash 书签。
+- **D-PHASE1C-010** — Town Client Component island (`HomeTownClient.tsx`)
+  **仅**负责：selected 状态 + URL hash 同步；不重新渲染店铺内容。
+- **D-PHASE1C-011** — Stage 显示顺序：店铺建筑（如有）+ 角色（如有）；
+  均无时显示"视觉资产整理中"占位；按需逐铺解锁。
+- **D-PHASE1C-012** — `agentRole` 字段区分：
+  `concept` = "服务人格 · 未来 Agent 形象"（论文茶寮/课题小铺）；
+  `persona` = "服务角色"（其余 6 铺）。
+
+### Visual Delivery Assets
+
+- **D-PHASE1C-013** — Phase 1C 新增 2 个 derivative WebP：
+  `public/images/town/buildings/town-research-shop.webp`（~104KB）+
+  `public/images/town/characters/town-lingshu.webp`（~37KB）。
+- **D-PHASE1C-014** — 生成脚本 `scripts/derive-town-pair.cjs` 使用 sharp
+  （已有 transitive 依赖）；resize 到合理尺寸 + WebP quality 82。
+- **D-PHASE1C-015** — `content/assets.ts` 更新 registry 和 reference index；
+  `content/town.ts` 更新 02 课题小铺的 `buildingAssetId` / `characterAssetId`。
+
+### Hero Refinement
+
+- **D-PHASE1C-016** — Hero right-side "Editorial Mark" 替换为
+  紧凑 LeLan 产品关系图：乐懒科技 → [成果小镇 · 守护] · AI 桥接。
+  纯排版 + thin rules，无插画、无游戏美术。
+- **D-PHASE1C-017** — Hero 标题保持"乐懒科技 · LELAN TECHNOLOGY"；
+  中文身份不弱化，LELAN TECHNOLOGY 英文作为 secondary。
+
+### Section Layout Refinements
+
+- **D-PHASE1C-018** — Architecture 两系统从 bordered card 改为 open layout
+  （无 bg-paper-pure 卡片容器），减少边框重复感。
+- **D-PHASE1C-019** — Guardian 四步法：从 4 张独立 border-card 改为
+  连续 process 布局（垂直轴线连接），KeyframeDivider 移除。
+- **D-PHASE1C-020** — Guardian 两张 status note card 合并为一行两列。
+- **D-PHASE1C-021** — Technology 从 `<div>` grid 改为 open `<dl>` list；
+  语义修正：number 为装饰（`<span aria-hidden>`），pillar name 为 `<dt>`，description 为 `<dd>`。
+- **D-PHASE1C-022** — About section 移除 "联系与团队详情" card，
+  缩短节律；About 不做多余信息展示。
+- **D-PHASE1C-023** — Technology 使用 `density="tight"` 减少多余垂直空间。
+
+### Accessibility / UX Fixes
+
+- **D-PHASE1C-024** — `html { scroll-padding-top: 72px }` 修复 sticky header
+  锚点导航遮挡问题。
+- **D-PHASE1C-025** — Mobile Header nav touch target 增大（`px-2 py-1.5`），
+  避免 12px 小文本；nav items 从 5 项（2 项为 dummy）改为实际 5 项。
+- **D-PHASE1C-026** — `SectionHeading` systemLabel soft-green
+  `text-green-soft` 替换为 `text-muted`（对比度修复）。
+- **D-PHASE1C-027** — Town capabilities strip 从 `text-[0.65rem]` 提升
+  至 `text-xs`（12px 可读范围）；cap.label 使用 light green pill background。
+- **D-PHASE1C-028** — Town index `plainLanguageService` 从 `text-xs`
+  提升至 `sm:text-sm`（桌面 14px 可读范围）。
+- **D-PHASE1C-029** — Header / Footer Beta 状态对齐：均显示
+  "Beta 即将开放"，不提供误导性 CTA。
+
+### Header / Footer Alignment
+
+- **D-PHASE1C-030** — Header nav 与 Footer nav 保持一致：
+  首页 / 产品 / 成果小镇 / 乐懒守护 / 关于；团队 / 联系从 Header 移除
+  （对应页面未上线）。
+- **D-PHASE1C-031** — Footer "Beta" section 独立一行，
+  链接指向 #ai 并标注 pending。
+
+---
+
 ## 修改规范
 
 - 新决定追加在文末，按 `D-<类别>-<序号>` 编号。
