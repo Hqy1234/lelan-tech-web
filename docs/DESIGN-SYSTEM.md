@@ -7,7 +7,7 @@
 
 ## 1. 设计方向
 
-**"东方数字城镇 × 现代科技编辑系统"**
+**"东方数字城镇 × 现代科技产品"**
 
 ### 1.1 基础气质
 
@@ -103,14 +103,10 @@
 
 ### 3.6 阶段化策略
 
-| 版本 | 形态 | 是否 MVP |
-| --- | --- | --- |
-| V1 | image + CSS | ✅ |
-| V2 | layered pseudo-3D | 后续 |
-| V3 | real WebGL 3D | 后续（**非 MVP 依赖**） |
-
-第一阶段优先 2.5D / pseudo-3D。
-**不直接采用** Three.js / React Three Fiber / 重 WebGL。
+- V1（当前）：semantic HTML + CSS + static imagery + light motion；
+  **不依赖** Three.js / React Three Fiber / 重 WebGL。
+- V2（后续）：layered pseudo-3D（CSS perspective + parallax）。
+- V3（后续，**非 MVP**）：real WebGL 3D。
 
 ### 3.7 当前 placeholder 资产策略（过渡期）
 
@@ -136,7 +132,8 @@
 成果小镇 = **东方数字建筑世界**。
 乐懒守护 = **东方生命档案系统**。
 
-Guardian 不复用小镇的建筑世界。其专属视觉语言为：
+Guardian **不是**"小镇 + 角色"的另一版小镇。
+其专属语义锚点：
 
 - archive（档案）
 - lifecycle（生命周期）
@@ -144,6 +141,12 @@ Guardian 不复用小镇的建筑世界。其专属视觉语言为：
 - data（数据曲线）
 - risk map（风险地图）
 - research system（科研系统）
+
+**学科 / 产品语义先于文化符号语义**：
+Guardian 首页只展示四步法（人生档案 → 队列建模 → 横断面校准 → 风险预警）；
+五行 / 八阶段仅在 `/guardian` 详细页作为分类 / 记忆助记符出现，
+**不**作为风险打分输入，
+**不**作为科学因果机制声称。
 
 ---
 

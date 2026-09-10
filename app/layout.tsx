@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { brandName, locale, siteUrl } from "@/content/site";
+import Link from "next/link";
+import { brandName, locale } from "@/content/site";
 import { buildMetadata } from "@/lib/seo";
 import "./globals.css";
 
@@ -27,7 +28,7 @@ export default function RootLayout({
         <noscript>
           <p>
             本站点由 {brandName} 提供。启用 JavaScript 以获得完整体验。{" "}
-            <a href={siteUrl}>返回首页</a>
+            <Link href="/">返回首页</Link>
           </p>
         </noscript>
       </body>

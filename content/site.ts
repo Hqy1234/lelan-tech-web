@@ -23,9 +23,9 @@ export const siteDescription =
  * 正式生产域名。
  *
  * 未确认前为空字符串，触发 SEO 安全降级：
- * - noindex / nofollow
- * - 不输出 canonical
- * - 不输出 OG URL
+ * - 页面 robots = noindex / nofollow
+ * - robots.txt 不输出 sitemap / host
+ * - 不输出 canonical / OG URL
  * - sitemap 返回空 entries
  *
  * 确认后填入，例如："https://lelan.tech"。
@@ -37,7 +37,7 @@ export const hasConfirmedSiteUrl: boolean = siteUrl.length > 0;
 
 /**
  * 规划路由清单（Planned IA）。
- * 未来页面不一定全部上线；此处仅记录规划意图。
+ * 未来页面不一定全部上线；此处仅记录规划意图，**不**约束任何实现层行为。
  */
 export const plannedRoutes = [
   "/",
@@ -54,7 +54,15 @@ export const plannedRoutes = [
 
 /**
  * 已上线且可被搜索引擎索引的路由。
- * 在 siteUrl 确认 + 页面实际发布之前，本数组应保持为空。
+ *
+ * 重要语义（Phase 1A 修复）：
+ * - 此数组**只**决定 sitemap 是否声明哪些 URL 索引；
+ * - 此数组**不**决定一个页面是否能被用户访问或导航。
+ * - 路由的存在性由 Next.js App Router（`app/<route>/page.tsx`）决定，
+ *   公开预览期间允许有可访问但仍 noindex 的页面。
+ *
+ * 域名未确认 + publishedRoutes 为空 = 当前阶段默认状态，保持稳定。
+ * 域名确认 + publishedRoutes 为空 = 站点上线但内容尚未对外公开索引。
  */
 export const publishedRoutes: string[] = [];
 

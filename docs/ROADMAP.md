@@ -7,10 +7,10 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 0.7 — Project Alignment + Scaffold Cleanup + Git Sync
-- **下一阶段**：Phase 0.8 — Foundation Verification / Baseline Commit
-- **说明**：Phase 0.7 完成 docs 建档 + 默认 scaffold 清理 + 本分支基线 commit；
-  Phase 0.8 在 0.7 基础上进行构建链验证与最小可发布静态产物封板。
+- **当前阶段**：Phase 1A — Homepage Preparation Patch
+- **下一阶段**：Phase 1B — Homepage Implementation
+- **说明**：Phase 0.7/0.8/0.9 已合入 `main`；Phase 1A 在 `feat/homepage` 上
+  完成 reference/delivery 资产分层、内容模型、SEO 预览修复，**不**实现首页 UI。
 
 ---
 
@@ -24,9 +24,24 @@
 - Phase 0.4 — ESLint / TS strict / 构建链绿
 - Phase 0.5 — 单 Light Editorial 主题、可访问性基线
 - Phase 0.6 — `AGENTS.md` / `CLAUDE.md` 工程规则文件
-- **Phase 0.7 — Project Source of Truth 文档 + Scaffold 清理 + Git 基线（当前）**
-- Phase 0.8 — Foundation Verification / Baseline Commit（下一阶段）
-- Phase 0.9 — 静态导出产物封板 / 域名占位 / 回滚预案
+- **Phase 0.7 — Project Source of Truth 文档 + Scaffold 清理 + Git 基线（已完成）**
+- **Phase 0.8 — Foundation Verification / Baseline Commit（已完成）**
+- **Phase 0.9 — 静态导出产物封板 / 域名占位 / 回滚预案（已完成）**
+
+## Phase 1A · Homepage Preparation Patch（当前）
+
+- 原 reference 视觉资产从 `public/images/` 迁至 `assets/reference/`，**不**对外暴露浏览器 URL
+- `public/images/` 仅含实际进入 UI 的 derivatives（Phase 1A 仅 2 张 WebP representative）
+- 内容模型：`content/assets.ts` / `content/town.ts` / `content/home.ts`
+- SEO 修复：移除 `robots.ts` placeholder domain；区分"路由可用"与"搜索引擎索引"；预览期 `noindex` 但允许爬取
+- **不**实现首页 UI
+
+## Phase 1B · Homepage Implementation（下一阶段）
+
+- 基于 `content/home.ts` 的首页结构渲染
+- Hero / Architecture / AI / Town / Guardian / Technology / About 六段编辑型版式
+- 在 bounded image frame 中使用 representative WebP derivatives
+- 移动端不依赖 hover 的等效可达性
 
 ## Phase 1 · Brand System + Content Model
 
@@ -39,7 +54,8 @@
 ## Phase 2 · Homepage
 
 - 首页信息架构与排版节律
-- 三业务总览（AI / Town / Guardian）
+- 两大系统（Town / Guardian）+ 一项软件产品能力（AI）的层级表达
+- **不**把 AI 描述为与 Town / Guardian 并列的"第三个业务"
 - Beta CTA 文案与转化路径
 - 编辑设计 hero / numbered sections / thin rules
 - 不含 3D、不含重动画
@@ -61,17 +77,26 @@
 
 ## Phase 5 · Guardian
 
-- 四步法首页表达
-- 五行 × 八阶段详细页
+- 四步法首页表达（人生档案 → 队列建模 → 横断面校准 → 风险预警）
+- 五行 × 八阶段作为分类 / 记忆助记符仅在 `/guardian` 详细页展开
+- **学科 / 产品语义先于文化符号**：五行 / 八阶段**不**作为科学因果机制，**不**作为风险打分输入
 - 风险地图 / 队列建模示意（编辑设计，非炫技）
 - 保持 MVP 定位，不展开临床 / 科研合规表述
+- 未来首个 MVP 可能聚焦饮食 / 营养等日常生活维度（**当前未实现**）
 
 ## Phase 6 · Character / Building Visual Assets
 
-- PPT 视觉素材整理与资产化
-- 统一 art direction：光影、色板、笔触、人物比例
-- 透明 WebP/AVIF 资产输出
+- `assets/reference/` 内的资产审核与升级为正式 2.5D art direction
+- 透明 WebP/AVIF 资产输出（从 reference → delivery 流程化）
 - 与产品 / 文档三方对齐
+- 版权 / 授权复核优先于上线
+
+### Phase 6A · Asset Delivery Boundary（执行规则）
+
+- reference 资源仅位于 `assets/reference/`，**不**进入 `public/`
+- delivery 资源位于 `public/images/`，仅含 UI 实际引用的 derivatives
+- 组件层通过 `content/assets.ts` 的 `id` 引用资产，**不**直接硬编码路径
+- `reference` 字段保留工程溯源信息，但浏览器不可见
 
 ## Phase 7 · Interaction / Responsive / Motion
 

@@ -16,12 +16,18 @@ import {
  * - 不生成未经验证的结构化数据（如虚构的 SearchAction / 公司融资数据）；
  * - 所有内容均来源于已确认的站点信息常量。
  *
- * Domain Safety：
- * 正式域名未确认时（siteUrl 为空），本函数自动降级：
- * - 不输出 canonical URL（避免生成 placeholder domain）
- * - 不输出 Open Graph URL
- * - robots 设为 noindex / nofollow
- * - title / description 仍然正常输出
+ * Domain Safety（Phase 1A 调整）：
+ * - 未确认正式域名时（siteUrl 为空）：
+ *   - **不**输出 canonical URL
+ *   - **不**输出 Open Graph URL
+ *   - 页面级 `robots` 仍为 noindex/nofollow，但 crawl 通道保持打开
+ *     （robot 仍可访问页面，进而读取 noindex 指令）
+ *   - title / description 仍然正常输出
+ *
+ * Indexing Decision（与 publishedRoutes 解耦）：
+ * - 路由的"可导航性"由 Next.js 文件系统 + 组件层决定；
+ *   publishedRoutes 用于 sitemap，**不**决定页面是否能渲染。
+ * - 未确认域名时一律 noindex；URL 字段全部省略，避免 placeholder domain 污染。
  */
 
 interface BuildMetadataOptions {
@@ -35,10 +41,7 @@ interface BuildMetadataOptions {
  * 构建单个页面的 Metadata。
  *
  * 重要：每个正式页面必须自行传入自己的 `path`，
- * 不得继承 homepage 的 "/" canonical。
- * 例如 /ai 页应传 `path="/ai/"`。
- *
- * 未配置正式域名时，所有 URL 相关字段自动省略，避免污染搜索引擎索引。
+ * 不得继承 homepage 的 "/" canonical（参见 D-PHASE0-004）。
  */
 export function buildMetadata({
   title,
@@ -47,7 +50,7 @@ export function buildMetadata({
 }: BuildMetadataOptions = {}): Metadata {
   const fullTitle = title ? `${title} — ${siteName}` : siteName;
 
-  // Domain confirmed → emit full URLs; otherwise omit to avoid placeholder indexing
+  // Domain confirmed → emit full URLs; otherwise omit to avoid placeholder indexing.
   const canonical = hasConfirmedSiteUrl
     ? new URL(path, siteUrl).toString()
     : undefined;
@@ -60,9 +63,7 @@ export function buildMetadata({
     title: fullTitle,
     description,
     ...(canonical && { metadataBase: new URL(siteUrl) }),
-    alternates: canonical
-      ? { canonical }
-      : undefined,
+    alternates: canonical ? { canonical } : undefined,
     openGraph: {
       type: "website",
       locale: "zh_CN", // Open Graph locale uses underscore, not hyphen
@@ -76,6 +77,7 @@ export function buildMetadata({
       title: fullTitle,
       description,
     },
+    // 未确认域名一律 noindex；公开预览仍允许爬取（见 app/robots.ts）。
     robots: hasConfirmedSiteUrl
       ? {
           index: true,

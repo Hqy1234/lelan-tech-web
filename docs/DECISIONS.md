@@ -143,3 +143,56 @@
 - 新决定追加在文末，按 `D-<类别>-<序号>` 编号。
 - 不得删除或改写历史条目。
 - 若某条决定被推翻，**新增**一条"取代 D-XXX-YYY"，保留原条目并标注状态。
+
+## D-PHASE1A · Homepage Preparation Patch（追加于 2026-09-10）
+
+### Source / Delivery 资产分层
+
+- **D-PHASE1A-001** — `assets/reference/` 为唯一 reference 视觉资产仓库；
+  `public/images/` 仅含实际进入 UI 的 delivery 资源。
+- **D-PHASE1A-002** — 组件层只通过 `content/assets.ts` 的语义 id 引用资产；
+  路径与扩展名可在 mapping 中演进，**不**直接硬编码到组件中。
+- **D-PHASE1A-003** — Reference 资源**不**暴露浏览器 URL；
+  `VisualAsset.reference` 仅供工程溯源。
+- **D-PHASE1A-004** — `VisualAsset.status` 必填为 `placeholder` / `approved` /
+  `future` 之一；`placeholder` 表示**非最终商用定稿**。
+
+### Routing 与 Indexing 解耦
+
+- **D-PHASE1A-005** — 路由"是否可被用户访问"由 Next.js App Router
+  (`app/<route>/page.tsx`) 决定，**不**由 `publishedRoutes` 决定。
+- **D-PHASE1A-006** — `publishedRoutes` 仅决定 sitemap 中**对外可被搜索引擎索引**
+  的路由子集；为空时仅表示"暂不公开索引"，**不**影响导航。
+- **D-PHASE1A-007** — 公开预览 (域名未确认) 期间：robots.txt allow "/",
+  页面级 `noindex/nofollow`，配合以避免 placeholder domain 污染索引。
+- **D-PHASE1A-008** — 公开预览期间**不**输出 `sitemap.xml` URL 与 `host` 字段，
+  避免爬虫索引 placeholder URL。
+
+### Hero copy baseline
+
+- **D-PHASE1A-009** — 首页 hero baseline 为：
+  > "把科研能力，变成可被使用的产品。"
+  后续措辞微调应保持"克制 / 真实 / 不夸大"基线。
+
+### Guardian 排序原则
+
+- **D-PHASE1A-010** — Guardian 首页内容排序 **必先**呈现四步法
+  （人生档案 → 队列建模 → 横断面校准 → 风险预警），
+  五行 / 八阶段仅在 `/guardian` 详细页作为分类 / 记忆助记符使用。
+- **D-PHASE1A-011** — 五行 / 八阶段**不**作为风险打分输入，
+  **不**作为科学因果机制主张。
+- **D-PHASE1A-012** — Guardian 未来首个 MVP 可能聚焦饮食 / 营养场景；
+  **当前阶段不实现**任何健康表单、风险评分、营养推荐、医疗筛查或健康数据存储。
+
+### 组织层级原则
+
+- **D-PHASE1A-013** — 乐懒科技对外表达为"两大系统 + 一项软件产品能力"：
+  Town（成果小镇）、Guardian（乐懒守护）+ AI（软件产品）。
+  AI **不**与 Town / Guardian 并列构成"三业务"。
+- **D-PHASE1A-014** — 首页 architecture 段落必须明确两个系统层级关系，
+  并显式声明 AI 作为贯穿两个体系的软件能力桥接。
+
+### Layout / 内部导航
+
+- **D-PHASE1A-015** — 内部"返回首页"等导航链接直接使用 `"/"`，**不**绑定到
+  `siteUrl`（未确认时为空），避免 placeholder URL 出现在 DOM 中。
