@@ -7,9 +7,9 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1C — Homepage Town V1.5 + Approval Corrections
-- **下一阶段**：Phase 1C → Phase 1D（细节打磨）/ Phase 2（品牌系统）待确认
-- **说明**：Phase 1B 在 `feat/homepage` 上完成首页响应式基线；Phase 1C 完成小镇 V1.5 架构（index + selected stage）+ 审批问题修复 + 文案校正。
+- **当前阶段**：Phase 2 — Guardian Life Coordinate System
+- **下一阶段**：Phase 2 → Phase 3（Town spatial V2）待确认
+- **说明**：Phase 1C 完成 Town V1.5 + 审批修复；Phase 2 完成 Guardian 人生坐标系统原型 + 八阶段/五行素材落地。
 
 ---
 
@@ -42,7 +42,7 @@
 - 在 bounded image frame 中使用 representative WebP derivatives
 - 移动端不依赖 hover 的等效可达性
 
-## Phase 1C · Homepage Town V1.5 + Approval Fixes（当前）
+## Phase 1C · Homepage Town V1.5 + Approval Fixes（已完成）
 
 - Town V1.5 架构：8-service index + selected-shop stage（radio-group 交互）
 - Town Client Component island（仅用于选择状态 + URL hash 同步）
@@ -54,6 +54,18 @@
 - Technology dt/dd 语义修正；微文字可读性提升
 - Mobile Header 可达性 + Sticky header anchor offset 修复
 - Header / Footer Beta 与导航对齐；About section 卡片去除
+
+## Phase 2 · Guardian Life Coordinate System（已完成）
+
+- Guardian 首页升级为"乐懒守护符·人生坐标"主视觉
+- 八阶段生命周期纵轴（八卦·八阶段）与 Y-axis lifecycle rail
+- 坐标化闯关横轴（当前阶段任务链）+ progress 指示
+- 五行生活维度 teaser（5 元素紧凑入口 + 建筑缩略图）
+- 科学方法论降级为底层说明
+- Client island `GuardianArchive` 管理选择状态
+- 八阶段 + 五行 + 女娲共 14 个 Guardian WebP derivative 生成
+- data model: `content/guardian.ts`（stages / elements / methodology）
+- 文档更新：PROJECT / DESIGN-SYSTEM / DECISIONS / ROADMAP
 
 ## Phase 1 · Brand System + Content Model
 

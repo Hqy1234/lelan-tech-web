@@ -38,7 +38,7 @@ export default function HomePage() {
           case "town":
             return <HomeTown key={section.id} section={section} />;
           case "guardian":
-            return <HomeGuardian key={section.id} section={section} />;
+            return <HomeGuardian key={section.id} />;
           case "technology":
             return <HomeTechnology key={section.id} section={section} />;
           case "about":

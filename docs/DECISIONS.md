@@ -233,6 +233,77 @@
 
 ---
 
+## D-PHASE2 · Guardian Life Coordinate System（追加于 2026-09-10）
+
+### Product Hierarchy
+
+- **D-PHASE2-001** — Guardian 首页产品层级调整为：
+  ① 人生档案（主视觉） ② 乐懒守护符·人生坐标 ③ 坐标化闯关（Y八阶段 × X任务）④ 五行生活维度 teaser ⑤ 科学方法论（底层说明）。
+- **D-PHASE2-002** — 四步 pipeline（建档/队列/校准/提示/落地）不删除，
+  但从"Guardian 主视觉"降级为"坐标背后的方法"（底层说明模块）。
+- **D-PHASE2-003** — 八卦/五行是产品的信息组织与品牌记忆语言，
+  **不是**玄学预测依据。科学逻辑负责可信，东方文化系统负责记忆。
+- **D-PHASE2-004** — Guardian 首页不再仅呈现四步 pipeline，
+  改为以"乐懒守护符·人生坐标"为核心产品 UI。
+
+### Component Architecture
+
+- **D-PHASE2-005** — `HomeGuardian` 改为 Server Component（壳层），
+  包含：section header、archive frame、五行 teaser、方法说明。
+- **D-PHASE2-006** — `GuardianArchive` 为最小 Client island，
+  负责 selected stage 状态管理；不渲染全部 stage content。
+- **D-PHASE2-007** — `GuardianLifecycle`（Server）：八阶段纵轴 rail，
+  使用 `<button>` + `aria-pressed`，键盘可达，无 JS 时可 tab。
+- **D-PHASE2-008** — `GuardianTaskFlow`（Server）：当前阶段任务链，
+  desktop 横向节点链 + mobile 垂直步骤列表。
+- **D-PHASE2-009** — `GuardianElements`（Server）：五行 teaser，
+  紧凑 5 项 grid，建筑缩略图；**不是** Town 风格的铺子地图。
+- **D-PHASE2-010** — `content/guardian.ts` 为 Guardian 内容唯一真相源：
+  `guardianStages`（8 阶段）、`guardianElements`（5 维度）、`guardianMethodSteps`（5 方法）。
+
+### Visual Design
+
+- **D-PHASE2-011** — Guardian visual language：warm ivory + ink +
+  muted jade + ochre + thin rules + archive labels + coordinate lines +
+  editorial typography + paper/document metaphor。
+- **D-PHASE2-012** — Guardian **不等于** Town：Town = 空间/建筑/服务世界；
+  Guardian = 档案/坐标/生命周期/数据/研究。
+- **D-PHASE2-013** — "守护符"视觉化为 Digital Life Talisman：
+  细线边框 + 坐标轴 + 阶段节点 + 档案编号 + 印章式标识 + 进度轨迹。
+  不能画成真正的符咒。
+- **D-PHASE2-014** — 禁止 Guardian 出现：满屏红金 / 龙纹背景 / 发光法阵 /
+  粒子特效 / 魔法阵 / 玄幻 HUD / neon cyberpunk / 蓝紫 AI gradient /
+  glassmorphism / glowing AI orb / AI brain。
+- **D-PHASE2-015** — 八阶段默认选中：04 兑·青年期（demo 演示用），
+  由 `DEFAULT_STAGE_ID = "dui-young-adult"` 锁定。
+- **D-PHASE2-016** — 女娲形象作为 Guardian section 角落视觉锚点
+  （右上角小型缩略图），不得作为主 Hero。
+- **D-PHASE2-017** — 女娲素材含水印，production 前必须确认或替换；
+  代码注释已标注 watermark/copyright pending。
+
+### Assets
+
+- **D-PHASE2-018** — Phase 2 新增 delivery derivatives：
+  8 张八阶段 WebP（每张 ~60–92KB，800px）+ 5 张五行建筑 WebP
+  （每张 ~31–53KB，600px）+ 1 张女娲 WebP（34.5KB，400px）。
+- **D-PHASE2-019** — 生成脚本 `scripts/derive-guardian.cjs` 使用 sharp
+  （transitive 依赖）；resize 到 display 尺寸 + WebP quality 80。
+- **D-PHASE2-020** — `content/assets.ts` 更新 registry，15 个 Guardian asset
+  注册入 `visualAssets` + `assetReferenceIndex`。
+- **D-PHASE2-021** — 当前 NOT active assets：八大神兽（毕方关系未锁定）/
+  鬼谷子（分辨率不足）/ 伊尹人物（分辨率不足）/ 伏羲/神农/徐霞客/鲁班。
+
+### Accessibility / Motion
+
+- **D-PHASE2-022** — 八阶段节点使用 `<button>`，`aria-pressed` 状态，
+  `aria-label` 含阶段全名（震·婴儿期）；`focus-visible` outline。
+- **D-PHASE2-023** — 移动端使用 CSS `scroll-snap`，`prefers-reduced-motion`
+  时禁用 snap animation。
+- **D-PHASE2-024** — 任务进度条使用 CSS `width` transition，
+  reduced-motion 时无动画。
+
+---
+
 ## 修改规范
 
 - 新决定追加在文末，按 `D-<类别>-<序号>` 编号。

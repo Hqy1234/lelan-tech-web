@@ -1,116 +1,199 @@
 /**
- * LELAN TECHNOLOGY · Home · Guardian (乐懒守护)
+ * LELAN TECHNOLOGY · Home · Guardian (乐懒守护) V2
  *
- * Phase 1C refinement:
- * - Four steps feel like ONE continuous research archive process (not 4 rows).
- * - KeyframeDivider removed — creates unnecessary visual break.
- * - Two status cards merged into one compact note.
- * - Reduced excessive separator/empty space.
+ * Phase 2 — Life Coordinate System prototype.
  *
- * Guardian four-step method: 人生档案 → 队列建模 → 横断面校准 → 风险预警.
- * No 五行/八段 on homepage.
+ * Product hierarchy:
+ *   1. 人生档案 + 乐懒守护符 · 人生坐标（主视觉）
+ *   2. 坐标化闯关（八阶段 × 当前任务）
+ *   3. 五行生活维度 teaser
+ *   4. 科学方法论（降级为底层说明）
  *
- * Server component. Static.
+ * Visual language:
+ *   - restrained editorial UI + oriental lifecycle symbols
+ *   - paper/document metaphor, thin rules, coordinate lines
+ *   - NOT a game, NOT a fortune-telling page, NOT a Town clone
+ *
+ * Components:
+ *   - GuardianArchive: client island (lifecycle + task flow state)
+ *   - GuardianLifecycle: server (Y-axis rail)
+ *   - GuardianTaskFlow: server (X-axis task chain)
+ *   - GuardianElements: server (五行 teaser)
+ *   - Methodology strip: server (method steps)
+ *
+ * Default active stage: 04 兑 · 青年期.
+ *
+ * Server component (shell) + Client island (interaction).
  */
+import Image from "next/image";
 import { Container } from "@/components/layout/Container";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { StatusLabel } from "@/components/ui/StatusLabel";
-import type { HomeGuardianSection } from "@/content/home";
+import {
+  guardianHomeContent,
+  guardianMethodSteps,
+  guardianArchiveCaption,
+} from "@/content/guardian";
+import { visualAssets } from "@/content/assets";
+import { GuardianArchive } from "@/components/guardian/GuardianArchive";
+import { GuardianElements } from "@/components/guardian/GuardianElements";
 
-interface HomeGuardianProps {
-  section: HomeGuardianSection;
+/** Resolve a visual asset by id */
+function resolveAsset(id: string) {
+  return (visualAssets as Record<string, { src: string; alt: string }>)[id] ?? null;
 }
 
-const METHOD_LABELS: Record<string, string> = {
-  archive: "Record",
-  cohort: "Cohort",
-  calibration: "Calibration",
-  risk: "Signal",
-};
+export function HomeGuardian() {
+  const nuwa = resolveAsset("guardianNuwa");
+  const content = guardianHomeContent;
 
-export function HomeGuardian({ section }: HomeGuardianProps) {
   return (
     <section
-      id={section.id}
-      aria-labelledby={`${section.id}-title`}
-      className="border-b border-rule bg-paper-pure"
+      id="guardian"
+      aria-labelledby="guardian-title"
+      className="border-b border-rule bg-paper"
     >
       <Container as="div">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-          <SectionHeading
-            id={`${section.id}-title`}
-            number={section.number}
-            title={section.title}
-            intro={section.intro}
-            systemLabel="Guardian · 阴"
-          />
-          <StatusLabel tone="concept" label="MVP 早期" />
-        </div>
+        {/* ── Section Header ───────────────────────────────────────── */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+          <div className="md:col-span-8">
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted">
+                {content.eyebrow}
+              </span>
+              <StatusLabel tone="concept" label="坐标化系统" />
+            </div>
 
-        {/* Four-step continuous process — open layout, not 4 cards */}
-        <ol
-          className="mt-8 grid grid-cols-1 gap-0"
-          aria-label="四步法"
-        >
-          {section.steps.map((step, idx) => (
-            <li
-              key={step.id}
-              className="grid grid-cols-12 items-baseline gap-3 py-5 sm:grid-cols-12 sm:gap-5 sm:py-6"
+            <h2
+              id="guardian-title"
+              className="lede mt-4 text-2xl font-medium leading-tight text-ink sm:text-3xl md:text-4xl"
             >
-              {/* Step index marker — shared axis across all steps */}
-              <div className="col-span-1 flex items-start sm:col-span-1">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-rule font-mono text-xs text-muted">
-                    0{idx + 1}
-                  </span>
-                  {idx < section.steps.length - 1 && (
-                    /* Vertical connector — continuous process feel */
-                    <span
-                      aria-hidden
-                      className="mt-1 hidden h-5 w-px bg-rule sm:block"
-                    />
-                  )}
-                </div>
-              </div>
+              {content.title}
+            </h2>
 
-              {/* Step name + label */}
-              <div className="col-span-3 sm:col-span-2">
-                <p className="font-serif text-base text-ink sm:text-lg">
-                  {step.name}
-                </p>
-                <p className="mt-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-                  {METHOD_LABELS[step.id] ?? step.id}
-                </p>
-              </div>
-
-              {/* Step description — spans remaining width */}
-              <p className="col-span-11 text-sm leading-relaxed text-ink/80 sm:col-span-9 sm:text-base">
-                {step.oneLine}
-              </p>
-            </li>
-          ))}
-        </ol>
-
-        {/* Compact merged status note — not two separate cards */}
-        <div className="mt-8 flex flex-col gap-4 rounded-sm border border-rule bg-paper p-5 sm:flex-row sm:items-start sm:gap-6 sm:p-6">
-          <div className="sm:w-36 sm:shrink-0">
-            <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-              当前阶段
+            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink sm:text-xl">
+              {content.headline}
             </p>
-            <p className="mt-1 text-xs text-muted">
-              {section.statusNote}
+
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
+              {content.body}
             </p>
+
+            {/* CTA */}
+            <div className="mt-6 flex items-center gap-4">
+              <a
+                href={content.ctaHref}
+                className="inline-flex items-center gap-2 rounded-sm border border-ink bg-ink px-4 py-2 text-sm text-paper transition-colors hover:bg-green-dark"
+              >
+                {content.ctaLabel}
+                <span aria-hidden>→</span>
+              </a>
+            </div>
           </div>
-          <div className="hidden border-l border-rule sm:block" aria-hidden />
-          <div className="sm:flex-1">
-            <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-              未来方向（非承诺）
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              {section.futureFocusNote}
-            </p>
+
+          {/* ── Nuwa anchor visual ─────────────────────────────────── */}
+          {nuwa && (
+            <aside
+              className="hidden md:col-span-4 md:flex md:items-start md:justify-end"
+              aria-hidden
+            >
+              <div className="relative w-40 overflow-hidden rounded-sm border border-rule">
+                <Image
+                  src={nuwa.src}
+                  alt={nuwa.alt}
+                  width={160}
+                  height={160}
+                  sizes="160px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-paper/60 to-transparent" />
+                <p className="absolute bottom-2 left-3 font-mono text-[0.6rem] uppercase tracking-wider text-muted">
+                  首席守护官
+                </p>
+              </div>
+            </aside>
+          )}
+        </div>
+
+        {/* Archive Caption */}
+        <p className="mt-6 text-xs text-muted">
+          {guardianArchiveCaption}
+        </p>
+
+        {/* ── LIFE ARCHIVE UI — 乐懒守护符 · 人生坐标 ─────────────── */}
+        <div className="mt-8">
+          {/* Archive frame */}
+          <div className="overflow-hidden rounded-sm border border-rule bg-paper-pure">
+            {/* Archive header bar */}
+            <div className="flex items-center justify-between border-b border-rule bg-paper px-4 py-2">
+              <div className="flex items-center gap-3">
+                <span
+                  aria-hidden
+                  className="flex h-5 w-5 items-center justify-center rounded-sm border border-rule font-mono text-[0.55rem] text-muted"
+                >
+                  符
+                </span>
+                <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
+                  乐懒守护符 · 人生坐标
+                </p>
+              </div>
+              <p className="font-mono text-[0.6rem] uppercase tracking-wider text-muted/70">
+                界面示意 · 非真实数据
+              </p>
+            </div>
+
+            {/* Archive content */}
+            <div className="p-4 sm:p-6">
+              {/* Interactive archive — client island */}
+              <GuardianArchive />
+            </div>
           </div>
         </div>
+
+        {/* ── Five Elements teaser ─────────────────────────────────── */}
+        <div className="mt-8">
+          <GuardianElements />
+        </div>
+
+        {/* ── Methodology strip (降级为底层说明) ───────────────────── */}
+        <div className="mt-10">
+          {/* Header */}
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
+              坐标背后的方法
+            </span>
+            <span className="h-px flex-1 bg-rule" aria-hidden />
+          </div>
+
+          {/* Method steps — open list, not cards */}
+          <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-5">
+            {guardianMethodSteps.map((step) => (
+              <div key={step.id} className="flex flex-col gap-1">
+                {/* Step header */}
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-rule font-mono text-[0.6rem] text-muted">
+                    {step.order}
+                  </span>
+                  <dt className="font-serif text-sm text-ink">
+                    {step.name}
+                  </dt>
+                </div>
+                {/* Phase label */}
+                <dd className="ml-7 font-mono text-[0.6rem] uppercase tracking-wider text-muted">
+                  {step.phase}
+                </dd>
+                {/* Description */}
+                <dd className="mt-1 text-xs leading-relaxed text-muted">
+                  {step.description}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        {/* Watermark notice for nuwa */}
+        <p className="mt-6 text-xs text-muted/50">
+          注：女娲形象素材含水印，版权状态待生产前复核与替换。
+        </p>
       </Container>
     </section>
   );
