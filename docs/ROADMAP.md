@@ -7,9 +7,9 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 2 — Guardian Life Coordinate System
-- **下一阶段**：Phase 2 → Phase 3（Town spatial V2）待确认
-- **说明**：Phase 1C 完成 Town V1.5 + 审批修复；Phase 2 完成 Guardian 人生坐标系统原型 + 八阶段/五行素材落地。
+- **当前阶段**：Phase 1D-G2 — Guardian Demo Login + Personal Life Archive
+- **下一阶段**：Phase 1D-G2 → Phase 3（Town spatial V2）待确认
+- **说明**：Phase 2 完成 Guardian 人生坐标系统；Phase 1D-G2 完成 Demo Login + Profile + 两个 Persona。
 
 ---
 
@@ -65,6 +65,20 @@
 - Client island `GuardianArchive` 管理选择状态
 - 八阶段 + 五行 + 女娲共 14 个 Guardian WebP derivative 生成
 - data model: `content/guardian.ts`（stages / elements / methodology）
+- 文档更新：PROJECT / DESIGN-SYSTEM / DECISIONS / ROADMAP
+
+## Phase 1D-G2 · Guardian Demo Login + Personal Life Archive（已完成）
+
+- `/login` 演示登录页：m123/12345（28岁男性）+ n123/12345（36岁女性）
+- 快速填充按钮 + 手动登录表单 + aria-live 错误提示
+- `lib/demo.ts` sessionStorage 工具（demoLogin / demoLogout / getDemoProfile）
+- `DemoAccountNav` client island：Header 右上角"登录"/"我的档案"切换
+- `/profile` 个人档案页：GuardianProfile contract 渲染
+- `GuardianProfileView`：8阶段坐标 + 任务链 + 五行 dashboard + 档案时间线
+- `GuardianProfile` contract：identity / stage / tasks / elements / timeline / methodSteps
+- 两个 Demo Persona 数据完整写入 `content/guardian.ts`（m123: 离·青少年 / n123: 兑·青年期）
+- HomeGuardian 新增"登录查看模拟人生档案"CTA
+- 页面底部 demo disclaimer
 - 文档更新：PROJECT / DESIGN-SYSTEM / DECISIONS / ROADMAP
 
 ## Phase 1 · Brand System + Content Model

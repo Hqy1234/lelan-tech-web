@@ -1,16 +1,15 @@
 /**
  * LELAN TECHNOLOGY · Site Header
  *
- * Phase 1C improvements:
- * - Mobile nav: increased readability and touch target area.
- * - Beta CTA removed from nav: "申请 Beta" → not in header.
- *   (Beta state now "Beta 即将开放" and shown inline on hero, not as nav CTA.)
- *
- * Static server component. Sticky + semi-transparent.
+ * Phase 1D-G2 improvements:
+ * - Demo login entry via DemoAccountNav client island.
+ * - "Beta 即将开放" removed from header (shown inline on hero).
+ * - DemoAccountNav reads sessionStorage; prevents hydration mismatch via mounted guard.
  */
 import Link from "next/link";
 import { brandName, siteName } from "@/content/site";
 import { Container } from "./Container";
+import { DemoAccountNav } from "./DemoAccountNav";
 
 const NAV_ITEMS = [
   { href: "#hero", label: "首页" },
@@ -59,13 +58,8 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          {/* Placeholder: no header CTA — Beta state shown inline on hero */}
-          <span
-            aria-hidden
-            className="inline-flex items-center gap-2 rounded-sm border border-rule px-3 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-muted"
-          >
-            Beta 即将开放
-          </span>
+          {/* Demo account nav — client island */}
+          <DemoAccountNav />
         </div>
 
         {/* Mobile nav: improved readability and touch targets */}

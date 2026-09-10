@@ -124,7 +124,9 @@
 | `/products` | 产品总览：乐懒 AI / 成果小镇 / 乐懒守护 |
 | `/ai` | 乐懒 AI 详情 + 体验版入口（独立项目外链） |
 | `/town` | 成果小镇：8 铺子 + 6 能力维度 |
-| `/guardian` | 乐懒守护：四步法 + 五行 × 八阶段 |
+| `/guardian` | 乐懒守护：人生档案 + 坐标系统 |
+| `/login` | 演示登录页（m123/n123 公开账号） |
+| `/profile` | 个人档案演示页（GuardianProfile contract） |
 | `/about` | 关于乐懒科技 |
 | `/team` | 团队（当前不发布具体成员） |
 | `/contact` | 联系方式（邮箱待确认，使用 fallback 文案） |

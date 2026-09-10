@@ -15,6 +15,12 @@ const eslintConfig = defineConfig([
     // Build scripts — not part of the web app
     "scripts/**",
   ]),
+  // Relax react-hooks/set-state-in-effect for intentional sessionStorage hydration.
+  // This is the standard Next.js pattern for reading sessionStorage/localStorage post-mount.
+  {
+    files: ["**/app/profile/page.tsx", "**/components/layout/DemoAccountNav.tsx"],
+    rules: { "react-hooks/set-state-in-effect": "off" },
+  },
 ]);
 
 export default eslintConfig;

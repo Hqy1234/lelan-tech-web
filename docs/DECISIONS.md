@@ -304,6 +304,59 @@
 
 ---
 
+## D-PHASE1D-G2 · Guardian Demo Login + Personal Life Archive（追加于 2026-09-10）
+
+### Demo Architecture
+
+- **D-PHASE1D-G2-001** — Demo auth 使用 `sessionStorage`，key=`lelan_demo_session`，
+  内容为 `{ profileId: string }`。密码**不**存储在 sessionStorage。
+- **D-PHASE1D-G2-002** — `lib/demo.ts` 提供 `demoLogin` / `demoLogout` /
+  `getDemoProfile` / `getDemoSession` / `isDemoLoggedIn`。
+  代码注释标注：DEMO ONLY, NOT AUTHENTICATION。
+- **D-PHASE1D-G2-003** — Demo credentials（m123/12345, n123/12345）
+  公开写在 `content/guardian.ts` 中。标注 DEMO ONLY。
+- **D-PHASE1D-G2-004** — `/login` 和 `/profile` 使用 `"use client"` +
+  `dynamic = "force-dynamic"`（依赖 sessionStorage，不做 SSR）。
+- **D-PHASE1D-G2-005** — `DemoAccountNav` 为最小 client island，
+  仅管理 Header 右上角登录/档案状态。mounted guard 防止 hydration mismatch。
+- **D-PHASE1D-G2-006** — 退出时 `demoLogout()` 清空 sessionStorage 并 `router.push("/")`。
+- **D-PHASE1D-G2-007** — `/profile` 无 session 时展示"请先选择演示账号"界面。
+
+### GuardianProfile Contract
+
+- **D-PHASE1D-G2-008** — `GuardianProfile` 接口定义在 `content/guardian.ts`：
+  id / demo / archiveRef / identity / stage / scenario / progress / tasks /
+  elements / timeline / methodSteps。
+- **D-PHASE1D-G2-009** — 未来 Dify/API adapter 返回同 GuardianProfile contract，
+  Profile 页面 UI 无需重写即可切换数据源。
+- **D-PHASE1D-G2-010** — Demo profile 数据（m123/n123）完整写入
+  `content/guardian.ts`，不硬编码在组件中。
+
+### Demo Personas
+
+- **D-PHASE1D-G2-011** — m123（demo-m28）：28岁男性，离·青少年期（20–29），
+  任务：职业方向/DONE、社保/DONE、体检/CURRENT等5项，2/5进度。
+  五行：木·健康=持续关注，金·财富=待完善。
+- **D-PHASE1D-G2-012** — n123（demo-f36）：36岁女性，兑·青年期（30–39），
+  创业场景，8项任务链（公司核名→注册→公章→开户 DONE，税务 CURRENT），
+  4/8进度。五行：金=当前事项，木=持续关注，火=持续关注。
+- **D-PHASE1D-G2-013** — m123 timeline：2026体检计划(计划中)/职业记录(已归档)/
+  社保(已归档)/学业(已归档)。
+- **D-PHASE1D-G2-014** — n123 timeline：2026税务(进行中)/开户(已归档)/
+  公司注册(已归档)/居住信息(已归档)。
+
+### UI / Safety
+
+- **D-PHASE1D-G2-015** — 所有 Demo 页面底部加 disclaimer：
+  "本页面展示内容均为虚构演示数据，不代表真实用户、医学判断、
+  投资建议或法律意见。"
+- **D-PHASE1D-G2-016** — `/login` 登录失败显示 aria-live 错误提示，
+  不使用 alert()。表单含 label/for/type=password/aria-required。
+- **D-PHASE1D-G2-017** — 五行状态词汇：已记录/持续关注/当前事项/待完善。
+  **不使用** low/medium/high risk 词汇。
+
+---
+
 ## 修改规范
 
 - 新决定追加在文末，按 `D-<类别>-<序号>` 编号。

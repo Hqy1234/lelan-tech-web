@@ -79,12 +79,19 @@ export function HomeGuardian() {
             </p>
 
             {/* CTA */}
-            <div className="mt-6 flex items-center gap-4">
+            <div className="mt-6 flex flex-wrap items-center gap-3">
               <a
-                href={content.ctaHref}
+                href="#guardian-archive"
                 className="inline-flex items-center gap-2 rounded-sm border border-ink bg-ink px-4 py-2 text-sm text-paper transition-colors hover:bg-green-dark"
               >
-                {content.ctaLabel}
+                查看人生坐标
+                <span aria-hidden>→</span>
+              </a>
+              <a
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-sm border border-rule px-4 py-2 text-sm text-ink transition-colors hover:border-green hover:text-green"
+              >
+                登录查看模拟人生档案
                 <span aria-hidden>→</span>
               </a>
             </div>
@@ -120,7 +127,7 @@ export function HomeGuardian() {
         </p>
 
         {/* ── LIFE ARCHIVE UI — 乐懒守护符 · 人生坐标 ─────────────── */}
-        <div className="mt-8">
+        <div id="guardian-archive" className="mt-8 scroll-mt-20">
           {/* Archive frame */}
           <div className="overflow-hidden rounded-sm border border-rule bg-paper-pure">
             {/* Archive header bar */}
