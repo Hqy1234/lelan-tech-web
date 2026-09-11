@@ -876,45 +876,77 @@ summary::marker {
 }
 
 /* ============================================================
- * Phase 1E.3-C-R1 — Guardian 4-Layer Spatial Stack
+ * Phase 1E.4-A — Guardian Subject Composition
  *
- * Layer 0: coordinate paper background
- * Layer 1: archive sheet (the content)
- * Layer 2: GuardianSeal — overlaps bottom-left of archive sheet
- * Layer 3: LIVE Glass — overlaps right side of archive sheet (22–28%)
+ * Replaces the Phase 1E.3-C-R1 overlay stack. That version proved depth by
+ * NEGATIVE OFFSETS (seal at left:-12px, glass pinned right:0 over 26% of the
+ * sheet). It caused no overflow itself, but it buried the archive behind a
+ * floating panel and left the section with no visual subject at all.
  *
- * Each layer is visibly separated via:
- *   - Different z-translate depth
- *   - Offset position (not centered)
- *   - Shadow + border contrast
+ * New model — one archive spread, two columns, nothing overlapping:
+ *   Column A (left)  — CURRENT LIFE STAGE VISUAL (one large subject image)
+ *   Column B (right) — stage identity, Y-axis rail, X-axis task chain
+ *
+ * No negative offsets. No absolute overlays. No translateZ on the subject.
+ * Depth comes from the paper mount + contact shadow only.
  * ============================================================ */
 
-/* Layer 2 — GuardianSeal overlay (bottom-left overlap) */
-.guardian-seal-overlay {
-  position: absolute;
-  bottom: -16px;
-  left: -12px;
-  z-index: 12;
-  transform: translateZ(calc(var(--depth-3-translate) * 1.2));
-}
-
-/* Layer 3 — LIVE Glass overlay (right side, 22–28% width) */
-.guardian-glass-overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 26%;
-  min-width: 200px;
-  max-width: 280px;
-  height: 100%;
-  z-index: 11;
-  transform: translateZ(var(--depth-4-translate));
-}
-
-/* Archive content — must be behind glass, visible through blur */
-.guardian-archive-content {
+/* Stage subject frame — paper-mounted archive plate */
+.lelan-stage-subject {
   position: relative;
-  padding-right: 26%;
+  background: var(--color-paper-pure);
+  border: 1px solid var(--color-rule);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.75),
+    0 8px 22px -14px rgba(20, 17, 15, 0.20);
+}
+
+/* Archive corner ticks — replaces the old overlapping seal placement */
+.lelan-stage-subject::before {
+  content: "";
+  position: absolute;
+  inset: 7%;
+  border: 1px solid rgba(184, 175, 154, 0.30);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Stage visual — fixed 5:4 aspect so the plate never jumps between stages.
+   Deliberately NOT 1:1: the delivery stage files are square (800×800), and a
+   square plate at 42% of a 1120px spread made the archive 588px tall on its
+   own. 5:4 keeps the subject large and readable while letting the coordinate
+   column (rail + task chain) determine the archive height instead. */
+.lelan-stage-subject-media {
+  aspect-ratio: 5 / 4;
+  overflow: hidden;
+}
+
+/* Caption bar under the plate */
+.lelan-stage-subject-caption {
+  border-top: 1px solid var(--color-rule);
+  background: var(--color-paper);
+}
+
+/* ============================================================
+ * Phase 1E.4-A — Five Elements continuous archive band
+ *
+ * Restores real visual presence for the 5 element buildings.
+ * The delivery files are 600×450 (4:3) — NOT 1:1. The plate uses the true
+ * 4:3 ratio so the imagery is shown whole and never cropped or squashed.
+ * Desktop: 5 columns. Tablet: 3. Mobile: 2.
+ * Plates land at ~189×142 px on desktop — visible, not a 40px strip.
+ * ============================================================ */
+.lelan-element-plate {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--color-paper-pure);
+  border: 1px solid var(--color-rule);
+}
+.lelan-element-plate img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 /* ============================================================
@@ -932,74 +964,16 @@ summary::marker {
   min-height: min(68vh, 640px);
 }
 
-/* Town service drawer — overflows right/top of map */
-.lelan-town-drawer-float {
-  position: absolute;
-  right: -8%;
-  top: -5%;
-  width: 30%;
-  min-width: 240px;
-  max-width: 320px;
-  z-index: 20;
-  transform: translateZ(var(--depth-3-translate));
-  /* Soft contact shadow to ground the floating panel */
-  box-shadow:
-    0 2px 0 0 rgba(20, 17, 15, 0.06),
-    0 16px 36px -18px rgba(20, 17, 15, 0.14);
-}
+/* Phase 1E.4-A — `.lelan-town-drawer-float` deleted.
+   The floating overlay drawer was replaced by a contained third column in
+   HomeTownClient. TownMapStage's grounded block below documents the seam. */
 
-/* Town foreground eaves — stronger, more visible occlusion */
-.lelan-town-fg-eave-left,
-.lelan-town-fg-eave-right {
-  position: absolute;
-  bottom: 0;
-  width: 45%;
-  height: 18%;
-  pointer-events: none;
-  z-index: 8;
-}
-.lelan-town-fg-eave-left {
-  left: 0;
-  background: linear-gradient(
-    to top right,
-    rgba(50, 42, 32, 0.22) 0%,
-    rgba(50, 42, 32, 0.12) 30%,
-    transparent 70%
-  );
-  clip-path: polygon(
-    0 100%,
-    0 65%,
-    12% 50%,
-    28% 58%,
-    42% 42%,
-    58% 62%,
-    72% 48%,
-    86% 58%,
-    100% 68%,
-    100% 100%
-  );
-}
-.lelan-town-fg-eave-right {
-  right: 0;
-  background: linear-gradient(
-    to top left,
-    rgba(50, 42, 32, 0.18) 0%,
-    rgba(50, 42, 32, 0.10) 30%,
-    transparent 70%
-  );
-  clip-path: polygon(
-    0 68%,
-    14% 58%,
-    28% 48%,
-    42% 62%,
-    58% 42%,
-    72% 58%,
-    86% 50%,
-    100% 65%,
-    100% 100%,
-    0 100%
-  );
-}
+/* Phase 1E.4-A — foreground eave wedges REMOVED.
+   The two 45%-wide × 18%-tall dark gradient wedges (`.lelan-town-fg-eave-left`
+   / `-right`) read as smudges over the ground plane rather than architecture,
+   and they competed with the plot labels for attention. Town is being held
+   quiet this phase; the depth they faked will be replaced by the real spatial
+   renderer in the next phase. */
 
 /* Town ground bottom edge — paper ground line */
 .lelan-town-ground-edge {
@@ -1087,125 +1061,104 @@ summary::marker {
 }
 
 /* ============================================================
- * Phase 1E.3-C-R1 — AI Process Glass DEPTH composition
+ * Phase 1E.4-A — AI QUIET DOCUMENT WORKSPACE
  *
- * Goals:
- *   - Process Glass (center) overlaps left + right papers
- *   - Asymmetric heights (left shorter, right taller)
- *   - Blur over real content behind
- *   - Word tokens stagger overflow
+ * Replaces the Phase 1E.3-C-R1 "Process Glass DEPTH composition".
+ *
+ * Why it was replaced:
+ *   - `.ai-glass-center` was `lg:absolute; left:25%; right:25%` AND had
+ *     `margin-left/-right: -8%`. In an absolutely-positioned box, percentage
+ *     margins resolve against the CONTAINING BLOCK width (not the element),
+ *     so the effective width became 100% + 16% = 116% → 1241px inside a
+ *     1072px container → 168px past the 1440 viewport. It was the single
+ *     largest contributor to the horizontal overflow.
+ *   - It also covered the Result Document it was supposed to connect, so the
+ *     intended INPUT → PROCESS → RESULT reading order was unreadable.
+ *
+ * New model — three honest columns, read left to right, nothing overlaps:
+ *   col 1  INPUT DOCUMENT
+ *   col 2  PROCESS (neutral digital panel, connects 1 → 3)
+ *   col 3  RESULT DOCUMENT
+ * then a compact Word output rail.
+ *
+ * Material: Paper + neutral panel. ZERO glass in this section.
+ * No translateZ, no perspective, no negative margins, no absolute overlap.
  * ============================================================ */
 
-/* AI workspace — full depth composition */
+/* AI workspace shell — plain, contained */
 .lelan-ai-composition {
   position: relative;
-  padding-bottom: 2rem;
 }
 
-/* AI left paper — back layer, shorter height */
-.ai-paper-left {
+/* AI document columns — all three are peers in normal flow */
+.ai-paper-left,
+.ai-paper-right,
+.ai-paper-process {
   position: relative;
   z-index: 1;
-  transform: translateZ(calc(var(--depth-1-translate) * 0.6));
-  margin-bottom: 2rem;
 }
 
-/* AI right paper — back layer, taller height */
-.ai-paper-right {
-  position: relative;
-  z-index: 1;
-  transform: translateZ(calc(var(--depth-1-translate) * 0.6));
-  margin-top: 1.5rem;
+/* Process panel — neutral digital surface (NOT glass, NOT the hero) */
+.ai-process-panel {
+  background: var(--color-paper-pure);
+  border: 1px solid var(--color-rule);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
 }
 
-/* AI center Process Glass — front layer, overlaps both papers */
-.ai-glass-center {
-  position: relative;
-  z-index: 5;
-  transform: translateZ(var(--depth-3-translate));
-  /* Expand past paper edges to create overlap */
-  margin-left: -8%;
-  margin-right: -8%;
+/* Column connector — quiet directional cue between the three columns */
+.ai-flow-arrow {
+  color: var(--color-muted-soft, var(--color-muted));
+  opacity: 0.65;
 }
 
-/* AI glass background — jade-tinted for archive feel */
-.ai-glass-bg {
-  background: rgba(243, 240, 232, 0.55);
-  border: 1px solid rgba(50, 75, 62, 0.16);
-  backdrop-filter: blur(16px) saturate(110%);
-  -webkit-backdrop-filter: blur(16px) saturate(110%);
-  box-shadow:
-    0 1px 0 0 rgba(255, 255, 255, 0.5) inset,
-    0 2px 4px 0 rgba(20, 17, 15, 0.04),
-    0 18px 40px -18px rgba(20, 17, 15, 0.12);
-}
-
-/* AI glass fallback */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .ai-glass-bg {
-    background: rgba(243, 240, 232, 0.88);
-  }
-}
-
-/* AI word token — staggered overflow stack */
+/* ── Word output rail ────────────────────────────────────────────────────
+   Compact file list. Real 7 outputs, but no longer 7 oversized cards.
+   Fixed column counts (not auto-fill) so the 7 items balance instead of
+   wrapping 5 + 2: mobile 2 / tablet 2 / desktop 4 columns.
+   No stagger, no z-index games, no per-item shadow. */
 .ai-token-stack {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.5rem;
-  margin-top: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem 0.75rem;
+}
+
+@media (min-width: 1024px) {
+  .ai-token-stack {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .ai-token-item {
   position: relative;
-  background: #ffffff;
-  border: 1px solid var(--color-rule);
-  border-radius: 2px;
-  padding: 0.5rem;
-  box-shadow:
-    0 1px 0 0 rgba(20, 17, 15, 0.04),
-    0 4px 12px -8px rgba(20, 17, 15, 0.10);
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--color-rule);
+  border-radius: 0;
+  padding: 0.25rem 0.5rem;
+  box-shadow: none;
 }
 
-/* Staggered overflow — each token shifts slightly */
-.ai-token-item:nth-child(3n+1) {
-  transform: translateY(0px);
-  z-index: 2;
+/* Group accent — a single hairline, not a card */
+.ai-token-item[data-group="rewrite"] {
+  border-left-color: rgba(47, 74, 58, 0.35);
 }
-.ai-token-item:nth-child(3n+2) {
-  transform: translateY(-4px) translateX(2px);
-  z-index: 3;
-}
-.ai-token-item:nth-child(3n) {
-  transform: translateY(-2px) translateX(-1px);
-  z-index: 1;
+.ai-token-item[data-group="aigc"] {
+  border-left-color: rgba(184, 148, 60, 0.40);
 }
 
 @media (min-width: 641px) {
   .ai-token-item:hover {
-    transform: translateY(-4px);
-    box-shadow:
-      0 1px 0 0 rgba(20, 17, 15, 0.04),
-      0 10px 20px -10px rgba(20, 17, 15, 0.14);
-    z-index: 10;
+    background: rgba(20, 17, 15, 0.02);
   }
 }
 
 /* ============================================================
- * Phase 1E.3-C-R1 — Visual depth indicators
+ * Phase 1E.4-A — removed legacy depth indicators
+ *
+ * `.depth-edge-marker` (a 1px decorative misalignment line) and
+ * `.archive-paper-edge` (an edge highlight whose only purpose was to make
+ * paper visible BEHIND glass) both lost their reason to exist once the
+ * Guardian glass overlay was removed. Neither is referenced by any
+ * component. Deleted rather than left as dead CSS.
  * ============================================================ */
-
-/* Depth line — shows paper layer edges are misaligned */
-.depth-edge-marker {
-  position: absolute;
-  width: 1px;
-  background: rgba(155, 58, 47, 0.25);
-  pointer-events: none;
-}
-
-/* Archive sheet edge highlight — makes paper visible behind glass */
-.archive-paper-edge {
-  position: absolute;
-  pointer-events: none;
-  background: rgba(20, 17, 15, 0.04);
-}
 

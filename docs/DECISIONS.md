@@ -357,6 +357,164 @@
 
 ---
 
+## D-PHASE1E.4-A · Visual De-noising + Guardian Subject Restoration + AI Simplification（追加于 2026-09-11）
+
+### Layout Defect Fixes (P0)
+
+- **D-PHASE1E.4-A-001** — 修复 1440 viewport 横向 overflow（此前 `document.scrollWidth = 1608` vs viewport 1440，溢出 168px）。
+  **根因（两个，均已修 root cause，未使用 `overflow-x: hidden` 掩盖）：**
+  1. `components/ai/AiWorkflowPreview.tsx` 的 `.ai-glass-center` 同时使用
+     `lg:absolute; left:25%; right:25%` **和** `margin-left/-right: -8%`。
+     绝对定位元素的百分比 margin 以**包含块**宽度解析，因此实际宽度变成
+     100% + 16% = 116%（1241px 落在 1072px 容器内）→ 超出 1440 viewport 168px。
+     这是最大单一贡献者。
+  2. `.lelan-town-drawer-float` 使用 `position:absolute; right:-8%; top:-5%`，
+     把 30% 宽的面板推出 map 容器。
+  **结果（实测）**：1440 / 1024 / 768 / 375 全部
+  `document.documentElement.scrollWidth === viewport width`，AI section overflow = 0。
+
+- **D-PHASE1E.4-A-002** — 确认 `document.scrollWidth === viewport` **不是**
+  "所有元素都必须在 viewport 内"。Guardian 八阶段 rail 是**有意的**
+  `overflow-x-auto` 内部滚动容器（D-PHASE2-023），在 1024/375 下其子节点
+  超出 viewport 属于设计行为，不产生 page-level 横向滚动。
+  判定标准是 document 级 scrollWidth，而非元素级 bounding rect。
+
+### Guardian Subject Restoration
+
+- **D-PHASE1E.4-A-003** — Guardian 恢复**单一视觉主体**：
+  ONE LARGE STAGE SUBJECT（`GuardianArchive` 左栏），默认
+  `stage-04-dui-young-adult`（兑 · 青年期 30–39，DEFAULT_STAGE_ID 保持不变）。
+  切换 stage 时该大图跟随切换。
+- **D-PHASE1E.4-A-004** — **继续禁止**恢复 8 张 40–56px 阶段小缩略图。
+  Phase 1E.3-A 判定其为视觉噪声的结论不变（见 D-PHASE1E.3-A-020）。
+  主体由"一张大图跟随选择"承担，而非"八张小图并列"。
+- **D-PHASE1E.4-A-005** — 五行走廊恢复 **5 张真实视觉资产**
+  （金财富 / 木健康 / 水出行 / 火饮食 / 土安居），
+  形态为 CONTINUOUS LIFE DIMENSION ARCHIVE BAND（连续档案带），
+  **不是** 5 张巨大独立卡片，**也不是** 30–40px 缩略条。
+  Desktop ≥1024 五列 / Tablet 3 列 / Mobile 2 列；
+  实测 plate ≈189×142px（desktop）/ ≈133×100px（mobile）。
+  仍禁止：五行转盘、相生相克箭头、宝石/球/神兽、风险色阶。
+- **D-PHASE1E.4-A-006** — `.lelan-stage-subject-media` 采用 **5:4** 比例
+  （非 1:1）。交付阶段图为 800×800 方形；1:1 plate 在 1120px 展板上会单独
+  撑出 588px 高度，使 archive 高度失控。5:4 保持主体够大，同时让坐标栏
+  （rail + 任务链）决定 archive 高度。
+- **D-PHASE1E.4-A-007** — `.lelan-element-plate` 采用 **4:3**，与交付文件
+  600×450 完全一致，图片**不裁切、不拉伸**。
+- **D-PHASE1E.4-A-008** — **女娲（guardianNuwa）保持 BLOCKED，明确不恢复。**
+  水印 / 版权未清（D-PHASE2-017、D-ASSET-008）。禁止：显示 / 裁切 / 遮水印 /
+  去水印 / 重绘 / AI 修复。资产文件未做任何改动；
+  `content/assets.ts` 与 `content/guardian.ts` 注释已标注
+  "⛔ BLOCKED pending copyright clearance"。
+
+### Asset Metadata Fix
+
+- **D-PHASE1E.4-A-009** — 修正 `content/assets.ts` 中错误的固有尺寸声明
+  （此前会导致 CLS 预留错误与意外裁切）：
+  - 五行 5 张：`600×600` → **`600×450`**（真实交付文件为 4:3）
+  - 女娲：`400×400` → **`400×533`**（真实交付文件为 3:4 竖版）
+  参考 PNG 尺寸为 2364×1773 / 1773×2364。
+
+### Guardian Composition / De-duplication
+
+- **D-PHASE1E.4-A-010** — 移除 Phase 1E.3-C-R1 的 4 层 overlay 堆叠：
+  `.guardian-seal-overlay`（`left:-12px` 悬垂）、
+  `.guardian-glass-overlay`（`right:0` 压住 26% 展板）、`.archive-paper-edge`、
+  `.depth-edge-marker`。这些负偏移 / 覆盖层已被删除（非仅仅停用）。
+  新组合为**一展开档案、两栏、无任何重叠**。
+- **D-PHASE1E.4-A-011** — Guardian 当前坐标读数**只保留一处**。
+  修复前「兑 · 青年期 · 4/8」在本 section 出现 **3 次**
+  （section aside / archive sheet header / glass panel）；
+  现在仅由 header 右侧**唯一一个** live glass 面板权威呈现。
+- **D-PHASE1E.4-A-012** — 移除 Guardian header 中与 section intro 重复的
+  第二段说明文字；移除 `GuardianLifecycle` 的 active-stage caption 盒
+  （与 stage-subject caption 重复；当前阶段仍由 rail 填充节点 +
+  `当前 04 · 兑` rail label + GuardianTaskFlow 场景标签共同表达）。
+- **D-PHASE1E.4-A-013** — `GuardianLifecycle` rail 不再同时使用
+  `sm:justify-center` 与 `overflow-x-auto`（两者互相冲突，可能在平板宽度裁掉
+  首个阶段）。移动端 active stage 通过 `scrollIntoView` 自动进入可见区域，
+  并遵守 `prefers-reduced-motion`（无动画滚动）。
+- **D-PHASE1E.4-A-014** — GuardianSeal 不再是浮动覆盖层，
+  而是作为 archive identity mark 位于 stage subject caption 栏右侧。
+  组件 API 与状态语义（outline/partial/complete）不变。
+
+### Glass Reduction
+
+- **D-PHASE1E.4-A-015** — 首页 Glass surface 由 **5 降至 2**（实测 `glassSurfaces: 2`）：
+  1. Guardian `当前坐标 · LIVE` 面板
+  2. Town 选中服务档案面板（`TownServiceDrawer`）
+  **AI / Hero / Technology / About = 0 glass。**
+  `ProgressTrace` 由 glass 改为 neutral paper panel（`.ai-process-panel`）。
+  移除 `.ai-glass-bg` / `.ai-glass-center`。符合 D-9.8「glass 仅用于浮动实时信息」。
+
+### AI Quiet Workspace
+
+- **D-PHASE1E.4-A-016** — AI section 重构为 **QUIET DOCUMENT WORKSPACE**。
+  阅读顺序：01 输入文档 → 02 处理过程 → 03 结果文档 → Word 成品 rail。
+  移除：中央巨大浮动 Glass、负 margin、文档互相覆盖、process panel 遮挡 result、
+  `translateZ` 炫技、`lelan-perspective`。**AI 不再使用任何 glass。**
+- **D-PHASE1E.4-A-017** — 7 份 Word 成品保留**真实名称**，形态改为
+  compact output rail（hairline 左边界 + 分组色调），
+  Desktop 4 列 / Tablet 2 列 / Mobile 2 列，不再是 7 张巨大卡片。
+  新增免责声明："相关检测与分析结果仅供参考，不代表第三方检测结论。"
+  **未新增任何虚假指标。**
+- **D-PHASE1E.4-A-018** — AI 文案一致性统一：`positioning` 与
+  `features.aigc.description` 中残留的「自然化改写」改为
+  「AIGC 分析与降 AIGC」/「AIGC 改写」，与 D-PHASE1E.3-C-008 的品牌修正
+  及 `lelan-shouhu` 真实能力一致。**未修改 `lelan-shouhu`。**
+- **D-PHASE1E.4-A-019** — AI section 高度：1440 由 **1603px → 1157px**。
+  手段是去重与结构简化（移除 4-up facts 列表、移除重复「体验版可用」徽标
+  ——该状态此前在同一 section 出现 3 次、移除 4 个固定高度文档盒），
+  **不是**硬编码裁切。
+
+### Town — Held Quiet
+
+- **D-PHASE1E.4-A-020** — Town 本轮**只降噪，不做 Globe**。
+  删除 `.lelan-town-fg-eave-left/right` 前景飞檐渐变 wedge
+  （两条 45%×18% 深色 clip-path，读起来像地面污渍且抢 plot 标签注意力）。
+  删除 Guardian 与 Town 连续两次的 `.lelan-divider-coord-fade`（仅保留一处）。
+- **D-PHASE1E.4-A-021** — **Town renderer seam 冻结，不得破坏**：
+  - `HomeTownClient` 独占 `selectedId` + URL hash 同步（**未改动**）
+  - `TownMapStage` 为纯渲染器：props in `{ shops, selectedId, stageLabel? }`，
+    不持有状态
+  - `TownServiceDrawer` 为纯详情面板
+  - `content/town.ts` 仍为唯一真相源，8 个铺子与 `plot {x, y}` 坐标全部保留
+  下一阶段 `TownGlobe`（WebGL / R3F）可直接替换或与 `TownMapStage` 并存。
+- **D-PHASE1E.4-A-022** — 保留：8 shops / selection / radio keyboard 可达性 /
+  hash 双向同步 / drawer / capabilities strip。
+  Town 本轮**不塞人物图填空**。
+
+### Section Numbering
+
+- **D-PHASE1E.4-A-023** — 修复可见编号断层：`00 / 01 / 03 / 04 / 05 / 06`
+  → **`00 / 01 / 02 / 03 / 04 / 05`**（连续）。
+  `content/home.ts` 中 Town=02、AI=03、Technology=04、About=05。
+  **业务顺序未改变。** 流水线编号 02 的空缺源自 Phase 1D-G3 移除
+  `HomeArchitecture` section。
+
+### Visual Rhythm（本轮验收标准）
+
+- **D-PHASE1E.4-A-024** — 首页最终节奏：
+  Hero CALM → Guardian EMOTIONAL / ARCHIVE → Town SPATIAL PREVIEW（收敛）
+  → AI QUIET SOFTWARE → Technology CALM → About CALM。
+  不再允许 Guardian / Town / AI 连续三个 section 都成为视觉高潮。
+  下一轮 Town Globe 完成后，Town 才升级为首页最强空间高潮。
+
+### Engineering / QA
+
+- **D-PHASE1E.4-A-025** — `npm run lint` 0 errors / 0 warnings；
+  `npx tsc --noEmit` 0 errors；`npm run build` 成功导出 8 个静态页。
+- **D-PHASE1E.4-A-026** — 生产静态预览实测（1440 / 1024 / 768 / 375）：
+  document 级无横向滚动；无 broken image（`imgTotal: 8`，全部 `naturalWidth > 0`）；
+  console errors 0；无 4xx。
+  仅有的 `net::ERR_ABORTED` 来自 Next.js `Link` 的 RSC prefetch 请求，
+  与 D-PHASE1E.3-C-009 记录的既有现象一致，非 404。
+- **D-PHASE1E.4-A-027** — 本轮**未**安装 three.js / @react-three/fiber / drei，
+  **未**实现 Town Globe，**未**进入 Dify，**未**修改 `lelan-shouhu`
+  （结束前 `git status` 仍为 clean）。
+  R3F 方案评估已被接受为**下一阶段原型方向**，但本阶段**未**实现，
+  文档中不得表述为已完成。
+
 ## 修改规范
 
 - 新决定追加在文末，按 `D-<类别>-<序号>` 编号。

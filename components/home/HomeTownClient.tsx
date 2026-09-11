@@ -1,25 +1,26 @@
 /**
- * LELAN TECHNOLOGY · Town V1.5 (Phase 1E.3-B + C-R1) Client Island
+ * LELAN TECHNOLOGY · Town V1.5 Client Island
  *
- * Phase 1E.3-C-R1 — Drawer overflow visual upgrade.
+ * Phase 1E.4-A — Containment (de-noising), state architecture UNCHANGED.
  *
- * R1 visual change:
- *   - Desktop Drawer position uses `.lelan-town-drawer-float`:
- *     right: -8% (overflows ~20% past map container)
- *     top:   -5% (slight vertical pull)
- *   - All other state / accessibility / hash sync preserved from R0.
+ * ⚠ This file owns Town selection state. That architecture is frozen so the
+ * next phase can swap TownMapStage for a WebGL/R3F TownGlobe without touching
+ * the state layer:
  *
- * Architecture:
- *   - Selection state lives here
- *   - URL hash bidirectional sync (selected → hash, hash → selected)
- *   - On invalid hash: fall back to default shop (paper-teahouse)
- *   - Refresh: selected restored from hash
- *   - All 8 shops' content is passed from the server
+ *     HomeTownClient   owns `selectedId` + URL hash sync   ← do not change
+ *     TownMapStage     pure renderer: (shops, selectedId)  ← replaceable
+ *     TownServiceDrawer detail panel: (shop, agentRoleLabel)
  *
- * Visual composition:
- *   Left  (≈20%, mobile: full width): compact service index (8 entries)
- *   Center (≈55%): TownMapStage (the spatial map)
- *   Right (Drawer floats 20% past map edge, mobile: full width below)
+ * Phase 1E.4-A change (the only one):
+ *   The desktop drawer used to be an ABSOLUTE overlay positioned with
+ *   `.lelan-town-drawer-float { right: -8%; top: -5% }`, which pushed it ~20%
+ *   past the map container and was one of the two root causes of the 168px
+ *   horizontal overflow at 1440. It is now a contained third column that sits
+ *   beside the map instead of on top of it. No negative offsets anywhere.
+ *
+ * Visual composition (desktop ≥1024):
+ *   [ 8-service index ] [ map ] [ selected service panel ]
+ * Tablet/mobile: index, then map, then panel below — all in normal flow.
  */
 
 "use client";
@@ -181,30 +182,18 @@ export function HomeTownClient({ shops, statusNote }: HomeTownClientProps) {
         })}
       </nav>
 
-      {/* ── Center: TownMapStage + floating service panel ─────── */}
-      <div className="relative flex-1 min-w-0">
+      {/* ── Center: TownMapStage ──────────────────────────────────────
+          The renderer seam. Stateless; selection comes from props. */}
+      <div className="relative min-w-0 flex-1">
         <TownMapStage shops={shops} selectedId={selected.id} />
+      </div>
 
-        {/* Phase 1E.3-C-R1 — Drawer overflows ~20% past the map container */}
-        <div
-          className="pointer-events-none absolute inset-0 hidden lg:block"
-          aria-hidden
-        >
-          <div className="pointer-events-auto lelan-town-drawer-float">
-            <TownServiceDrawer
-              shop={selected}
-              agentRoleLabel={agentRoleLabel}
-            />
-          </div>
-        </div>
-
-        {/* Mobile/Tablet: drawer appears below the map (full width) */}
-        <div className="mt-4 w-full lg:hidden">
-          <TownServiceDrawer
-            shop={selected}
-            agentRoleLabel={agentRoleLabel}
-          />
-        </div>
+      {/* ── Right / below: selected service panel ─────────────────────
+          Contained column — NOT an absolute overlay. Previously this was
+          `.lelan-town-drawer-float` with right:-8%, which overflowed the
+          page by 168px at 1440. */}
+      <div className="w-full shrink-0 lg:w-72 xl:w-80">
+        <TownServiceDrawer shop={selected} agentRoleLabel={agentRoleLabel} />
       </div>
 
       <p className="sr-only">{statusNote}</p>

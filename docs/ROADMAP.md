@@ -7,9 +7,18 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1E.3-C — Spatial Glass Interface + Asset Visibility Audit + 3D Section Depth Refinement
-- **下一阶段**：等待 Visual V1 最终验收（用户 + ChatGPT + Codex）；Phase 1F (Dify / Adapter) gated by user confirmation.
-- **说明**：Phase 1E.3-C 完成：Asset Visibility Audit（18个资产全部HTTP 200，0 TYPE A render bug）；新增 Frosted Archive Glass Material System（玉质档案玻璃 — jade/ivory tint，backdrop-filter blur 14px，fallback solid）；Semantic Z0–Z5 depth tokens；Guardian 新增 Glass "当前坐标·LIVE" panel（archive sheet 右上角浮层）；Town 升级：section-field rear plane + foreground eaves + building frame paper mount + glass floating service panel（desktop overlaps map）；AI 升级：Process Trace 改为 Glass surface（Paper+Glass+Paper 材质层级）；P1 自然化改写→AIGC改写 fix；P0 RSC prefetch 404 fix（14个Link加prefetch={false}）；lint/tsc/build全部PASS。Phase 1E.3 Visual V1 最终版。Phase 1F 等待用户验收。
+- **当前阶段**：Phase 1E.4-A — Visual De-noising + Guardian Subject Restoration + AI Simplification（已完成）
+- **下一阶段**：Phase 1E.4-B — Town Globe Prototype（WebGL / React Three Fiber，**尚未开始**）
+- **说明**：Phase 1E.4-A 完成。修复 1440 横向 overflow 根因（`ai-glass-center` 百分
+  margin 于绝对定位下解析为包含块宽度 → 116% 宽；`town-drawer-float` 负偏移），
+  1440/1024/768/375 全部 `document.scrollWidth === viewport`；Guardian 恢复单一视觉
+  主体（1 张大阶段图跟随选择 + 5 张五行图连续档案带），**未**恢复 8 张小缩略图，
+  **女娲保持 BLOCKED**；Guardian 当前坐标读数由 3 处去重为 1 处；Glass 由 5 降至 2
+  （仅 Guardian LIVE + Town 服务面板，AI/Hero/Technology/About = 0）；AI 重构为 quiet
+  document workspace，1440 高度 1603px→1157px，section overflow 0；Town 仅降噪并冻结
+  renderer seam；section 编号修复为连续 00–05；lint/tsc/build 全通过，无 broken image，
+  无 console error。Town Globe **未实现**，three.js/R3F **未安装**，`lelan-shouhu`
+  **未修改**。
 
 ---
 
@@ -123,6 +132,62 @@
 - **无 Dify / 无 API key**：所有逻辑本地 deterministic，无网络调用
 - **静态导出兼容**：`output: "export"` 保持，`/guardian/demo` 静态生成
 - 文档更新：PROJECT / DESIGN-SYSTEM / DECISIONS / ROADMAP
+
+## Phase 1E.4-A · Visual De-noising + Guardian Subject Restoration + AI Simplification（已完成）
+
+**问题诊断**：不是"设计不够多"，而是"结构语言过多、视觉主体过少"。
+Phase 1E.3-B/C 连续两轮只做加法（glass、Z0–Z5、section field、飞檐、负偏移、
+错位堆叠），却未删除任何东西，导致 Guardian / Town / AI 三个连续 section
+都自称"最深"。
+
+- **P0 布局缺陷修复**
+  - 1440 横向 overflow 168px 的两个根因均修 root cause
+    （`ai-glass-center` 绝对定位下百分比 margin 解析为包含块宽度；
+    `town-drawer-float` 负 `right/top`）；未使用 `overflow-x: hidden` 掩盖
+  - 实测 1440 / 1024 / 768 / 375：`document.scrollWidth === viewport width`
+  - AI section overflow = 0（此前 168px）
+- **Guardian 主体恢复（选择性，不 revert 1ded190）**
+  - 恢复 ONE LARGE STAGE SUBJECT：1 张大图跟随 stage 切换，默认 04 兑·青年期
+  - 恢复 5 张五行视觉资产，形态为连续档案带（非 5 张大卡、非 30–40px 缩略条）
+  - **不恢复** 8 张 40–56px 阶段缩略图（Phase 1E.3-A 的噪声判定不变）
+  - **女娲保持 BLOCKED**（水印/版权未清，不显示/不裁切/不遮/不去水印/不重绘）
+  - 保留：GuardianSeal / Y轴八阶段 / X轴事项链 / GuardianProfile contract /
+    method strip / 人生坐标逻辑
+  - 当前坐标读数 3 处 → 1 处；移除 4 层 overlay 堆叠与所有负偏移
+- **素材 metadata 修正**：五行 `600×600`→`600×450`；女娲 `400×400`→`400×533`
+- **AI 重构为 Quiet Document Workspace**
+  - 阅读顺序 01 输入 → 02 处理 → 03 结果 → Word 成品；无重叠、无负 margin、
+    无 translateZ、无 perspective
+  - 7 份 Word 成品保留真实名称，改为 compact rail（桌面 4 列）
+  - 新增"相关检测与分析结果仅供参考，不代表第三方检测结论。"
+  - 文案统一为"AIGC 分析与降 AIGC"；高度 1440 由 1603px → 1157px
+- **Glass 由 5 降至 2**（仅 Guardian LIVE + Town 服务面板；AI/Hero/Tech/About = 0）
+- **Town 仅降噪**：删除前景飞檐 wedge、去除重复 coord-fade、移除浮动抽屉负偏移；
+  **冻结 renderer seam**（`HomeTownClient` 持状态 / `TownMapStage` 纯渲染器 /
+  `content/town.ts` 唯一真相源），供下一轮 `TownGlobe` 替换
+- **Section 编号**修复为连续 `00–05`（业务顺序不变）
+- **首页节奏**：Hero CALM → Guardian EMOTIONAL → Town SPATIAL（收敛）→
+  AI QUIET → Technology/About CALM
+- **QA**：lint 0/0、tsc 0、build 8 页成功、无 broken image、无 console error、
+  无 4xx、document 级无横向滚动（1440/1024/768/375）
+- **本轮明确未做**：Town Globe 未实现；three.js / @react-three/fiber / drei 未安装；
+  Dify 未进入；`lelan-shouhu` 未修改
+
+## Phase 1E.4-B · Town Globe Prototype（下一阶段 · 尚未开始）
+
+- 目标：可拖动旋转的"东方数字城镇沙盘"（LELAN DIGITAL TOWN SANDBOX）
+- 技术方向：React Three Fiber（+ 按需 drei），**提案待实施**
+- 前置约束（Phase 1E.4-A 已锁定）
+  - 保持 `TownMapStage` 的 renderer seam 契约不变
+  - 仅在 Town section 动态加载；进入 viewport 才加载
+  - 必须提供 fallback：WebGL unavailable / `prefers-reduced-motion` /
+    低功耗移动端 / `noscript` / 键盘可达的服务索引 / SEO 静态 HTML
+  - ≤767px 不挂载 WebGL
+  - 不做真实地球（无大陆 / 国界 / 经纬 / 物流弧线 / 赛博）
+  - 不做游戏化（无 RPG HUD / 角色跑动 / 任务系统 / 金币 / 经验 / 摇杆 /
+    昼夜 / 满屏粒子 / 背景音乐）
+  - **素材前置**：6 个铺子缺 delivery WebP（reference 已有），
+    3D/globe 资产尚无 —— 素材生产需先于 WebGL 实现
 
 ## Phase 1D-G3 · Guardian-first Homepage + LeLan AI Integration（已完成）
 

@@ -1,20 +1,34 @@
 /**
  * LELAN TECHNOLOGY · Town Map Stage
  *
- * Phase 1E.3-C-R1 — STRONG DEPTH visual upgrades (R1 rework).
+ * Phase 1E.4-A — DE-NOISED, and held stable as the renderer seam.
  *
- * Changes in R1:
- *   - Map container is taller (lelan-town-map-container — 68vh / 640px)
- *   - Real building plots enlarged via larger PLOT_W (12% → 16%)
- *   - Foreground eaves strengthened (lelan-town-fg-eave-* in globals)
- *   - Future building slots read as architectural volumes, not dashed grid
+ * IMPORTANT — this component is a SEAM, not a finished renderer.
+ * The next phase replaces or sits alongside it with a real WebGL/R3F
+ * "eastern digital town sand-table" (TownGlobe). Therefore Phase 1E.4-A
+ * deliberately does NOT invest further in this CSS map. It only removes
+ * what was actively harmful and keeps this component's contract frozen.
  *
- * Layers (preserved):
+ * Contract that MUST NOT change (so TownGlobe can be swapped in):
+ *   props in  : { shops, selectedId, stageLabel? }
+ *   emits out : nothing — selection is owned by the client island
+ *               (HomeTownClient owns `selectedId`; the renderer is stateless)
+ *   data      : `content/town.ts` remains the single source of truth,
+ *               including the locked `plot {x, y}` coordinates for all 8 shops.
+ *
+ * Phase 1E.4-A removals:
+ *   - Foreground eave wedges (`.lelan-town-fg-eave-*`): two 45%-wide × 18%-tall
+ *     dark gradient clip-path shapes that read as smudges over the ground plane
+ *     and stole attention from the plot labels.
+ *   - The perspective wrapper stays, but the map is no longer asked to fake
+ *     depth it cannot honestly produce.
+ *
+ * Layers (kept):
  *   Layer 0  BACKGROUND TERRAIN       — distant silhouette (CSS-only)
  *   Layer 1  GROUND PLANE             — SVG road grid
  *   Layer 2  BUILDING / PLOT VISUAL   — HTML plot elements
  *   Layer 3  LABELS / MARKERS         — shop number + name + dim badges
- *   Layer 4  SELECTED DETAIL          — service drawer (separate island)
+ *   Layer 4  SELECTED DETAIL          — service drawer (separate element)
  */
 
 import Image from "next/image";
@@ -302,10 +316,6 @@ export function TownMapStage({
 
         {/* Foreground ground edge — paper ground line */}
         <div aria-hidden className="lelan-town-ground-edge" />
-
-        {/* R1 — Foreground eaves (stronger, taller) */}
-        <div aria-hidden className="lelan-town-fg-eave-left" />
-        <div aria-hidden className="lelan-town-fg-eave-right" />
       </div>
     </div>
   );

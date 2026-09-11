@@ -481,3 +481,125 @@ Paper vs Glass semantics:
 - **Paper** = stable, persistent, archive (GuardianSeal, Town buildings, AI documents)
 - **Glass** = live, digital, floating (current coordinate, selected service, process controls)
 - Both hooks live as separate component branches — no layout rewrite required.
+
+---
+
+## 10. Phase 1E.4-A — Visual De-noising + Guardian Subject Restoration + AI Simplification
+
+> 本轮主题：**停止继续叠加视觉系统。**
+> 问题不是"设计不够多"，而是"结构语言过多、视觉主体过少"。
+> 原则：**留白 > 边框 / 主体 > 系统线 / 对象 > 注释。**
+
+### 10.1 首页最终视觉节奏
+
+| Section | 角色 | 材质预算 |
+|---|---|---|
+| Hero | 品牌入口 · CALM | paper，0 glass |
+| **Guardian** | **情绪与叙事高潮 · 东方生命档案** | paper + **1** glass（LIVE 坐标） |
+| Town | 空间预览 · 本轮收敛（下轮升级为最强空间高潮） | paper + **1** glass（服务面板） |
+| AI | 最安静 · 真实软件证明 | paper only，**0 glass** |
+| Technology | 呼吸区 · CALM | paper，0 glass |
+| About | 呼吸区 · CALM | paper，0 glass |
+
+**强制**：不允许 Guardian / Town / AI 连续三个 section 都成为视觉高潮。
+
+### 10.2 Glass 预算（硬规则）
+
+首页 **最多 2 个** glass surface：
+
+1. Guardian `当前坐标 · LIVE` 面板
+2. Town 选中服务档案面板（`TownServiceDrawer`）
+
+**禁止 glass**：AI / Hero / Technology / About / 按钮 / footer / 卡片网格 /
+文档页 / document workspace。
+
+`ProcessTrace` 已由 glass 改为 neutral paper panel（`.ai-process-panel`）。
+`.ai-glass-bg` / `.ai-glass-center` 已删除。
+
+### 10.3 Guardian Subject Restoration（选择性恢复）
+
+**恢复**：
+
+- **ONE LARGE STAGE SUBJECT** — `GuardianArchive` 左栏单张大图，
+  默认 `stage-04-dui-young-adult`（兑·青年期 30–39），切换 stage 时跟随切换。
+  比例 **5:4**（`.lelan-stage-subject-media`）；交付文件为 800×800。
+- **5 张五行视觉资产** — 连续档案带 `.lelan-element-plate`（**4:3**，与 600×450
+  交付文件一致，不裁切不拉伸）。Desktop 5 列 / Tablet 3 列 / Mobile 2 列。
+  实测 plate ≈189×142（desktop）/ ≈133×100（mobile）。
+
+**不恢复**：
+
+- ❌ 8 张 40–56px 阶段小缩略图（Phase 1E.3-A 判定为视觉噪声，结论不变）
+- ❌ 女娲 / Nuwa ——⛔ **BLOCKED pending copyright clearance**
+  （水印未清；禁止显示 / 裁切 / 遮水印 / 去水印 / 重绘 / AI 修复）
+- ❌ full-bleed stage backgrounds
+
+### 10.4 Guardian 组合（一展开档案，两栏，零重叠）
+
+```
+┌────────────────────────────┬──────────────────────────────┐
+│ CURRENT LIFE STAGE VISUAL  │ stage identity + GuardianSeal │
+│  (1 张大图，跟随 stage)      │ Y axis 八阶段 rail            │
+│                            │ X axis 当前事项链             │
+└────────────────────────────┴──────────────────────────────┘
+        ↓ 五行生活维度 · 连续档案带（5 张真实图）
+        ↓ 坐标背后的方法（科学层 · 沉默声明）
+```
+
+**禁止**：负偏移覆盖层（`left:-12px` 悬垂印章 / `right:0` 玻璃压住展板）、
+Glass on Glass、每个状态都 Glass、同一坐标重复出现。
+**当前坐标只允许一处权威呈现。**
+
+### 10.5 AI Quiet Document Workspace
+
+阅读顺序（不得重叠）：
+
+```
+[ 01 输入文档 ]  →  [ 02 处理过程 ]  →  [ 03 结果文档 ]
+        ↓
+[ Word 成品 · 7 份 compact rail ]
+```
+
+- Desktop ≥1024：`lg:grid-cols-12`，4 / 4 / 4
+- Tablet ≥640：单列堆叠（处理过程不再横向挤压）
+- Mobile <640：单列堆叠
+- Word rail：Desktop 4 列 / Tablet 2 列 / Mobile 2 列
+- **禁止**：中央巨大浮动 Glass、负 margin、文档互相覆盖、
+  process panel 遮挡 result、translateZ 炫技、`lelan-perspective`
+- 必需免责声明："相关检测与分析结果仅供参考，不代表第三方检测结论。"
+
+### 10.6 横向 Overflow 规则（工程硬约束）
+
+- 判定标准是 **document 级** `document.documentElement.scrollWidth`
+  `=== viewport width`；**不得**用 `body { overflow-x: hidden }` 掩盖。
+- **禁止**以负 `margin` / 负 `left` / 负 `right` 制造"深度"或"溢出感"。
+  特别注意：**绝对定位元素的百分比 margin 以包含块宽度解析**，
+  `left:25%; right:25%` + `margin:-8%` 会产生 116% 宽度。
+- **允许** `overflow-x-auto` 内部滚动容器（如 Guardian 八阶段 rail，
+  见 D-PHASE2-023）。其子节点超出 viewport 属设计行为，不构成 page-level 溢出。
+
+### 10.7 Section 编号
+
+连续编号 `00–05`，不得出现断层。
+
+### 10.8 Town — 本轮只降噪（seam 冻结）
+
+- 删除：前景飞檐 wedge（`.lelan-town-fg-eave-*`，45%×18% clip-path 深色渐变）、
+  连续两次的 `.lelan-divider-coord-fade`、浮动抽屉负偏移
+- **冻结 renderer seam**（供下一轮 `TownGlobe` 替换）：
+  - `HomeTownClient` 独占 `selectedId` + hash 同步
+  - `TownMapStage` 纯渲染器：`{ shops, selectedId, stageLabel? }`
+  - `content/town.ts` 唯一真相源（8 铺子 + `plot {x, y}`）
+- 不塞人物图填空；8 shops 结构不得因素材缺失而删减
+
+### 10.9 资产尺寸声明
+
+`content/assets.ts` 的 `width` / `height` **必须**等于真实交付文件尺寸：
+
+| 资产组 | 参考 PNG | 交付 WebP | 声明 |
+|---|---|---|---|
+| guardian/stages | 2048×2048 | 800×800 | 800×800 |
+| guardian/elements | 2364×1773 | 600×450 | **600×450** |
+| guardian/overview (女娲) | 1773×2364 | 400×533 | **400×533**（BLOCKED） |
+| town/buildings | 2364×1773 | 1200×900 | 1200×900 |
+| town/characters | 2048×2048 | 800×800 | 800×800 |

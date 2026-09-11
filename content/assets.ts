@@ -157,10 +157,17 @@ export const guardianStage08: VisualAsset = {
 /* Guardian · Five Elements (五行生活维度)                                     */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Phase 1E.4-A — intrinsic dimensions corrected to the real delivery files.
+ *
+ * The reference PNGs are 2364×1773 (4:3) and were derived to 600×450 (4:3).
+ * Previous metadata declared 600×600, which would have caused wrong CLS
+ * reservation and an unintended crop once these images re-entered the UI.
+ */
 export const guardianWealth: VisualAsset = {
   id: "guardianWealth",
   src: "/images/guardian/elements/guardian-wealth-workshop.webp",
-  width: 600, height: 600,
+  width: 600, height: 450,
   alt: "金 · 财富 — 五行生活维度之财富工坊",
   status: "placeholder",
   reference: "assets/reference/guardian/elements/guardian-wealth-workshop.png",
@@ -168,7 +175,7 @@ export const guardianWealth: VisualAsset = {
 export const guardianLongevity: VisualAsset = {
   id: "guardianLongevity",
   src: "/images/guardian/elements/guardian-longevity-hall.webp",
-  width: 600, height: 600,
+  width: 600, height: 450,
   alt: "木 · 健康 — 五行生活维度之长生堂",
   status: "placeholder",
   reference: "assets/reference/guardian/elements/guardian-longevity-hall.png",
@@ -176,7 +183,7 @@ export const guardianLongevity: VisualAsset = {
 export const guardianCloud: VisualAsset = {
   id: "guardianCloud",
   src: "/images/guardian/elements/guardian-cloud-pavilion.webp",
-  width: 600, height: 600,
+  width: 600, height: 450,
   alt: "水 · 出行 — 五行生活维度之行云阁",
   status: "placeholder",
   reference: "assets/reference/guardian/elements/guardian-cloud-pavilion.png",
@@ -184,7 +191,7 @@ export const guardianCloud: VisualAsset = {
 export const guardianHarmony: VisualAsset = {
   id: "guardianHarmony",
   src: "/images/guardian/elements/guardian-harmony-hall.webp",
-  width: 600, height: 600,
+  width: 600, height: 450,
   alt: "土 · 安居 — 五行生活维度之和居庐",
   status: "placeholder",
   reference: "assets/reference/guardian/elements/guardian-harmony-hall.png",
@@ -192,7 +199,7 @@ export const guardianHarmony: VisualAsset = {
 export const guardianCuisine: VisualAsset = {
   id: "guardianCuisine",
   src: "/images/guardian/elements/guardian-cuisine-hall.webp",
-  width: 600, height: 600,
+  width: 600, height: 450,
   alt: "火 · 饮食 — 五行生活维度之炊香斋",
   status: "placeholder",
   reference: "assets/reference/guardian/elements/guardian-cuisine-hall.png",
@@ -202,10 +209,26 @@ export const guardianCuisine: VisualAsset = {
 /* Guardian · Overview                                                         */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Guardian · 首席守护官 · 女娲
+ *
+ * ⛔ BLOCKED — DO NOT RESTORE (Phase 1E.4-A).
+ *
+ * The reference asset carries an unresolved watermark / copyright status
+ * (see content/guardian.ts watermark notice and D-PHASE2-017).
+ * It is registered here for engineering traceability ONLY and must not be
+ * rendered anywhere until copyright clearance is confirmed.
+ *
+ * Prohibited actions: displaying, cropping, masking, watermark removal,
+ * redrawing, or AI restoration. Asset file left untouched.
+ *
+ * Phase 1E.4-A corrected the declared intrinsic size to the real delivery
+ * file (400×533 portrait), previously mis-declared as 400×400.
+ */
 export const guardianNuwa: VisualAsset = {
   id: "guardianNuwa",
   src: "/images/guardian/overview/guardian-nuwa.webp",
-  width: 400, height: 400,
+  width: 400, height: 533,
   alt: "女娲 · 首席守护官 — 乐懒守护视觉锚点",
   status: "placeholder",
   reference: "assets/reference/guardian/overview/guardian-nuwa.png",
@@ -341,7 +364,7 @@ export const assetReferenceIndex: ReadonlyArray<{
   {
     reference: "assets/reference/guardian/overview/guardian-nuwa.png",
     delivery: guardianNuwa,
-    note: "Phase 2 Guardian — 首席守护官·女娲（水印/版权待确认）",
+    note: "Phase 2 Guardian — 首席守护官·女娲｜⛔ BLOCKED：含水印/版权未清，Phase 1E.4-A 明确不恢复渲染",
   },
   // 其余 28 张 reference 资产为未来升级 / Phase 1B 之后的 UI 单元预备，
   // 当前不进入 delivery，亦不向浏览器暴露 src。

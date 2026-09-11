@@ -1,16 +1,18 @@
 /**
  * LELAN TECHNOLOGY · 首页内容模型
  *
- * Phase 1D-G3 — Guardian-first Homepage + LeLan AI Integration
+ * Phase 1E.4-A — Visual De-noising + Guardian Subject Restoration
  *
- * 产品叙事优先级：
- *   00 Hero
- *   01 乐懒守护（核心产品）
- *   02 五行生活守护（Guardian 同 section）
- *   03 乐懒成果小镇
- *   04 乐懒 AI · 论文智能助手
- *   05 工程能力 / 方法体系
- *   06 关于乐懒科技
+ * 产品叙事优先级与视觉节奏（Phase 1E.4-A 重新建立）：
+ *   00 Hero         品牌入口 · 平 / 克制
+ *   01 乐懒守护      情绪与叙事高潮 · 东方生命档案
+ *   02 乐懒成果小镇  空间预览 · 本轮收敛，为下一轮真实 3D 沙盘留空间
+ *   03 乐懒 AI      最安静 · 真实软件证明
+ *   04 工程能力      完全平 · 呼吸区
+ *   05 关于乐懒科技  完全平 · 呼吸区
+ *
+ * 编号连续 00–05（修复此前缺失 02 的可见断层）。
+ * 不要连续三个 section 都成为视觉高潮。
  *
  * 产品关系：
  *   乐懒科技
@@ -174,7 +176,7 @@ export const homeSections: ReadonlyArray<HomeSection> = [
     ],
     software: {
       name: "乐懒 AI · 论文智能助手",
-      description: "独立软件产品 · 已上线体验版 · 三档降重 / AIGC 改写",
+      description: "独立软件产品 · 已上线体验版 · 三档降重 / AIGC 分析与降 AIGC",
       href: "#ai",
       status: "体验版可用",
     },
@@ -189,10 +191,10 @@ export const homeSections: ReadonlyArray<HomeSection> = [
     intro: "把一生，变成一张持续更新的人生坐标。",
   },
 
-  /* ── 03 乐懒成果小镇 ─────────────────────────────────────────────────── */
+  /* ── 02 乐懒成果小镇 ─────────────────────────────────────────────────── */
   {
     id: "town",
-    number: "03",
+    number: "02",
     kind: "town",
     title: "乐懒成果小镇",
     intro: "八条核心服务，一条可被走通的研究工作流。",
@@ -231,15 +233,15 @@ export const homeSections: ReadonlyArray<HomeSection> = [
     statusNote: "当前为小镇图谱展示阶段；各铺子的实际功能入口将随版本逐步开放。",
   },
 
-  /* ── 04 乐懒 AI · 论文智能助手 ──────────────────────────────────────── */
+  /* ── 03 乐懒 AI · 论文智能助手 ──────────────────────────────────────── */
   {
     id: "ai",
-    number: "04",
+    number: "03",
     kind: "ai",
     title: "乐懒 AI · 论文智能助手",
     intro: "乐懒 AI 已作为独立软件产品提供体验。",
     positioning:
-      "基于 DeepSeek 大模型，支持文本输入或 .docx 上传，提供 AI 降重、AIGC 分析与自然化改写，可生成多份 Word 成品，无需登录即可体验。",
+      "基于 DeepSeek 大模型，支持文本输入或 .docx 上传，提供 AI 降重、AIGC 分析与降 AIGC，可生成多份 Word 成品，无需登录即可体验。",
     features: [
       {
         id: "rewrite",
@@ -251,7 +253,7 @@ export const homeSections: ReadonlyArray<HomeSection> = [
         id: "aigc",
         name: "AIGC 分析与降 AIGC",
         description:
-          "结构化输出 AI 文本特征分数与位置，并基于分析结果做自然化改写。",
+          "结构化输出 AI 文本特征分数与位置，并基于分析结果做 AIGC 改写。",
       },
     ],
     intensities: [
@@ -312,10 +314,10 @@ export const homeSections: ReadonlyArray<HomeSection> = [
       "独立产品体验版已上线；与乐懒科技官网的账号和深度集成规划中。",
   },
 
-  /* ── 05 工程能力 ──────────────────────────────────────────────────────── */
+  /* ── 04 工程能力 ──────────────────────────────────────────────────────── */
   {
     id: "technology",
-    number: "05",
+    number: "04",
     kind: "technology",
     title: "工程与能力",
     intro: "克制的工程原则，诚实的能力描述。",
@@ -341,10 +343,10 @@ export const homeSections: ReadonlyArray<HomeSection> = [
     ],
   },
 
-  /* ── 06 关于 ─────────────────────────────────────────────────────────── */
+  /* ── 05 关于 ─────────────────────────────────────────────────────────── */
   {
     id: "about",
-    number: "06",
+    number: "05",
     kind: "about",
     title: "关于乐懒科技",
     intro: "一家认真做研究服务的小型科技团队。",

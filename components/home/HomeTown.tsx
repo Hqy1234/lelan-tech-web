@@ -1,27 +1,30 @@
 /**
  * LELAN TECHNOLOGY · Home · Town (成果小镇) V1.5
  *
- * Phase 1E.3-B — Eastern Digital Town (东方数字城镇).
+ * Phase 1E.4-A — HELD QUIET. This section is intentionally not developed
+ * further this phase.
  *
- * Spatial rhythm (Phase A §16 + Phase B §11):
- *   - This section = STRONGEST DEPTH on the homepage
- *   - Background = L3 (warm jade / paper earth, CSS-only distant silhouette)
- *   - TownMapStage = L0–L4 spatial layers inside the section
+ * Why: the next phase introduces a real draggable/rotatable eastern digital
+ * town sand-table (WebGL / React Three Fiber). Investing more in this CSS map
+ * now would be thrown away. So this phase only de-noises what was harmful:
  *
- * Architecture:
- *   - Server Component: renders section shell (heading, capabilities strip).
- *   - Client Component `HomeTownClient`: handles selection + URL hash sync
- *     + renders the spatial map (TownMapStage) and the service drawer.
+ *   - Removed the second consecutive `.lelan-divider-coord-fade`. Guardian
+ *     already fades into Town; applying the same transition again on Town made
+ *     the two sections read as one continuous blur instead of two places.
+ *   - The desktop service drawer no longer floats outside the map (handled in
+ *     HomeTownClient + globals.css), which removes a root cause of the
+ *     horizontal overflow.
+ *   - Foreground eave wedges removed (globals.css / TownMapStage).
  *
- * Section transition:
- *   - Top edge: `.lelan-divider-coord-fade` — picks up the coordinate cross
- *     that ends Guardian's coordinate plane and fades into Town ground.
- *   - Bottom edge: subtle flat hairline — Town ground flattens into AI
- *     document plane.
+ * Preserved unchanged:
+ *   - All 8 shops (content/town.ts), the radio-group keyboard model,
+ *     URL hash sync, the drawer, and the TownMapStage renderer seam.
  *
- * Default selected shop: paper-teahouse (01).
- * No hover-only information.
- * Visual pending state for shops without delivery assets (6 of 8).
+ * Section role: SPATIAL PREVIEW — calm this phase. After the globe prototype
+ * lands, Town becomes the strongest spatial climax of the homepage.
+ *
+ * Visual rhythm: Hero CALM → Guardian EMOTIONAL → Town SPATIAL (quiet)
+ *                → AI QUIET SOFTWARE → Technology/About CALM
  */
 import { Container } from "@/components/layout/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -41,7 +44,7 @@ export function HomeTown({ section }: HomeTownProps) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="lelan-section-field lelan-section-field-town lelan-divider-coord-fade relative border-b border-rule"
+      className="lelan-section-field lelan-section-field-town relative border-b border-rule"
     >
       <Container as="div">
         {/* Section header */}
@@ -56,8 +59,8 @@ export function HomeTown({ section }: HomeTownProps) {
           <StatusLabel tone="preview" label="图谱阶段" />
         </div>
 
-        {/* Capabilities strip */}
-        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+        {/* Capabilities strip — kept compact and factual */}
+        <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
           <span className="font-mono uppercase tracking-wider text-muted">
             六维能力
           </span>
@@ -74,7 +77,7 @@ export function HomeTown({ section }: HomeTownProps) {
           ))}
         </div>
 
-        {/* Interactive Town V1.5 island — full spatial composition */}
+        {/* Interactive Town island — spatial composition */}
         <div className="mt-8" role="region" aria-label="乐懒成果小镇服务入口">
           <HomeTownClient shops={ordered} statusNote={section.statusNote} />
         </div>

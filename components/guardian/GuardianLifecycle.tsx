@@ -1,24 +1,29 @@
 /**
  * LELAN TECHNOLOGY · Guardian Lifecycle Rail
  *
- * Phase 1E.3-A — Editorial stage rail (no thumbnails).
+ * Phase 1E.4-A — Y-axis rail, compacted + current stage always visible.
  *
- * Desktop: horizontal rail across the full width, position nodes + coordinate lines.
- * Mobile: horizontal scroll with snap points.
+ * This rail deliberately still has NO per-stage thumbnails. Phase 1E.3-A
+ * removed the eight 40–56px images because they were noise, and that call
+ * stands — the stage SUBJECT is now one large plate in GuardianArchive that
+ * follows the selection.
  *
- * The 8 stage thumbnails (40–56px) that previously sat on each node
- * have been removed from the main rail. They were visual noise; the
- * rail is now defined by structural marks: trigram · name · age range.
- * Stage imagery is preserved in assets.ts for /profile detail views
- * and remains available if needed later.
+ * Phase 1E.4-A changes:
+ *   - The rail no longer force-centres with `sm:justify-center` while also
+ *     being `overflow-x-auto` (the two fought each other and could clip the
+ *     leading stage at tablet widths).
+ *   - On mobile the rail scrolls horizontally; the ACTIVE stage is scrolled
+ *     into view whenever selection changes, so the current coordinate is
+ *     never off-screen (explicit Phase 1E.4-A requirement).
+ *   - The active-stage caption no longer repeats the scene label that
+ *     GuardianTaskFlow already prints directly below it.
  *
  * Default active: 04 兑 · 青年期.
- *
- * Client component — minimal state: selected stage id only.
  */
+
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   guardianStages,
   DEFAULT_STAGE_ID,
@@ -32,21 +37,26 @@ interface GuardianLifecycleProps {
   selectedId?: string;
 }
 
-/**
- * Single stage node in the lifecycle rail.
- * Phase 1E.3-A: structural marks only, no thumbnail.
- */
+/** Single stage node — structural marks only, no thumbnail. */
 function StageNode({
   stage,
   isSelected,
   onSelect,
+  nodeRef,
 }: {
   stage: GuardianStage;
   isSelected: boolean;
   onSelect: (id: string) => void;
+  /**
+   * Ref object (not a callback) for the active node.
+   * Passing a ref OBJECT avoids re-attaching the ref on every render —
+   * an inline callback ref would churn on each parent render.
+   */
+  nodeRef?: React.RefObject<HTMLButtonElement | null>;
 }) {
   return (
     <button
+      ref={nodeRef}
       type="button"
       onClick={() => onSelect(stage.id)}
       aria-pressed={isSelected}
@@ -57,12 +67,10 @@ function StageNode({
         isSelected ? "bg-paper-pure" : "hover:bg-paper-pure/60",
       ].join(" ")}
     >
-      {/* Order number — micro */}
       <span className="font-mono text-[0.55rem] uppercase tracking-wider text-muted/60">
         {stage.order}
       </span>
 
-      {/* Trigram node — primary visual mark */}
       <span
         className={[
           "flex h-9 w-9 items-center justify-center rounded-full border font-serif text-sm transition-colors",
@@ -75,7 +83,6 @@ function StageNode({
         {stage.trigram}
       </span>
 
-      {/* Stage name */}
       <span
         className={[
           "whitespace-nowrap font-mono text-[0.6rem] uppercase tracking-wider transition-colors",
@@ -85,7 +92,6 @@ function StageNode({
         {stage.name}
       </span>
 
-      {/* Age range */}
       <span className="font-mono text-[0.55rem] text-muted/70">
         {stage.ageRange}
       </span>
@@ -93,21 +99,24 @@ function StageNode({
   );
 }
 
-/**
- * Connector line between stage nodes.
- */
+/** Connector line between stage nodes. */
 function RailConnector() {
   return (
     <span
       aria-hidden
-      className="lelan-line-coordinate inline-block h-px w-6 shrink-0 bg-rule-strong sm:w-8"
+      className="lelan-line-coordinate inline-block h-px w-5 shrink-0 bg-rule-strong sm:w-7"
     />
   );
 }
 
-export function GuardianLifecycle({ onStageChange, selectedId: controlledId }: GuardianLifecycleProps) {
+export function GuardianLifecycle({
+  onStageChange,
+  selectedId: controlledId,
+}: GuardianLifecycleProps) {
   const [internalSelected, setInternalSelected] = useState(DEFAULT_STAGE_ID);
   const selected = controlledId ?? internalSelected;
+
+  const activeRef = useRef<HTMLButtonElement | null>(null);
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -117,71 +126,66 @@ export function GuardianLifecycle({ onStageChange, selectedId: controlledId }: G
     [onStageChange]
   );
 
-  const activeStage = guardianStages.find((s) => s.id === selected) ?? guardianStages[0];
+  /**
+   * Keep the current stage inside the visible scroll area.
+   * On desktop the whole rail fits, so this is a no-op visually.
+   * Respects reduced-motion by scrolling without animation.
+   */
+  useEffect(() => {
+    const el = activeRef.current;
+    if (!el) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({
+      inline: "center",
+      block: "nearest",
+      behavior: reduced ? "auto" : "smooth",
+    });
+  }, [selected]);
+
+  const activeStage =
+    guardianStages.find((s) => s.id === selected) ?? guardianStages[0];
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Section label */}
+    <div className="flex flex-col gap-3">
+      {/* Rail label */}
       <div className="flex items-center gap-3">
         <span className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
           人生坐标 · 纵轴 · 八阶段
         </span>
-        <span className="h-px flex-1 bg-rule" aria-hidden />
+        <span aria-hidden className="h-px flex-1 bg-rule" />
+        <span className="font-mono text-[0.6rem] uppercase tracking-wider text-muted/60">
+          当前 <span className="text-ink/80">{activeStage.order}</span> · {activeStage.trigram}
+        </span>
       </div>
 
-      {/* Lifecycle rail — horizontal scroll on mobile, centered on desktop */}
+      {/* Lifecycle rail — horizontal scroll on mobile, fits on desktop */}
       <div
         role="list"
         aria-label="八阶段生命周期坐标"
-        className="flex items-center gap-0 overflow-x-auto pb-2 sm:justify-center sm:overflow-x-visible"
-        style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+        className="flex items-center overflow-x-auto pb-2"
+        style={{ scrollSnapType: "x proximity", WebkitOverflowScrolling: "touch" }}
       >
         {guardianStages.map((stage, idx) => (
-          <div
-            key={stage.id}
-            role="listitem"
-            className="flex shrink-0 items-center"
-          >
+          <div key={stage.id} role="listitem" className="flex shrink-0 items-center">
             <StageNode
               stage={stage}
               isSelected={stage.id === selected}
               onSelect={handleSelect}
+              nodeRef={stage.id === selected ? activeRef : undefined}
             />
-            {idx < guardianStages.length - 1 && (
-              <RailConnector />
-            )}
+            {idx < guardianStages.length - 1 && <RailConnector />}
           </div>
         ))}
       </div>
 
-      {/* Active stage detail — current coordinate caption */}
-      <div
-        className={[
-          "flex items-center gap-4 rounded-sm border p-3 sm:p-4",
-          "border-green/30 bg-green/5",
-        ].join(" ")}
-      >
-        <span
-          aria-hidden
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink bg-ink font-serif text-sm text-paper"
-        >
-          {activeStage.trigram}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="font-serif text-base font-medium text-ink">
-            {activeStage.trigram} · {activeStage.name}
-          </p>
-          <p className="mt-0.5 font-mono text-xs text-muted">
-            {activeStage.ageRange}
-          </p>
-        </div>
-        <div className="hidden shrink-0 text-right sm:block">
-          <p className="lelan-archive-id">场景</p>
-          <p className="mt-0.5 max-w-[12rem] text-xs text-muted">
-            {activeStage.sceneLabel}
-          </p>
-        </div>
-      </div>
+      {/* NOTE (Phase 1E.4-A): the active-stage caption box that used to sit
+          here was removed. It repeated trigram + name + age range, which the
+          archive spread already states authoritatively in exactly one place
+          (the stage-subject caption). The current stage is still identifiable
+          in the rail itself (filled ink node + the `当前 04 · 兑` rail label),
+          and GuardianTaskFlow prints the stage's scene label right below. */}
     </div>
   );
 }
