@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# …except the example file, which holds variable NAMES and non-sensitive
+# defaults only. Real keys must never be committed.
+!.env.example
+!**/.env.example
 
 # vercel
 .vercel

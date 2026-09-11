@@ -1,0 +1,16 @@
+{
+  "name": "lelan-guardian-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LELAN Guardian Analysis Adapter — server-side Dify bridge for the static official site.",
+  "type": "commonjs",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/run-tests.js"
+  },
+  "dependencies": {}
+}

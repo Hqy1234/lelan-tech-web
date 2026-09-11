@@ -35,6 +35,7 @@ import {
 } from "@/content/guardian";
 import { GuardianSeal } from "./GuardianSeal";
 import { GuardianElementsBand } from "./GuardianElements";
+import { GuardianAnalysisPanel } from "./GuardianAnalysisPanel";
 
 const STATUS_LABELS = {
   normal: "已记录",
@@ -288,6 +289,15 @@ export function GuardianProfileView({ profile }: { profile: GuardianProfile }) {
           </ol>
         </div>
       </section>
+
+      {/*
+        ── 2b. Smart analysis (Phase 1F) ─────────────────────────
+        Additive and optional. Renders nothing when the analysis adapter is not
+        configured, so the existing Profile is byte-identical in that case.
+        It never overrides the deterministic archive above: stage, progress,
+        tasks and the five-element band below stay authoritative.
+      */}
+      <GuardianAnalysisPanel profile={profile} />
 
       {/* ── 3. Five Elements archive band (shared with homepage) ─ */}
       <section aria-label="五行档案" className="flex flex-col gap-3">

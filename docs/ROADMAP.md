@@ -7,27 +7,23 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1E.4-C — Town Art Pass（已完成）
-- **下一阶段**：资产版权复核 + 正式插画替换 + 真实 GPU 设备性能验证（**尚未开始**）
-- **说明**：Phase 1E.4-C 完成。Town 从"技术成立的 3D prototype"提升为
-  "有明确品牌识别的东方微缩成果小镇"。**正式采用 Hybrid 建筑系统**
-  （程序化 3D 体量 + 2.5D 立面资产），**8 栋全部使用同一系统** ——
-  01/02 不再特殊。补齐 6 栋缺失建筑，8 栋 delivery 统一为 **668×508 WebP**，
-  总计 **188.4 KB**（单栋 14.9–35.5 KB，远低于预算）。
-  **透明抠图经实测裁定不可行**：8 张 reference 虽为 RGBA 但 alpha 全为 255
-  （无可保留透明主体），且 6/8 背景边缘标准差 37–59（无法安全分割），
-  故按简报要求退回统一纸装裱建筑板 —— **统一优先于强行透明**。
-  建筑改为**直立且面向相机**（径向站立与部分倾斜均已实测否决）。
-  新增 **terrain art pass**：2 个院落 + 1 个小水面（muted grey-green）+ 2 阶极浅
-  terrace + 6 棵剪影树 + 3 个灯。**2D fallback 同步受益，768/375 现显示 8 个真实建筑**
-  （此前 2 实图 + 6 灰代理）。
-  性能不变量全部保持（lazy load / demand 空闲 0 rAF / dpr ≤1.5 / 无阴影 /
-  无 postprocessing / 无自动旋转 / 无 wheel zoom）；四断点无横向溢出；
-  0 broken image；0 JS error / 0 exception / 0 404；交互回归全通过。
-  **已知限制**：WebGL 立面纹理在评审所用软件光栅化环境中无法验证
-  （纹理加载与上传均已确认成功、图层遮挡与重绘问题均已排除，但建筑板在该环境
-  仍渲染为空白）—— 真实 GPU 浏览器验收待进行；2D fallback 与交互不受影响。
-  版权状态保持 placeholder / 待清。本轮**未**进入 Dify，**未**修改 `lelan-shouhu`。
+- **当前阶段**：Phase 1F — Guardian 智能分析接入 Dify（已完成）
+- **下一阶段**：Adapter 生产部署 + 正式域名 / Origin 配置 + 长稳与真实设备验证（**尚未开始**）
+- **说明**：Phase 1F 完成。已把已发布的 Dify Workflow 接入 Guardian 分析层。
+  **未改动部署架构**（官网仍为 `output: "export"` 静态导出）、
+  **未重写 `/profile`**、**未重构无关代码**、**未修改 `lelan-shouhu`**。
+  因静态导出下 Route Handler 在生产不存在，采用**独立部署的 server-side Adapter**
+  （`tools/guardian-adapter/`，Node 20+，**零运行时依赖**）：
+  `Browser → Adapter → Dify → normalize → GuardianAnalysisResult → UI`。
+  浏览器**不直连** `api.dify.ai`，**不接触** API Key；
+  Adapter URL 是构建时内联的公开地址，为空时功能关闭且官网完全回退。
+  Dify 仅为 analysis / explanation layer；`age` / `stage` / `scenario` / `tasks` /
+  `progress` 仍由网站确定性逻辑负责，不被覆盖。
+  Adapter 离线测试 **56/56 通过**；**真实 Dify 联调通过**（Persona A / B 均 200）；
+  浏览器端 `/profile` loading → success，档案主体完好，**0 console error**，
+  全页仅 **1 次**请求（防重复生效），构建产物无 Key、无 `api.dify.ai`。
+  **实测可靠性问题**：Workflow 单次运行 5.2s–22.4s，且出现过
+  `status=succeeded` 但 `summary2` 为空 —— 已用「共享总预算 + 单次有界重试」应对。
 
 ---
 

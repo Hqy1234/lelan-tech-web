@@ -14,6 +14,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Build scripts — not part of the web app
     "scripts/**",
+    // Guardian Analysis Adapter — a standalone CommonJS Node service that is
+    // deployed separately from the static site. It is not bundled by Next.js and
+    // is not covered by the Next/React lint rules.
+    "tools/guardian-adapter/**",
   ]),
   // Relax react-hooks/set-state-in-effect for intentional sessionStorage hydration.
   // This is the standard Next.js pattern for reading sessionStorage/localStorage post-mount.
@@ -23,6 +27,9 @@ const eslintConfig = defineConfig([
       "**/components/layout/DemoAccountNav.tsx",
       "**/app/login/LoginForm.tsx",
       "**/components/guardian/demo/GuardianDemoForm.tsx",
+      // The analysis hook seeds its state from React state (not a DOM read), but
+      // it performs the same post-mount bootstrap pattern.
+      "**/lib/guardian/use-guardian-analysis.ts",
     ],
     rules: {
       "react-hooks/set-state-in-effect": "off",

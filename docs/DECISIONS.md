@@ -1415,3 +1415,160 @@
   未使用 Three.js / WebGL / Canvas 3D / GSAP / Framer Motion / 鼠标追踪 / card flip / 大角度 rotateX / scroll-jacking。
   Glass 偏 jade/ivory，不偏 cyan/electric blue/purple。
   无 generic glassmorphism SaaS — glass 仅用于信息浮层。
+
+---
+
+## D-PHASE1F · Guardian 智能分析接入 Dify（追加于 2026-09-12）
+
+> 把已发布的 Dify Workflow 接入 Guardian。**未**改动部署架构、
+> **未**重写 `/profile`、**未**重构无关代码、**未**修改 `lelan-shouhu`。
+
+### 架构裁定
+
+- **D-PHASE1F-001** — 官网保持**静态导出**（`output: "export"`）。
+  **禁止**为了本功能把静态站改成 SSR / server Next.js。
+  静态导出下 Route Handler 在生产不存在，因此 **`POST /api/guardian/analyze`
+  不予实现**。
+- **D-PHASE1F-002** — 采用**独立部署的 server-side Adapter 服务**：
+  `Browser → 官网控制的 Adapter → Dify → normalize → GuardianAnalysisResult → UI`。
+  浏览器**永不**直连 `api.dify.ai`。
+- **D-PHASE1F-003** — Adapter 位于 `tools/guardian-adapter/`：Node 20+、
+  **仅 Node 内置模块**（零运行时依赖，无 Express 等框架）。独立部署为 Node Web
+  Service；**不得**塞进静态站托管。
+- **D-PHASE1F-004** — Dify 只是 **analysis / explanation layer**，不是 source of
+  truth。`age` / `stage` / `scenario` / `tasks` / `done-current-upcoming` /
+  `progress_completed` / `progress_total` **继续由网站确定性逻辑负责**，
+  Dify **不得**重算或覆盖。
+
+### 环境变量与密钥
+
+- **D-PHASE1F-005** — 服务端机密（**只**存在于 Adapter 部署环境）：
+  `DIFY_API_KEY` / `DIFY_API_BASE_URL` / `PORT` / `ALLOWED_ORIGINS` /
+  `DIFY_TIMEOUT_MS`。
+- **D-PHASE1F-006** — 官网侧**唯一**公开变量：
+  `NEXT_PUBLIC_GUARDIAN_ADAPTER_URL`。这是**地址**而非密钥。
+  为空 ⇒ 分析功能关闭，官网**完全回退到原有行为**（不渲染、不报错、不发请求）。
+  因其在构建时内联，更换 URL 需重新构建静态站。
+- **D-PHASE1F-007** — **禁止** `DIFY_API_KEY` 出现在 React / Client Component /
+  `public/` / 浏览器 JS / `NEXT_PUBLIC_*` / Git / 日志。
+- **D-PHASE1F-008** — 新增 `.env.example`（仓库根 + Adapter 目录），只含变量名与
+  非敏感默认值。原 `.gitignore` 的 `.env*` 会连示例文件一起忽略，因此新增例外
+  `!.env.example` 与 `!**/.env.example`。真实 `.env` / `.env.local`
+  **仍被忽略**（已实测确认）。
+
+### 请求契约
+
+- **D-PHASE1F-009** — 浏览器发送**结构化数据**（真实数组 + 真实 number），
+  **不发送已 stringify 的 JSON 字符串**；由 Adapter 自己 `JSON.stringify`，
+  避免客户端注入任意字符串。
+- **D-PHASE1F-010** — Dify `inputs` 类型约束：`age` / `progress_completed` /
+  `progress_total` 为 **number**；`gender` / `city` / `stage_id` / `stage_name` /
+  `scenario_id` / `scenario_name` 为 **string**；六个 `*_json` 为 **string**；
+  空数组必须序列化为 `"[]"`。
+- **D-PHASE1F-011** — `response_mode: "blocking"`；`user` 使用稳定非敏感内部标识
+  `lelan-guardian-web-demo`，**禁止**身份证号 / 手机号 / 真实姓名 / 邮箱等 PII。
+
+### 校验（服务端）
+
+- **D-PHASE1F-012** — 服务端强制校验：`age` 合理范围；`progress_total` 正整数；
+  `progress_completed` 非负且 `<= progress_total`；`gender` 仅允许
+  `male` / `female`；`stage.id` / `scenario.id` 必须为已知内部值；数组字段必须是
+  array of string；并限制数组长度、单项长度、city 长度。异常 payload 一律
+  400 `INVALID_INPUT`。
+- **D-PHASE1F-013** — **`stage.name` 必须与 `stage.id` 一致**，Adapter
+  **不接受**自相矛盾的 stage（防止 AI 层被告知与官网生命周期数据冲突的阶段名）。
+  同时接受两种拼写：官网权威值（`guardianStages[].name`，**不含卦名**，如
+  `"青年期"` / `"青少年期"`）与接入简报中的卦名前缀写法（如 `"兑 · 青年期"`）。
+  ⚠ 首版曾误以为卦名前缀是权威值，导致所有 persona 被拒；已修正。
+
+### 输出规范化
+
+- **D-PHASE1F-014** — Dify 临时字段 `summary2` / `attention2_items` /
+  `dimension_notes2` / `disclaimer2` **只存在于 integration layer**，
+  规范化后**绝不泄漏到 React UI**（已实测断言）。
+- **D-PHASE1F-015** — 规范化为**现有的** `GuardianAnalysisResult`
+  （`content/guardian.ts`），**不创建 competing type**。实测 Dify 实际输出为
+  snake_case（`description` / `action_label` / `source_type`），而现有 contract 为
+  `explanation` / `actionLabel` / `sourceHint`，因此 normalize 同时接受两种拼写并
+  映射到现有字段。
+- **D-PHASE1F-016** — `dimension_notes2` **缺少任一维度 key 视为硬失败**（502），
+  因为 UI 会渲染全部五个维度。
+
+### 内容安全
+
+- **D-PHASE1F-017** — normalize 拒绝含以下内容的结果：`risk_score`、
+  高中低风险**分级**、疾病概率、确诊/诊断结果/治疗方案/用药建议、
+  cohort statistics、裸百分比。五行仅作为**生活维度**（wealth 财富 / health 健康 /
+  travel 出行 / food 饮食 / housing 安居），不作为因果或预测模型。
+  ⚠ 首版规则使用裸 `高(风险|危)` 交替式，会误伤正当健康语句（如「不构成医学判断」
+  中含「高危」二字），已改为锚定**风险术语**，并用 9 条用例验证
+  （真实违规全部拒绝，正当健康文本全部接受）。
+
+### 可靠性（实测）
+
+- **D-PHASE1F-018** — 已发布的 Workflow **又慢又不稳定**：实测单次运行
+  **5.2s–22.4s**，且观察到一次 `status: succeeded` 但 `summary2` **长度为 0**。
+  因此 Adapter 采用**共享总预算 + 单次有界重试**：
+  - `DIFY_TIMEOUT_MS` 是**跨尝试的总预算**（默认 40000），不是每次尝试的超时，
+    避免最坏情况被乘倍
+  - 仅当工作流「成功但输出为空」时重试一次；鉴权失败 / 传输失败 / 超时**不重试**
+  - ⚠ 首版把 normalize 放在重试边界**之外**，导致「空输出」这一条件永远无法被
+    重试逻辑看到；已把 normalize 移入重试边界内
+- **D-PHASE1F-019** — 官网客户端超时（50s）**必须大于** Adapter 总预算（40s），
+  这样 Adapter 的结构化超时错误会先返回，而不是被客户端 abort 成通用网络错误。
+  实测 Adapter 超时返回 504 `ANALYSIS_TIMEOUT`。
+
+### 错误契约
+
+- **D-PHASE1F-020** — 错误码固定为：`INVALID_INPUT`(400) /
+  `ANALYSIS_TIMEOUT`(504) / `ANALYSIS_UNAVAILABLE`(503) /
+  `INVALID_ANALYSIS_RESPONSE`(502) / `SERVER_ERROR`(500)。浏览器**只**看到
+  `{ error: { code, message } }` 两个字段。**禁止**返回 Dify 原始异常、原始响应、
+  内部 stack、Authorization。
+- **D-PHASE1F-021** — 服务端日志只记录：request id / 路由 / outcome / code /
+  HTTP status / 耗时 / **脱敏后的输入摘要**（stage/scenario/age/gender + 计数）。
+  **禁止**记录完整人生档案、`DIFY_API_KEY`、`Authorization`、完整 Dify 原始响应。
+
+### 前端接入
+
+- **D-PHASE1F-022** — **未重写 `/profile` UI**。`/profile` 的数据来源
+  （generated profile → demo session → 空状态）**未改动**。
+- **D-PHASE1F-023** — 新增**独立**的 `GuardianAnalysisPanel`，以一行挂载在现有
+  「当前事项」与「五行档案」之间。分析功能未配置时**渲染 null**，此时 Profile 与
+  改动前完全一致。
+- **D-PHASE1F-024** — 状态机：`disabled` / `idle` / `loading` / `success` /
+  `error`（超时与网络错误统一收敛为 `error`，UI 只显示一句安全文案 + 重试）。
+- **D-PHASE1F-025** — **防重复请求**：以输入签名（age/gender/stage/scenario/
+  tasks/tags/progress）去重；普通 rerender 或相同输入的重新挂载**不再请求**。
+  实测确认整页仅 **1 次** `/guardian/analyze`。
+- **D-PHASE1F-026** — `progress_completed` / `progress_total` **读取当前展示的
+  `GuardianProfile`**（`tasks` 的 done 计数与总数），不由 AI 层重算，
+  确保分析不会与屏幕上的档案自相矛盾。
+- **D-PHASE1F-027** — 项目存在**两套 ID 命名空间**：固定 demo persona
+  （`demo-m28` / `demo-f36`）与 step-form contract **不一致**。实测 `demo-f36`：
+  `stage.name "青年期"`（非 `"兑 · 青年期"`）、`scenario.id "entrepreneurship"`
+  （非 `"startup"`）、任务 id `t1..t8`（非 `startup-t1..t8`）。
+  因此 `demoInputFromProfile()` 用官网权威表（`guardianStages` /
+  `GUARDIAN_SCENARIOS`）把 persona id **翻译**成 contract id；任务以 **label 为
+  join key** 映射；无法匹配的任务被丢弃而不是发送未知 id。persona 数据本身
+  **未改动**。
+
+### 验证
+
+- **D-PHASE1F-028** — Adapter 离线测试 **56/56 通过**（对本地 fake Dify 跑真实
+  HTTP 全链路）：含两个有效 persona、Dify 请求契约（workflow run / Bearer /
+  blocking / 非 PII user / number 与 string 类型 / 空数组 → `"[]"`）、8 项校验失败、
+  Dify 401/403/500、`status=failed`、outputs 缺失、非 JSON、超时 504、
+  `summary2` 类型错误、`attention2_items` 畸形、`dimension_notes2` 缺 key、
+  违禁语言、JSON 字符串输出兼容、空输出重试成功，以及 10 项泄漏断言
+  （响应与日志中均无 key / Bearer / 上游错误 / 堆栈）。
+- **D-PHASE1F-029** — **真实 Dify 联调通过**（非仅 mock）：Persona A
+  （28 男 · 离 · 青少年 · 综合生活）与 Persona B（36 女 · 兑 · 青年期 · 创业）
+  均返回 200 且内容合法。
+- **D-PHASE1F-030** — 浏览器端实测：`/profile` 显示 loading → success，档案主体
+  （archiveRef / Seal / 五行档案 / 当前事项 / 时间线）**完好**，**0** 次直连
+  `api.dify.ai`，请求与页面文本中**均无** API Key，**无** Dify 字段泄漏，
+  **无**风险语言，**0 console error**。无 session 时**不渲染分析区且不发请求**；
+  `/`、`/login`、`/guardian/demo` 完全不受影响。
+- **D-PHASE1F-031** — 构建产物中**无** API Key、**无** `api.dify.ai` 引用；
+  静态导出 8 页构建成功，未因本功能破坏。

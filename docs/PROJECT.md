@@ -1,4 +1,4 @@
-# LELAN TECHNOLOGY · Project Source of Truth
+﻿# LELAN TECHNOLOGY · Project Source of Truth
 
 > 单文件说明：项目身份、业务边界、公开路由、术语对照。
 > 一切与"乐懒科技 / LELAN TECHNOLOGY"官网相关的工作，以本文件为准。
@@ -192,6 +192,99 @@ async function createGuardianDemoProfile(
 - 本仓库**不得**包含 `lelan-shouhu` 项目的任何源码、数据、截图资源。
 - `lelan-shouhu` 是独立仓库，未来通过品牌、域名、账号、API 层连接。
 - 任何关于体验版能力的描述均来自产品侧文案，不读取其代码。
+
+---
+
+## 5.1 Guardian 智能分析（Dify 接入）
+
+### 架构
+
+```
+Browser
+  → 官网控制的 server-side Adapter（独立部署）
+  → Dify Workflow
+  → Adapter normalize
+  → GuardianAnalysisResult
+  → 现有 GuardianProfile / UI
+```
+
+**Dify 只是 analysis / explanation layer，不是 source of truth。**
+
+`age` / `stage` / `scenario` / `tasks` / `done-current-upcoming` /
+`progress_completed` / `progress_total` **继续由网站现有确定性逻辑负责**，
+Dify **不得**重算或覆盖。
+
+### 为什么是独立服务，而不是 Next.js Route Handler
+
+官网是**静态导出**（`next.config.ts` → `output: "export"`）。
+静态导出下 Next.js Route Handler **在生产环境不存在**；而 Dify 的 `blocking`
+调用必须在服务端发起（API Key 不能进浏览器）。
+
+因此：**保持静态官网架构不变**（`output: "export"` 不得删除），
+Guardian 分析使用**独立的 server-side Adapter 服务**，
+浏览器**只能**调用该 Adapter，**不得**直连 `api.dify.ai`。
+
+### Adapter
+
+- 位置：`tools/guardian-adapter/`（Node 20+，仅 Node 内置模块，零运行时依赖）
+- 端点：`GET /health`、`POST /guardian/analyze`
+- 详见 `tools/guardian-adapter/README.md`
+
+### 环境变量
+
+Adapter 服务（服务端 · 机密）：
+
+```
+DIFY_API_KEY=          # 真实 Key 只存在于 Adapter 部署环境
+DIFY_API_BASE_URL=https://api.dify.ai/v1
+PORT=8787
+ALLOWED_ORIGINS=
+DIFY_TIMEOUT_MS=40000
+```
+
+官网（静态站 · 公开；这是**地址**不是密钥）：
+
+```
+NEXT_PUBLIC_GUARDIAN_ADAPTER_URL=
+```
+
+`NEXT_PUBLIC_*` 在**构建时**内联，更换 Adapter URL 需要重新构建静态站。
+该变量为空时官网完全回退到原有行为：不渲染分析区、不报错、不发请求。
+
+**禁止**把 `DIFY_API_KEY` 放入 React / Client Component / `public/` /
+浏览器 JS / `NEXT_PUBLIC_*` / Git / 日志。
+
+### 本地运行
+
+```bash
+cd tools/guardian-adapter
+cp .env.example .env       # 填入 DIFY_API_KEY
+npm start                  # http://127.0.0.1:8787
+
+# 让官网指向它（构建时内联）
+# .env.local: NEXT_PUBLIC_GUARDIAN_ADAPTER_URL=http://127.0.0.1:8787
+npm run build              # 回到仓库根目录执行
+```
+
+### 失败行为
+
+Dify 是**增强**，不是 Profile 的单点故障。timeout / 网络错误 / 非 2xx /
+`data.status=failed` / outputs 缺失 / 输出类型错误 / 规范化失败时：
+
+- **现有 Profile 仍完整显示**：人生阶段、五行结构、lifecycle、任务、进度
+- 分析区显示「暂时无法生成智能分析，请稍后重试。」并提供重试
+- **不得**白屏、抛原始错误、显示 Dify 原始响应 / 内部 stack / Authorization / API Key
+
+### 生产部署
+
+Adapter 作为**独立 Node Web Service** 部署（Node 20+）。
+**不要**把它塞进静态站托管 —— 静态站按设计没有 server runtime。
+
+1. 以 `tools/guardian-adapter` 为根建立服务
+2. 启动命令 `node server.js`
+3. 服务环境配置 `DIFY_API_KEY` / `DIFY_API_BASE_URL` / `ALLOWED_ORIGINS`
+4. 记录其 HTTPS URL，在**官网构建时**配置为 `NEXT_PUBLIC_GUARDIAN_ADAPTER_URL`，
+   然后重新构建并重新部署静态站
 
 ---
 
