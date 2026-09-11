@@ -41,7 +41,7 @@ export function HomeTown({ section }: HomeTownProps) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="lelan-bg-l3-town lelan-divider-coord-fade relative border-b border-rule"
+      className="lelan-section-field lelan-section-field-town lelan-divider-coord-fade relative border-b border-rule"
     >
       <Container as="div">
         {/* Section header */}

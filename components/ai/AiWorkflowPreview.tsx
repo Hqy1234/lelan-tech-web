@@ -98,8 +98,8 @@ function ProcessTrace({ features, intensities, wordOutputs }: ProcessTraceProps)
   const aigcOutputs = wordOutputs.filter((o) => o.group === "aigc");
 
   return (
-    <div className="lelan-ai-page relative h-full overflow-hidden p-3 sm:p-4">
-      <p className="font-mono text-[0.55rem] uppercase tracking-wider text-muted">
+    <div className="lelan-ai-page lelan-glass-soft relative h-full overflow-hidden p-3 sm:p-4">
+      <p className="font-mono text-[0.55rem] uppercase tracking-wider text-ink/80">
         流程追踪 · PROCESS TRACE
       </p>
 
@@ -284,7 +284,7 @@ export function AiWorkflowPreview({ section }: AiWorkflowPreviewProps) {
     <div
       role="region"
       aria-label="乐懒 AI 产品工作台示意"
-      className="lelan-bg-l4-ai relative rounded-sm border border-rule"
+      className="lelan-perspective lelan-bg-l4-ai relative rounded-sm border border-rule"
     >
       {/* Layer 0 workspace background handled by class above */}
 
@@ -307,14 +307,12 @@ export function AiWorkflowPreview({ section }: AiWorkflowPreviewProps) {
           </p>
         </div>
 
-        {/* Layer 1+2+3 — three-column workspace
-            Desktop (≥1024px): 3 columns side-by-side (lg:grid-cols-12)
-            Tablet (768–1023): 2 columns wide (sm:grid-cols-2)
-            Mobile (≤640): single column, stacked
-            Spec: AI 不能三列硬挤 @ 768. */}
+        {/* Phase 1E.3-C — Paper + Glass + Paper spatial composition
+            Desktop: Input (back) — Process (glass front) — Result (back) — Outputs (front tokens)
+            Each layer gets slight translateZ / overlap. */}
         <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-12">
-          {/* Layer 1 — Input Document */}
-          <div className="lg:col-span-4">
+          {/* Layer 1 — Input Document (back) */}
+          <div className="lg:col-span-4 lg:lelan-depth-1">
             <DocumentLayerCaption label="01 输入" hint="INPUT DOCUMENT" />
             <div className="mt-2 h-[200px] sm:h-[220px]">
               <DocumentPage
@@ -329,8 +327,8 @@ export function AiWorkflowPreview({ section }: AiWorkflowPreviewProps) {
             </p>
           </div>
 
-          {/* Layer 2 — Process Trace */}
-          <div className="lg:col-span-4">
+          {/* Layer 2 — Process Trace (glass front, z+1) */}
+          <div className="lg:col-span-4 lg:lelan-depth-3">
             <DocumentLayerCaption label="02 流程" hint="MODE + PROCESS" />
             <div className="mt-2 h-[200px] sm:h-[220px]">
               <ProcessTrace
@@ -341,8 +339,8 @@ export function AiWorkflowPreview({ section }: AiWorkflowPreviewProps) {
             </div>
           </div>
 
-          {/* Layer 3 — Result Document */}
-          <div className="lg:col-span-4">
+          {/* Layer 3 — Result Document (back) */}
+          <div className="lg:col-span-4 lg:lelan-depth-1">
             <DocumentLayerCaption label="03 结果" hint="RESULT DOCUMENT" />
             <div className="mt-2 h-[200px] sm:h-[220px]">
               <DocumentPage
@@ -361,8 +359,10 @@ export function AiWorkflowPreview({ section }: AiWorkflowPreviewProps) {
           </div>
         </div>
 
-        {/* Layer 4 — Word Outputs */}
-        <WordOutputStack outputs={section.wordOutputs} />
+        {/* Layer 4 — Word Outputs (front tokens) */}
+        <div className="lelan-depth-2">
+          <WordOutputStack outputs={section.wordOutputs} />
+        </div>
 
         {/* Annotation leader — selected capability hook */}
         <div className="mt-5 flex items-center gap-3 border-t border-rule pt-3">

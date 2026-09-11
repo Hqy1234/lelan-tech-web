@@ -422,4 +422,62 @@ About          (flat editorial)
   branch (`hasBuildingAsset === true`). No need to rewrite `TownMapStage` roads/plots.
 - AI: when real product screenshots arrive, swap into `DocumentPage` for `Result Document`
   (L3). The 7 Word output tokens (L4) remain token-based.
+
+### 9.8 Frosted Archive Glass Material (Phase 1E.3-C added)
+
+玉质档案玻璃 — 数字信息层（不是通用 glassmorphism SaaS）
+
+| Token | Value | Usage |
+|---|---|---|
+| `--glass-bg` | `rgba(248,248,240,0.62)` | Default glass surface |
+| `--glass-bg-soft` | `rgba(248,248,240,0.52)` | Softer glass overlay |
+| `--glass-bg-raised` | `rgba(248,248,240,0.74)` | Raised / selected glass |
+| `--glass-blur` | `14px` | Default backdrop-filter |
+| `--glass-border` | `rgba(50,75,62,0.12)` | Jade-tinted border |
+| `--glass-shadow` | light inset + soft drop | Contact shadow |
+
+Classes: `.lelan-glass`, `.lelan-glass-soft`, `.lelan-glass-raised`, `.lelan-glass-darktext`
+
+Fallback: `@supports not (backdrop-filter)` → solid `rgba(248,248,240,0.94)` — readable without blur.
+
+**Only use glass for:**
+- Guardian current-coordinate live info panel (top-right of archive sheet, ~15–30% of main visual)
+- Town selected service floating panel (overlaps map on desktop)
+- AI process trace control surface (between input/result papers)
+
+**Never use glass for:** buttons, footer, technology section, about section, every card.
+
+Mobile: blur reduced to 8px, ≤2 simultaneous blur surfaces.
+
+### 9.9 Semantic Depth Layers Z0–Z5 (Phase 1E.3-C added)
+
+| Z | Name | Implementation |
+|---|---|---|
+| Z0 | Editorial Background | Hero, Technology, About, Footer |
+| Z1 | Spatial Field | Section rear planes via `.lelan-section-field` |
+| Z2 | Ground / Coordinate | Town ground, Guardian coordinate canvas |
+| Z3 | Primary Object | Buildings, paper sheets, GuardianSeal |
+| Z4 | Frosted Glass | Current-info panel, service panel, process trace |
+| Z5 | Label / Node | Shop numbers, archive IDs, stage annotations |
+
+Implementation: semantic translateZ CSS variables, not literal z-index stacking.
+
+### 9.10 Spatial Archive Interface (Phase 1E.3-C added)
+
+Section depth planes via `.lelan-section-field`:
+- `.lelan-section-field-guardian` — coordinate continuation + warm jade overlay
+- `.lelan-section-field-town` — atmospheric depth (3 radial gradients)
+- `.lelan-section-field-ai` — document workspace warm glow
+
+Foreground transition via `.lelan-section-foreground::after`:
+- Subtle bottom edge line, not a full card tilt
+
+Town 3-plane depth:
+- Background: far silhouette (CSS radial gradients, no images)
+- Midground: ground plane with perspective 1200px + rotateX 3deg
+- Foreground: corner eaves via `.lelan-town-fg-eave-left` / `.lelan-town-fg-eave-right` + clip-path
+
+Paper vs Glass semantics:
+- **Paper** = stable, persistent, archive (GuardianSeal, Town buildings, AI documents)
+- **Glass** = live, digital, floating (current coordinate, selected service, process controls)
 - Both hooks live as separate component branches — no layout rewrite required.

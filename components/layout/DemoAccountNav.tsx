@@ -60,6 +60,7 @@ export function DemoAccountNav() {
     <div className="flex items-center gap-2">
       <Link
         href="/profile"
+        prefetch={false}
         className="inline-flex items-center gap-1.5 rounded-sm border border-green/40 bg-green/5 px-2.5 py-1.5 font-mono text-[0.65rem] uppercase tracking-wider text-green transition-colors hover:bg-green/10"
         title="查看本次 Demo 档案"
       >
@@ -82,6 +83,7 @@ export function DemoAccountNav() {
         {generatedPanel}
         <Link
           href="/profile"
+          prefetch={false}
           className="inline-flex items-center gap-2 rounded-sm border border-green px-2.5 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.15em] text-green transition-colors hover:border-green-dark hover:text-green-dark"
         >
           我的档案
@@ -109,6 +111,7 @@ export function DemoAccountNav() {
   return (
     <Link
       href="/login"
+      prefetch={false}
       className="inline-flex items-center gap-2 rounded-sm border border-ink px-3 py-1.5 font-mono text-[0.7rem] uppercase tracking-[0.15em] text-ink transition-colors hover:border-green hover:text-green"
     >
       登录

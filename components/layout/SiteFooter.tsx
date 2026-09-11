@@ -80,6 +80,7 @@ export function SiteFooter() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
+                      prefetch={false}
                       className="text-ink/80 transition-colors hover:text-ink"
                     >
                       {link.label}

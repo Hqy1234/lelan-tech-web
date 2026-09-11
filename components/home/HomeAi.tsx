@@ -35,7 +35,7 @@ export function HomeAi({ section }: HomeAiProps) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="lelan-bg-l4-ai border-b border-rule"
+      className="lelan-section-field lelan-section-field-ai border-b border-rule"
     >
       <Container as="div">
         {/* Header */}

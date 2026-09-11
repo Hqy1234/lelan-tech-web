@@ -95,6 +95,7 @@ export default function ProfilePage() {
           <div className="mt-6 flex flex-col items-center gap-3">
             <Link
               href="/guardian/demo"
+              prefetch={false}
               className="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-ink bg-ink px-4 py-2.5 text-sm text-paper transition-colors hover:bg-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-cinnabar focus-visible:outline-offset-2"
             >
               体验建档 Demo
@@ -102,12 +103,14 @@ export default function ProfilePage() {
             </Link>
             <Link
               href="/login"
+              prefetch={false}
               className="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-rule px-4 py-2.5 text-sm text-muted transition-colors hover:border-muted hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-cinnabar focus-visible:outline-offset-2"
             >
               选择演示账号
             </Link>
             <Link
               href="/#hero"
+              prefetch={false}
               className="font-mono text-[0.65rem] uppercase tracking-wider text-muted transition-colors hover:text-ink"
             >
               ← 返回首页
@@ -154,12 +157,14 @@ export default function ProfilePage() {
         <div className="mt-10 flex flex-col items-center gap-3">
           <Link
             href="/guardian/demo"
+            prefetch={false}
             className="font-mono text-[0.65rem] uppercase tracking-wider text-muted transition-colors hover:text-ink"
           >
             重新体验建档 Demo
           </Link>
           <Link
             href="/#hero"
+            prefetch={false}
             className="font-mono text-[0.65rem] uppercase tracking-wider text-muted transition-colors hover:text-ink"
           >
             ← 返回首页

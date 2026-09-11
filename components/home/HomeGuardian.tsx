@@ -28,6 +28,7 @@
  *
  * Server shell + small client island for state.
  */
+import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { StatusLabel } from "@/components/ui/StatusLabel";
 import { guardianMethodSteps } from "@/content/guardian";
@@ -41,7 +42,7 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="lelan-divider-coord-fade relative border-b border-rule bg-paper"
+      className="lelan-section-field lelan-section-field-guardian lelan-divider-coord-fade relative border-b border-rule bg-paper"
     >
       <Container as="div">
         {/* ── Section header ─────────────────────────────────────── */}
@@ -80,20 +81,22 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
                 查看人生坐标
                 <span aria-hidden>→</span>
               </a>
-              <a
+              <Link
                 href="/guardian/demo"
+                prefetch={false}
                 className="inline-flex items-center gap-2 rounded-sm border border-green bg-green px-4 py-2 text-sm text-paper transition-colors hover:bg-green-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-cinnabar focus-visible:outline-offset-2"
               >
                 体验人生档案 Demo
                 <span aria-hidden>→</span>
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/login"
+                prefetch={false}
                 className="inline-flex items-center gap-2 rounded-sm border border-rule px-4 py-2 text-sm text-muted transition-colors hover:border-green hover:text-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-cinnabar focus-visible:outline-offset-2"
               >
                 登录查看模拟账号
                 <span aria-hidden>→</span>
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -136,7 +139,36 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
                 </p>
               </div>
 
-              <div className="p-5 sm:p-7">
+              {/* Phase 1E.3-C — Frosted Glass current-coordinate overlay */}
+              <div
+                className="absolute right-5 top-16 z-10 hidden w-56 rounded-sm p-3 sm:block"
+                role="status"
+                aria-label="当前坐标状态"
+              >
+                <div className="lelan-glass-soft rounded-sm p-3">
+                  <p className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
+                    当前坐标 · LIVE
+                  </p>
+                  <p className="mt-1 font-serif text-base text-ink">
+                    兑 · 青年期
+                  </p>
+                  <p className="text-[0.7rem] leading-relaxed text-muted">
+                    场景：创业 · 4 / 8 税务登记
+                  </p>
+                  <div className="mt-2 h-px w-full bg-rule" aria-hidden />
+                  <div className="mt-2 flex items-center gap-2">
+                    <span
+                      aria-hidden
+                      className="h-1.5 w-1.5 rounded-full bg-cinnabar"
+                    />
+                    <span className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
+                      待办 5 项
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 sm:p-7 sm:pr-64">
                 <GuardianArchive />
               </div>
             </div>

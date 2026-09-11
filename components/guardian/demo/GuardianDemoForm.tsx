@@ -932,6 +932,7 @@ export function GuardianDemoForm() {
           </button>
           <Link
             href="/"
+            prefetch={false}
             className="font-mono text-[0.65rem] uppercase tracking-wider text-muted transition-colors hover:text-ink"
           >
             ← 返回首页

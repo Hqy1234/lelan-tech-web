@@ -42,6 +42,7 @@ export function SiteHeader() {
           {/* Identity */}
           <Link
             href="/#hero"
+            prefetch={false}
             className="group inline-flex items-baseline gap-2 font-serif text-ink no-underline"
             aria-label={`${siteName} ${brandName} 首页`}
           >
@@ -63,6 +64,7 @@ export function SiteHeader() {
               <Link
                 key={`${item.label}-${item.href}`}
                 href={item.href}
+                prefetch={false}
                 className="text-muted transition-colors hover:text-ink"
               >
                 {item.label}
@@ -83,6 +85,7 @@ export function SiteHeader() {
             <Link
               key={`m-${item.label}-${item.href}`}
               href={item.href}
+              prefetch={false}
               className="shrink-0 whitespace-nowrap rounded-sm px-2 py-1.5 transition-colors hover:bg-paper-pure hover:text-ink"
             >
               {item.label}

@@ -174,7 +174,7 @@ export const homeSections: ReadonlyArray<HomeSection> = [
     ],
     software: {
       name: "乐懒 AI · 论文智能助手",
-      description: "独立软件产品 · 已上线体验版 · 三档降重 / AIGC 分析 / 自然化改写",
+      description: "独立软件产品 · 已上线体验版 · 三档降重 / AIGC 改写",
       href: "#ai",
       status: "体验版可用",
     },

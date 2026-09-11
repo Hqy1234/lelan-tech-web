@@ -78,6 +78,7 @@ export function HomeHero({ section }: HomeHeroProps) {
               </Link>
               <Link
                 href="/guardian/demo"
+                prefetch={false}
                 className="inline-flex items-center gap-2 rounded-sm border border-green px-5 py-2.5 text-sm text-green transition-colors hover:bg-green/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cinnabar focus-visible:outline-offset-2"
               >
                 体验人生档案 Demo

@@ -7,9 +7,9 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1E.3-B — Town Spatial Upgrade + AI Product Visualization + 2.5D Spatial Refinement (Visual V1)
-- **下一阶段**：等待 Visual V1 验收（用户 + ChatGPT + Codex）；Phase 1F (Dify / Adapter) gated by user confirmation.
-- **说明**：Phase 1E.3-B 完成：成果小镇升级为"东方数字城镇 / Spatial Product Interface"（8 plot 锁定坐标 + 道路网格 + 5 层空间 + Service Archive Drawer）；乐懒 AI 升级为真实文档软件工作台（AiWorkflowPreview L0–L4：INPUT → MODE → PROCESS → RESULT → 7 份 Word 成品）；Phase A lint warning 修复（0/0）；section transitions（Guardian → Town → AI）建立；背景系统新增 L3 Town Spatial + L4 AI Workspace；responsive flatten 在 ≤767 禁用 perspective，AI 在 768 不硬挤 3 列；production validation 全通过（lint / tsc / build / static export / hydration）。Phase 1E.3 Visual V1 基本完成；Phase 1F 等待用户验收。
+- **当前阶段**：Phase 1E.3-C — Spatial Glass Interface + Asset Visibility Audit + 3D Section Depth Refinement
+- **下一阶段**：等待 Visual V1 最终验收（用户 + ChatGPT + Codex）；Phase 1F (Dify / Adapter) gated by user confirmation.
+- **说明**：Phase 1E.3-C 完成：Asset Visibility Audit（18个资产全部HTTP 200，0 TYPE A render bug）；新增 Frosted Archive Glass Material System（玉质档案玻璃 — jade/ivory tint，backdrop-filter blur 14px，fallback solid）；Semantic Z0–Z5 depth tokens；Guardian 新增 Glass "当前坐标·LIVE" panel（archive sheet 右上角浮层）；Town 升级：section-field rear plane + foreground eaves + building frame paper mount + glass floating service panel（desktop overlaps map）；AI 升级：Process Trace 改为 Glass surface（Paper+Glass+Paper 材质层级）；P1 自然化改写→AIGC改写 fix；P0 RSC prefetch 404 fix（14个Link加prefetch={false}）；lint/tsc/build全部PASS。Phase 1E.3 Visual V1 最终版。Phase 1F 等待用户验收。
 
 ---
 

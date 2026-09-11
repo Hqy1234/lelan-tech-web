@@ -795,3 +795,59 @@
 - **D-PHASE1E.3-B-025** — 更新 `docs/ROADMAP.md`：标记 Phase 1E.3-B 完成；
   Phase 1E.3 Visual V1 视为基本完成；下一步等待用户 + ChatGPT + Codex 进行 Visual V1 验收；
   Phase 1F (Dify / Adapter) 仍 gated，由用户确认后才进入。
+
+### Phase 1E.3-C — Spatial Glass + Asset Deepening
+
+- **D-PHASE1E.3-C-001** — Asset Visibility Audit：
+  18 个 public 资产全部存在且 HTTP 200。0 TYPE A（render bug）。16 个 TYPE C（asset gap — 已声明但未在组件中引用）。
+  Town buildings (02) 和 lelan-shouhu 对比通过 — P1 不正确 brand term "自然化改写" → "AIGC 改写" 已修复。
+
+- **D-PHASE1E.3-C-002** — Frosted Archive Glass Material：
+  新增 `--glass-*` CSS token 系统 + `.lelan-glass` / `.lelan-glass-soft` / `.lelan-glass-raised` 工具类。
+  backdrop-filter blur 14px / jade-tinted border / inset highlight / soft shadow。
+  fallback: `@supports not (backdrop-filter)` → solid rgba(248,248,240,0.94)。
+  Mobile: blur 降至 8px。
+
+- **D-PHASE1E.3-C-003** — Semantic Depth Layers Z0–Z5：
+  新增 `--depth-z*` CSS token（Z0–Z5 映射到 translateZ 0–40px）。
+  Z4 = Frosted Glass，Z5 = Label/Node/Annotation。
+
+- **D-PHASE1E.3-C-004** — Town Section Upgrade：
+  `.lelan-section-field-town` — 3 个 radial gradient 远景层（jade + earth warm）。
+  远景 eave: `.lelan-town-fg-eave-left` / `.lelan-town-fg-eave-right` clip-path 遮挡。
+  Plot 真实建筑：`lelan-town-building-frame` — paper mount + subtle inset border + glass reflection。
+  Plot 未来位：`.lelan-plot-future` — 强化底纹深度。
+
+- **D-PHASE1E.3-C-005** — Town Floating Glass Panel：
+  Desktop (lg+): `TownServiceDrawer` 改为 `.lelan-glass-raised` + `absolute` 浮在 map 右上方。
+  Mobile (<lg): drawer 出现在 map 下方，与 map 不重叠。
+  两个 drawer 使用 Tailwind `lg:hidden` 控制显示/隐藏。
+
+- **D-PHASE1E.3-C-006** — Guardian Glass Panel：
+  新增 "当前坐标 · LIVE" frosted glass overlay 在 archive sheet 右上角。
+  占用主视觉约 15–20%，含阶段名/场景/进度/待办数量。
+  移动端不显示（`hidden sm:block`）。
+
+- **D-PHASE1E.3-C-007** — AI Glass Process Surface：
+  `ProcessTrace` 容器改为 `.lelan-glass-soft` — 数字流程控制面。
+  Input / Result documents 保持 paper (`lelan-ai-page`)。
+  整体 workspace 有 `lelan-perspective`（perspective 1200px）+ `lelan-section-field-ai` 暖光背景。
+
+- **D-PHASE1E.3-C-008** — P1 fix — 自然化改写 branding：
+  `content/home.ts` Hero CTA: "三档降重 / AIGC 分析 / 自然化改写" → "三档降重 / AIGC 改写"。
+
+- **D-PHASE1E.3-C-009** — P0 fix — RSC prefetch 404：
+  14 个跨页面 `<Link>` 添加 `prefetch={false}`（所有非 hash anchor 链接）。
+  涉及：HomeHero、HomeGuardian、SiteHeader、SiteFooter、DemoAccountNav、LoginForm、Profile、GuardianDemoForm。
+  静态导出不生成 subpage RSC prefetch 文件，`prefetch={false}` 防止浏览器请求。
+
+- **D-PHASE1E.3-C-010** — Engineering validation：
+  lint: 0 errors。
+  tsc: 0 errors。
+  build: 成功，静态导出 8 个页面。
+  14 个 Link prefetch 补丁均无 TypeScript / lint 错误。
+
+- **D-PHASE1E.3-C-011** — 禁止事项确认：
+  未使用 Three.js / WebGL / Canvas 3D / GSAP / Framer Motion / 鼠标追踪 / card flip / 大角度 rotateX / scroll-jacking。
+  Glass 偏 jade/ivory，不偏 cyan/electric blue/purple。
+  无 generic glassmorphism SaaS — glass 仅用于信息浮层。

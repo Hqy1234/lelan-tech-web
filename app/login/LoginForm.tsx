@@ -207,12 +207,14 @@ export default function LoginForm() {
       <div className="mt-6 flex flex-col items-center gap-3">
         <Link
           href="/guardian/demo"
+          prefetch={false}
           className="text-xs text-muted transition-colors hover:text-green"
         >
           想自己建立一份演示档案？体验建档 Demo →
         </Link>
         <Link
           href="/"
+          prefetch={false}
           className="font-mono text-[0.65rem] uppercase tracking-wider text-muted transition-colors hover:text-ink"
         >
           ← 返回首页

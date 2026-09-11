@@ -101,20 +101,29 @@ function PlotView({ shop, isSelected }: PlotViewProps) {
       {/* L2: plot base */}
       <div
         className={[
-          "lelan-plot-placeholder lelan-plot-hover relative h-full w-full overflow-hidden",
+          hasRealBuilding
+            ? "lelan-plot-hover relative h-full w-full"
+            : "lelan-plot-placeholder lelan-plot-hover lelan-plot-future relative h-full w-full overflow-hidden",
           isSelected ? "border-ink bg-paper-pure" : "",
         ].join(" ")}
         data-selected={isSelected ? "true" : "false"}
       >
         {hasRealBuilding ? (
-          // L2 real building: image viewport overlaps plot plane
-          <Image
-            src={building!.src}
-            alt={building!.alt}
-            fill
-            sizes="(max-width: 640px) 25vw, (max-width: 1024px) 18vw, 12vw"
-            className="object-cover"
-          />
+          // L2 real building: framed showcase window (not transparent cutout)
+          <div className="lelan-town-building-frame h-full w-full overflow-hidden">
+            <Image
+              src={building!.src}
+              alt={building!.alt}
+              fill
+              sizes="(max-width: 640px) 25vw, (max-width: 1024px) 18vw, 12vw"
+              className="object-cover"
+            />
+            {/* Subtle glass reflection at the top edge */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 z-10 h-1/4 bg-gradient-to-b from-white/20 to-transparent"
+            />
+          </div>
         ) : (
           // L2 placeholder: architectural frame, no fake image
           <PlotPlaceholder shop={shop} />
@@ -297,6 +306,9 @@ export function TownMapStage({
           aria-hidden
           className="pointer-events-none absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-t from-[rgba(141,124,96,0.10)] to-transparent"
         />
+        {/* Phase 1E.3-C — corner eaves for 3-plane depth */}
+        <div aria-hidden className="lelan-town-fg-eave-left" />
+        <div aria-hidden className="lelan-town-fg-eave-right" />
       </div>
     </div>
   );
@@ -315,10 +327,10 @@ export function TownServiceDrawer({ shop, agentRoleLabel }: TownServiceDrawerPro
   return (
     <aside
       aria-label={`${shop.name} 档案详情`}
-      className="lelan-corner lelan-bg-l1 lelan-contact-shadow-2 relative rounded-sm border border-rule bg-paper-pure p-4 sm:p-5"
+      className="lelan-corner lelan-glass-raised relative rounded-sm p-4 sm:p-5"
     >
       {/* Archive ID — demoted, top right */}
-      <p className="lelan-archive-id absolute right-3 top-3">
+      <p className="lelan-archive-id absolute right-3 top-3 z-10">
         ARCHIVE · SHOP-{shop.number}
       </p>
 

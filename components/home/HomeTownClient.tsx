@@ -84,10 +84,10 @@ export function HomeTownClient({ shops, statusNote }: HomeTownClientProps) {
 
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-3 xl:gap-4">
-      {/* ── Left (≈20%): compact 8-service index ───────────────── */}
+      {/* ── Left: compact 8-service index (desktop only) ──────── */}
       <nav
         aria-label="小镇服务索引"
-        className="w-full shrink-0 overflow-hidden rounded-sm border border-rule bg-paper-pure lg:w-48 lg:rounded-sm xl:w-52"
+        className="hidden shrink-0 overflow-hidden rounded-sm border border-rule bg-paper-pure lg:flex lg:flex-col lg:w-48 lg:rounded-sm xl:w-52"
       >
         <p className="border-b border-rule px-3 py-2 font-mono text-[0.6rem] uppercase tracking-wider text-muted">
           01–08 · 服务索引
@@ -149,17 +149,54 @@ export function HomeTownClient({ shops, statusNote }: HomeTownClientProps) {
         </ul>
       </nav>
 
-      {/* ── Center (≈55%): TownMapStage ────────────────────────── */}
-      <div className="min-h-[420px] flex-1 min-w-0">
-        <TownMapStage shops={shops} selectedId={selected.id} />
-      </div>
+      {/* Mobile horizontal index (visible only on small screens) */}
+      <nav
+        aria-label="小镇服务索引（移动）"
+        className="flex w-full shrink-0 gap-1.5 overflow-x-auto rounded-sm border border-rule bg-paper-pure p-2 lg:hidden"
+      >
+        {shops.map((shop) => {
+          const isSelected = shop.id === selected.id;
+          return (
+            <button
+              key={shop.id}
+              type="button"
+              onClick={() => handleSelect(shop.id)}
+              className={[
+                "shrink-0 rounded-sm border px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wider transition-colors",
+                isSelected
+                  ? "border-green bg-green text-paper"
+                  : "border-rule bg-paper text-muted",
+              ].join(" ")}
+              aria-label={`选择 ${shop.name}`}
+              aria-pressed={isSelected}
+            >
+              {shop.number}
+            </button>
+          );
+        })}
+      </nav>
 
-      {/* ── Right (≈25%): TownServiceDrawer ────────────────────── */}
-      <div className="w-full shrink-0 lg:w-72 xl:w-80">
-        <TownServiceDrawer
-          shop={selected}
-          agentRoleLabel={agentRoleLabel}
-        />
+      {/* ── Center: TownMapStage + floating service panel ─────── */}
+      <div className="relative min-h-[420px] flex-1 min-w-0">
+        <TownMapStage shops={shops} selectedId={selected.id} />
+
+        {/* Phase 1E.3-C — Desktop: Glass service panel floats over the map */}
+        <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden>
+          <div className="pointer-events-auto absolute right-2 top-6 z-20 w-64 xl:right-4 xl:w-72">
+            <TownServiceDrawer
+              shop={selected}
+              agentRoleLabel={agentRoleLabel}
+            />
+          </div>
+        </div>
+
+        {/* Phase 1E.3-C — Mobile/Tablet: drawer appears below the map */}
+        <div className="mt-4 w-full lg:hidden">
+          <TownServiceDrawer
+            shop={selected}
+            agentRoleLabel={agentRoleLabel}
+          />
+        </div>
       </div>
 
       <p className="sr-only">{statusNote}</p>
