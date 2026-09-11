@@ -105,3 +105,16 @@ export function demoLogin(username: string, password: string): boolean {
 export function demoLogout(): void {
   clearDemoSession();
 }
+
+/* ========================================================================
+   Active profile resolution (Phase 1E.3-A)
+   Distinguishes a logged-in demo-account session from a generated demo
+   profile from /guardian/demo — these are NOT the same kind of "session".
+   ======================================================================== */
+
+export type ActiveProfileKind = "generated" | "demo-account" | null;
+
+export interface ActiveProfileResolution {
+  kind: ActiveProfileKind;
+  profile: GuardianProfile | null;
+}

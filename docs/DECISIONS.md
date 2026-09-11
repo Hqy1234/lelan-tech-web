@@ -536,3 +536,122 @@
   所有数据仅在当前浏览器中展示，关闭标签页后自动清除。
 - **D-PHASE1E-016** — `/profile` 顶部区分来源标签：
   generated profile → "本次 Demo 档案"（绿色）；demo account → "模拟账号档案"（灰色）。
+
+## D-PHASE1E.3-A · Engineering Hardening + Guardian Visual System（追加于 2026-09-11）
+
+### P0: Guardian Demo Step 2 Bypass Fix
+
+- **D-PHASE1E.3-A-001** — `/guardian/demo` Step 2 仅保留唯一前进路径："确认阶段"按钮。不再暴露通用"下一步"。
+  用户必须明确点击"确认阶段"才能进入 Step 3。
+- **D-PHASE1E.3-A-002** — Step 6（档案校对）始终同时显示"返回修改"和"生成我的人生档案"两个操作按钮。
+- **D-PHASE1E.3-A-003** — Step 变更前增加 pre-entry guard：如果 state 不完整，跳回对应步骤并显示错误。
+- **D-PHASE1E.3-A-004** — Step 变更时 focus 到步骤 heading（`headingRef`），改善键盘 / 屏幕阅读器体验。
+
+### Age Validation Fix
+
+- **D-PHASE1E.3-A-005** — 年龄输入改为 `type="text"` + `inputMode="numeric"`，
+  避免浏览器将 `36.8` 自动规范化为 `36`。使用 `parseAndValidateAge()` → `Number()` + `isValidAge()` 拒绝小数、负数、NaN、空值。
+  `parseAndValidateAge` 导出自 `content/guardian.ts`。
+
+### Navigation / Anchor Fix
+
+- **D-PHASE1E.3-A-006** — Header / Footer 所有 section 导航链接统一使用绝对路径 `/#section`（如 `/#guardian`、`/#town`），
+  确保从 `/profile`、`/login`、`/guardian/demo` 等子页点击后可正确返回首页对应 section。
+- **D-PHASE1E.3-A-007** — Hero pillar href 从 display label 字符串匹配改为 content model 中的显式 `href` 字段。
+  `content/home.ts` 的 `HomeHeroSection.pillars[].href` 存储明确的锚点路径。
+  Hero 也新增 `software` 字段，独立于 pillars，用于渲染软件产品行。
+
+### Mock Adapter Validation
+
+- **D-PHASE1E.3-A-008** — `completedTaskIds` 验证：
+  1. 必须是字符串数组
+  2. 每个 ID 必须属于 `ALL_VALID_TASK_ID_SET`（所有 V1 scenario task ID 的并集）
+  3. 每个 ID 必须属于当前 selected scenario 的 task 集合
+  任何违规返回 `INVALID_INPUT` + 具体无效 ID。
+- **D-PHASE1E.3-A-009** — `selectedDimensionTags` 验证：
+  每个 tag ID 必须属于 `VALID_DIMENSION_TAG_ID_SET`（18个稳定 tag ID）。违规返回 `INVALID_INPUT`。
+
+### Missing-Dimension Semantic Fix
+
+- **D-PHASE1E.3-A-010** — 用户未选择某生活维度的任何 tag 时，该维度在 GuardianProfile 中默认状态为 `planned` / "待完善"，
+  而非 `normal` / "已记录"。"已记录"仅用于用户实际提供了 tag 的维度。
+
+### Corrupt Cache Safe State
+
+- **D-PHASE1E.3-A-011** — `getGeneratedProfile()` 读取 sessionStorage 时，
+  如果 JSON malformed 或结构缺少 `id`/`archiveRef`/`tasks`/`elements` 等关键字段，自动清除该条 corrupt entry 并返回 null。
+  `/profile` 页面显示 safe empty state 而非 crash。
+
+### Generated Profile vs Login State Differentiation
+
+- **D-PHASE1E.3-A-012** — Header 中 `DemoAccountNav` 区分三种状态：
+  1. 未登录 → "登录"
+  2. Demo 账号登录 → "我的档案" + "退出" + "本次档案" 入口
+  3. 仅存在 generated profile → "本次档案" + "清除" + "查看" 入口
+  Generated profile 不等于登录 session；Header 不将 generated profile 当作真实认证状态。
+
+### archiveRef Determinism Fix
+
+- **D-PHASE1E.3-A-013** — `archiveRef` 改为确定性格式：`LELAN-DEMO-GEN-{AGE}-{GENDER}-{STAGE-SHORT}`。
+  例如：`LELAN-DEMO-GEN-36-F-DUI`、`LELAN-DEMO-GEN-28-M-LI`。
+  不再使用 `currentYear`。同一输入在所有运行 / 年份中产生相同 archiveRef。
+
+### Content / Technology Copy Fix
+
+- **D-PHASE1E.3-A-014** — Technology 三项工程能力文案改为诚实描述：
+  "可追溯" → "工程目标：所有生成内容可被回溯到来源、模型与编辑过程。"
+  "人在回路" → "设计原则：关键判断保留人类复核环节，AI 不替代最终决策。"
+  "最小数据" → "设计原则：面向最小数据原则设计；用户控制权作为产品目标持续推进。"
+  不再将"工程目标"和"设计原则"描述为现有已实现的能力保证。
+
+### Visual System
+
+- **D-PHASE1E.3-A-015** — 建立全站 6 元素 Visual Grammar（`app/globals.css`）：
+  1. Coordinate Line（坐标线）— 细线结构
+  2. Position Node（阶段节点）— 圆形节点
+  3. Archive ID（档案编号）— 等宽字体小号编号
+  4. Guardian Square Seal（方形守护印）— 新增 `components/guardian/GuardianSeal.tsx`
+  5. Archive Corner（档案边角）— 四角装饰线
+  6. Annotation Leader（边注引线）— 微型注释
+- **D-PHASE1E.3-A-016** — 建立 Spatial Depth System（`app/globals.css`）：
+  Depth 0–4（背景 / 坐标面 / 主体表面 / 主对象 / 标注层），
+  CSS `translateZ()` 仅在 ≥641px 生效，≤640px 禁用 perspective/3D transform。
+  仅 archive sheet / GuardianSeal / coordinate canvas 使用 depth；普通按钮/文字不使用。
+- **D-PHASE1E.3-A-017** — Background system：
+  L0（Editorial，`--color-paper`）用于 Hero / Technology / About；
+  L1（Paper/Archive，`--color-paper-pure`）用于 Demo / Profile；
+  L2（Coordinate，`lelan-bg-coordinate`）用于 Guardian 主视觉局部。
+- **D-PHASE1E.3-A-018** — Footer 按 SYSTEMS / SOFTWARE / COMPANY / LEGAL 分组，
+  SYSTEMS（乐懒守护、成果小镇）+ SOFTWARE（乐懒 AI）+ COMPANY（首页、关于）+ LEGAL（隐私、条款）。
+  不再将 Beta 状态混入 Footer；AI "体验版可用" 仅出现在 AI section 和 SOFTWARE group。
+- **D-PHASE1E.3-A-019** — Hero 重构：
+  不再使用三个等权大卡；改为左右两栏（60/40 split）。
+  左：品牌声明 + baseline + CTA；右：两大系统节点 + 软件产品行（独立行）。
+  Hero 主视觉保持 premium editorial；Guardian 第一视觉高潮。
+- **D-PHASE1E.3-A-020** — Guardian Homepage 重构：
+  引入 coordinate plane（graph-paper 背景）+ archive sheet（投影）+ GuardianSeal。
+  三栏布局（desktop）：左 Y轴（八阶段）/ 中当前坐标 + 任务链 / 右 GuardianSeal。
+  移除主 lifecycle rail 上的缩略图（40–56px 无意义图片噪声）；
+  阶段由结构性标记（trigram · name · age range）定义。
+- **D-PHASE1E.3-A-021** — Five Elements 重构：
+  不再使用 5 张独立卡片；改为连续档案带（desktop 单行，5 列由细竖线分隔；mobile 5 行堆叠）。
+  每项：金/木/水/火/土 + 维度名 + 状态标签 + 一句说明。
+  禁止：五行转盘、相生相克箭头、宝石/球/神兽。
+- **D-PHASE1E.3-A-022** — `/profile` 重构：
+  从 Dashboard 变为个人档案首页；视觉优先级：GuardianSeal → 当前坐标 → 任务链 → 五维档案 → Timeline（低权重）→ 方法（折叠 disclosure）。
+  Archive ID 降级为小号边注，不抢主视觉。
+- **D-PHASE1E.3-A-023** — `/guardian/demo` 产品化：
+  重命名为"建立一份人生档案"；标题为 h1；步骤标题始终可见；
+  Step 1 标题："基础信息"；Step 2："确认人生阶段 · 唯一前进步骤"；
+  Step 6："档案校对"；GuardianSeal 状态随步骤推进（outline → partial → complete）。
+  Mobile（≤640）：进度始终可见"3 / 6 · 当前场景"不要求滚动 stepper。
+- **D-PHASE1E.3-A-024** — GuardianSeal 组件（`components/guardian/GuardianSeal.tsx`）：
+  现代档案身份标记；open square frame + stage marks + coordinate point + minimal structural lines + LELAN archive marker。
+  三种状态：outline / partial / complete。
+  主色：墨绿；朱砂仅用于 current dot（极局部）；禁止：gold glow / red glow / mystic light。
+  装饰 SVG `aria-hidden` + `pointer-events-none`；文字内容为真实 HTML 供屏幕阅读器读取。
+
+### Repo Safety
+
+- **D-PHASE1E.3-A-025** — 本次 Phase 严格保持 `lelan-shouhu` 为 READ ONLY。
+  未复制任何代码 / CSS / 组件 / API routes。未实现 monorepo / submodule / shared session。

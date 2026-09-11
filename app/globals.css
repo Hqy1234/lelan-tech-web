@@ -9,20 +9,27 @@
  *
  * 原则：克制、留白、编辑设计；不使用紫色 AI 渐变、
  *       glassmorphism、发光球、大面积阴影、过度圆角。
+ *
+ * Phase 1E.3-A — 6-element Graphic System + Spatial Depth base.
  * ============================================================ */
 
 :root {
   /* surfaces */
   --color-paper: #f6f3ec;       /* warm white / paper */
   --color-paper-pure: #ffffff;  /* higher-contrast paper */
+  --color-paper-soft: #efeae0;  /* L0 background variant */
   --color-ink: #14110f;         /* near-black editorial ink */
+  --color-ink-soft: #2b2622;    /* slightly lighter ink for secondary text */
   --color-muted: #5b554d;       /* secondary text / captions */
+  --color-muted-soft: #8a8378;  /* tertiary captions */
   --color-rule: #d8d2c4;        /* hairline rules, dividers */
+  --color-rule-strong: #b8af9a; /* heavier coordinate lines */
 
   /* restrained green (企业色 — 沉稳，非荧光) */
   --color-green: #2f4a3a;
   --color-green-dark: #1e2f26;
   --color-green-soft: #6f8275;  /* 浅绿，用于次要点缀 */
+  --color-jade: #c4cfc1;        /* 淡玉，五行元素背景 */
 
   /* tiny cinnabar / ochre accent (印章感，克制使用) */
   --color-cinnabar: #9b3a2f;
@@ -40,9 +47,58 @@
     ui-monospace, SFMono-Regular, "SF Mono", Menlo,
     Consolas, "Liberation Mono", monospace;
 
-  /* spacing rhythm (used directly in components via inline classes too) */
+  /* Hierarchy scale (Phase 1E.3-A) */
+  --type-display: 3.75rem;       /* 60px hero Chinese */
+  --type-display-mobile: 2.5rem;/* 40px hero Chinese @ 375 */
+  --type-h2: 2.75rem;           /* 44px h2 desktop */
+  --type-h2-mobile: 2rem;       /* 32px h2 mobile */
+  --type-h3: 1.625rem;          /* 26px h3 */
+  --type-body: 1.0625rem;       /* 17px body */
+  --type-label: 0.875rem;       /* 14px label */
+  --type-archive: 0.8125rem;    /* 13px archive id */
+  --type-micro: 0.75rem;        /* 12px micro (minimum) */
+
+  /* spacing rhythm */
   --section-y: 5rem;
   --section-y-tight: 3.5rem;
+
+  /* ============================================================
+   * Phase 1E.3-A — Spatial Depth System
+   * Used to express foreground / midground / background in a
+   * restrained 2.5D way without WebGL / Three.js.
+   * ============================================================ */
+  --depth-perspective: 1200px;
+  --depth-0-translate: 0;
+  --depth-1-translate: 4px;
+  --depth-2-translate: 8px;
+  --depth-3-translate: 14px;
+  --depth-4-translate: 22px;
+
+  --depth-1-shadow: 0 1px 0 0 rgba(20, 17, 15, 0.04);
+  --depth-2-shadow: 0 1px 0 0 rgba(20, 17, 15, 0.04),
+    0 6px 14px -8px rgba(20, 17, 15, 0.08);
+  --depth-3-shadow: 0 1px 0 0 rgba(20, 17, 15, 0.05),
+    0 10px 24px -12px rgba(20, 17, 15, 0.10);
+  --depth-4-shadow: 0 1px 0 0 rgba(20, 17, 15, 0.06),
+    0 16px 32px -16px rgba(20, 17, 15, 0.12);
+
+  /* ============================================================
+   * Phase 1E.3-A — 6-element Graphic System
+   * The site-wide visual grammar:
+   *   1) Coordinate Line   2) Position Node   3) Archive ID
+   *   4) Guardian Square Seal   5) Archive Corner   6) Annotation Leader
+   * ============================================================ */
+  --graphic-line-thin: 0.5px;
+  --graphic-line-base: 1px;
+  --graphic-line-strong: 1.5px;
+  --graphic-line-emphasis: 2px;
+
+  --graphic-opacity-rule: 1;       /* hairline rules */
+  --graphic-opacity-coordinate: 0.45;
+  --graphic-opacity-node: 1;
+  --graphic-opacity-archive: 0.7;
+  --graphic-opacity-seal: 1;
+  --graphic-opacity-annotation: 0.6;
 
   /* focused control outline (used by keyboard users) */
   --focus-ring: 2px solid var(--color-cinnabar);
@@ -53,13 +109,18 @@
   /* expose to Tailwind utilities */
   --color-paper: var(--color-paper);
   --color-paper-pure: var(--color-paper-pure);
+  --color-paper-soft: var(--color-paper-soft);
   --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
   --color-muted: var(--color-muted);
+  --color-muted-soft: var(--color-muted-soft);
   --color-rule: var(--color-rule);
+  --color-rule-strong: var(--color-rule-strong);
 
   --color-green: var(--color-green);
   --color-green-dark: var(--color-green-dark);
   --color-green-soft: var(--color-green-soft);
+  --color-jade: var(--color-jade);
 
   --color-cinnabar: var(--color-cinnabar);
   --color-ochre: var(--color-ochre);
@@ -131,3 +192,154 @@ summary::marker {
   font-feature-settings: "palt" 1;
   letter-spacing: -0.005em;
 }
+
+/* ============================================================
+ * Phase 1E.3-A — Spatial Depth utilities
+ * Only applied to:
+ *   - archive sheet (paper surfaces)
+ *   - GuardianSeal
+ *   - coordinate plane canvases
+ * Never applied to plain text / buttons / lists / small cards.
+ * Disabled on mobile (≤640) — see .lelan-flat-mobile
+ * ============================================================ */
+
+.lelan-perspective {
+  perspective: var(--depth-perspective);
+  perspective-origin: 50% 30%;
+}
+
+.lelan-flat-mobile {
+  transform: none !important;
+}
+
+@media (min-width: 641px) {
+  /* Depth 1 — coordinate / ground plane */
+  .lelan-depth-1 {
+    transform: translateZ(var(--depth-1-translate));
+  }
+  /* Depth 2 — main surface (archive sheet) */
+  .lelan-depth-2 {
+    transform: translateZ(var(--depth-2-translate));
+  }
+  /* Depth 3 — primary object (GuardianSeal) */
+  .lelan-depth-3 {
+    transform: translateZ(var(--depth-3-translate));
+  }
+  /* Depth 4 — annotation layer (small notes / IDs) */
+  .lelan-depth-4 {
+    transform: translateZ(var(--depth-4-translate));
+  }
+}
+
+/* Contact shadow tokens — use sparingly */
+.lelan-contact-shadow-1 {
+  box-shadow: var(--depth-1-shadow);
+}
+.lelan-contact-shadow-2 {
+  box-shadow: var(--depth-2-shadow);
+}
+.lelan-contact-shadow-3 {
+  box-shadow: var(--depth-3-shadow);
+}
+.lelan-contact-shadow-4 {
+  box-shadow: var(--depth-4-shadow);
+}
+
+/* ============================================================
+ * Phase 1E.3-A — 6-element Graphic System utilities
+ * ============================================================ */
+
+/* 1. Coordinate Line — the spine of the visual grammar */
+.lelan-line-coordinate {
+  background: var(--color-rule-strong);
+  opacity: var(--graphic-opacity-coordinate);
+}
+
+/* 2. Position Node — used by lifecycle rail, task chain, demo rail */
+.lelan-node {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--graphic-line-base) solid var(--color-rule);
+  background: var(--color-paper);
+}
+.lelan-node-current {
+  border-color: var(--color-ink);
+  background: var(--color-paper);
+}
+.lelan-node-done {
+  border-color: var(--color-green);
+  background: var(--color-green);
+  color: var(--color-paper);
+}
+
+/* 3. Archive ID — fixed micro format */
+.lelan-archive-id {
+  font-family: var(--font-mono);
+  font-size: var(--type-archive);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* 5. Archive Corner — used on profile cover + seal containers */
+.lelan-corner {
+  position: relative;
+}
+.lelan-corner::before,
+.lelan-corner::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--color-rule-strong);
+  pointer-events: none;
+}
+.lelan-corner::before {
+  top: 0;
+  left: 0;
+  border-top: var(--graphic-line-base) solid;
+  border-left: var(--graphic-line-base) solid;
+}
+.lelan-corner::after {
+  bottom: 0;
+  right: 0;
+  border-bottom: var(--graphic-line-base) solid;
+  border-right: var(--graphic-line-base) solid;
+}
+
+/* 6. Annotation Leader — small numeric / textual cue attached via a thin line */
+.lelan-annotation {
+  font-family: var(--font-mono);
+  font-size: var(--type-micro);
+  color: var(--color-muted);
+  opacity: var(--graphic-opacity-annotation);
+}
+
+/* ============================================================
+ * Phase 1E.3-A — Background system
+ *   L0 — base editorial (Hero, Technology, About)
+ *   L1 — paper / archive (Demo, Profile)
+ *   L2 — coordinate (Guardian main visual local)
+ * ============================================================ */
+
+.lelan-bg-l0 {
+  background-color: var(--color-paper);
+}
+.lelan-bg-l1 {
+  background-color: var(--color-paper-pure);
+}
+.lelan-bg-l1-soft {
+  background-color: var(--color-paper-soft);
+}
+
+/* Coordinate canvas — light graph-paper pattern overlay */
+.lelan-bg-coordinate {
+  background-color: var(--color-paper-pure);
+  background-image:
+    linear-gradient(to right, rgba(184, 175, 154, 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(184, 175, 154, 0.18) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+}
+

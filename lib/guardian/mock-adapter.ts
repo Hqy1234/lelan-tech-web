@@ -1,7 +1,7 @@
 /**
  * LELAN TECHNOLOGY · Guardian Demo Mock Adapter
  *
- * Phase 1E — DEMO ONLY, NOT A REAL API.
+ * Phase 1E.3-A — Engineering Hardening
  *
  * Current (Demo):
  *   createGuardianDemoProfile(input) → GuardianProfile (local mock)
@@ -13,10 +13,21 @@
  *
  * Profile UI remains unchanged — it only consumes GuardianProfile.
  *
- * Deterministic logic (age→stage, task state) is done HERE.
+ * Deterministic logic (age→stage, task state, archiveRef) is done HERE.
  * Future AI/Dify provides only: summary, attentionItems, dimensionNotes.
  *
  * NEVER: call Dify, call api.lelan.tech, use real API keys, store real data.
+ *
+ * Phase 1E.3-A changes (from Codex review):
+ * - Validation strengthened: completedTaskIds and selectedDimensionTags
+ *   must reference known stable IDs (rejects unknown values with INVALID_INPUT).
+ * - archiveRef is now fully deterministic, NOT derived from current year:
+ *   LELAN-DEMO-GEN-{AGE}-{GENDER}-{STAGE-SHORT}
+ *   e.g. LELAN-DEMO-GEN-36-F-DUI
+ *   This guarantees same input → same archiveRef.
+ * - Missing-dimension semantics: elements that the user did not select
+ *   any tag for default to "planned" / "待完善" rather than "normal" / "已记录"
+ *   so the surface reflects what was actually submitted.
  */
 
 import {
@@ -27,8 +38,6 @@ import {
   type GuardianProfileElement,
   type GuardianProfileTimelineEvent,
   type GuardianDemoError,
-  type GuardianStageId,
-  type GuardianScenarioId,
   ageToStageId,
   guardianStages,
   guardianMethodSteps,
@@ -36,6 +45,11 @@ import {
   GUARDIAN_DIMENSIONS,
   tagToDimension,
   isValidAge,
+  VALID_STAGE_ID_SET,
+  VALID_SCENARIO_ID_SET,
+  VALID_DIMENSION_TAG_ID_SET,
+  ALL_VALID_TASK_ID_SET,
+  findStageById,
 } from "@/content/guardian";
 
 /* ========================================================================
@@ -46,7 +60,7 @@ function invalidInput(message: string): GuardianDemoError {
   return { code: "INVALID_INPUT", message };
 }
 
-function stageMismatch(expected: GuardianStageId): GuardianDemoError {
+function stageMismatch(expected: ReturnType<typeof ageToStageId>): GuardianDemoError {
   return {
     code: "STAGE_MISMATCH",
     message: "输入的人生阶段与年龄不符，请确认后重新提交。",
@@ -72,25 +86,6 @@ function generationFailed(): GuardianDemoError {
    Validation
    ======================================================================== */
 
-const VALID_STAGE_IDS: GuardianStageId[] = [
-  "zhen-infant",
-  "xun-child",
-  "li-adolescent",
-  "dui-young-adult",
-  "qian-adult",
-  "kan-middle-age",
-  "gen-later-life",
-  "kun-elder",
-];
-
-const VALID_SCENARIO_IDS: GuardianScenarioId[] = [
-  "general",
-  "study-career",
-  "startup",
-  "health",
-  "wealth",
-];
-
 function validateInput(
   input: unknown
 ): GuardianDemoInput | GuardianDemoError {
@@ -110,10 +105,18 @@ function validateInput(
   }
   const identity = inp.identity as Record<string, unknown>;
   if (!isValidAge(identity.age as number)) {
-    return invalidInput("请输入 0–120 之间的年龄。");
+    return invalidInput("请输入 0–120 之间的整数年龄。");
   }
   if (identity.gender !== "male" && identity.gender !== "female") {
     return invalidInput("请选择性别。");
+  }
+  // city optional, but if present must be a string
+  if (
+    identity.city !== undefined &&
+    identity.city !== null &&
+    typeof identity.city !== "string"
+  ) {
+    return invalidInput("城市字段类型不正确。");
   }
 
   // Stage
@@ -121,7 +124,7 @@ function validateInput(
     return invalidInput("缺少阶段信息。");
   }
   const stage = inp.stage as Record<string, unknown>;
-  if (!VALID_STAGE_IDS.includes(stage.id as GuardianStageId)) {
+  if (typeof stage.id !== "string" || !VALID_STAGE_ID_SET.has(stage.id as never)) {
     return invalidInput("人生阶段不存在。");
   }
 
@@ -136,18 +139,65 @@ function validateInput(
     return invalidInput("缺少场景信息。");
   }
   const scenario = inp.scenario as Record<string, unknown>;
-  if (!VALID_SCENARIO_IDS.includes(scenario.id as GuardianScenarioId)) {
-    return unsupportedScenario(scenario.id as string);
+  if (
+    typeof scenario.id !== "string" ||
+    !VALID_SCENARIO_ID_SET.has(scenario.id as never)
+  ) {
+    return unsupportedScenario(String(scenario.id));
   }
 
+  // completedTaskIds — must be an array of strings, all referencing known task ids
   if (!Array.isArray(inp.completedTaskIds)) {
     return invalidInput("缺少已完成事项信息。");
   }
+  for (const id of inp.completedTaskIds) {
+    if (typeof id !== "string" || !ALL_VALID_TASK_ID_SET.has(id)) {
+      return invalidInput(`已完成事项中包含未知事项：${String(id)}`);
+    }
+  }
+  // Also ensure every completed task belongs to the user's selected scenario
+  const scenarioTasks = new Set(
+    GUARDIAN_SCENARIOS.find((s) => s.id === scenario.id)?.tasks.map((t) => t.id) ?? []
+  );
+  for (const id of inp.completedTaskIds) {
+    if (!scenarioTasks.has(id as string)) {
+      return invalidInput(`已完成事项不属于当前场景：${String(id)}`);
+    }
+  }
+
+  // selectedDimensionTags — must be an array, all referencing known tag ids
   if (!Array.isArray(inp.selectedDimensionTags)) {
     return invalidInput("缺少生活维度选择信息。");
   }
+  for (const tag of inp.selectedDimensionTags) {
+    if (
+      typeof tag !== "string" ||
+      !VALID_DIMENSION_TAG_ID_SET.has(tag as never)
+    ) {
+      return invalidInput(`生活维度标签不合法：${String(tag)}`);
+    }
+  }
 
   return input as GuardianDemoInput;
+}
+
+/* ========================================================================
+   Deterministic archiveRef (Phase 1E.3-A)
+   ======================================================================== */
+
+/**
+ * Build a deterministic archive reference for the demo.
+ *
+ * Format: LELAN-DEMO-GEN-{AGE}-{GENDER}-{STAGE_SHORT}
+ * Example: LELAN-DEMO-GEN-36-F-DUI
+ *
+ * Same input → same output across runs / years / sessions.
+ * NOT derived from current time.
+ */
+export function buildArchiveRef(input: GuardianDemoInput): string {
+  const genderChar = input.identity.gender === "male" ? "M" : "F";
+  const stageShort = findStageById(input.stage.id)?.shortCode ?? "GEN";
+  return `LELAN-DEMO-GEN-${input.identity.age}-${genderChar}-${stageShort}`;
 }
 
 /* ========================================================================
@@ -225,7 +275,9 @@ function generateMockAnalysis(
     health: selectedTags.has("annual-checkup-pending") || selectedTags.has("sleep-attention")
       ? "本次 Demo 关注了健康维度，建议保持规律记录。"
       : "本次 Demo 暂未纳入健康维度。",
-    travel: "本次 Demo 暂未纳入出行维度。",
+    travel: selectedTags.has("frequent-travel") || selectedTags.has("trip-planning")
+      ? "本次 Demo 关注了出行维度。"
+      : "本次 Demo 暂未纳入出行维度。",
     food: selectedTags.has("irregular-meals") || selectedTags.has("nutrition-record")
       ? "本次 Demo 关注了饮食维度，饮食习惯可作为长期生活档案参考。"
       : "本次 Demo 暂未纳入饮食维度。",
@@ -248,7 +300,7 @@ function generateMockAnalysis(
    ======================================================================== */
 
 function buildProfile(input: GuardianDemoInput): GuardianProfile {
-  const { identity, stage, scenario, completedTaskIds } = input;
+  const { identity, stage, scenario, completedTaskIds, selectedDimensionTags } = input;
 
   // Stage metadata
   const stageMeta = guardianStages.find((s) => s.id === stage.id)!;
@@ -283,33 +335,50 @@ function buildProfile(input: GuardianDemoInput): GuardianProfile {
     }
   }
 
+  // Dimensions the user explicitly engaged with via tag selection.
+  // If a dimension has no selected tags, surface defaults to "planned / 待完善"
+  // rather than "normal / 已记录" — the latter wrongly implies we already
+  // have data on that dimension.
+  const touchedDimensions = new Set(
+    selectedDimensionTags.map((t) => tagToDimension(t))
+  );
+
   const elements: GuardianProfileElement[] = GUARDIAN_DIMENSIONS.map((dim) => {
     const topItem = topItemByDim.get(dim.id);
     const note = analysis.dimensionNotes[dim.id] ?? "本次 Demo 暂未纳入该维度。";
-    const noticeText = topItem
-      ? topItem.title + (topItem.explanation ? " " + topItem.explanation : "")
-      : note;
+
+    let status: GuardianProfileElement["status"];
+    let notice: string;
+
+    if (topItem) {
+      status = topItem.status;
+      notice = topItem.title + (topItem.explanation ? " " + topItem.explanation : "");
+    } else if (!touchedDimensions.has(dim.id)) {
+      status = "planned";
+      notice = `本次 Demo 未选择「${dim.name}」相关维度，可按需要补充。`;
+    } else {
+      status = "planned";
+      notice = note;
+    }
 
     return {
       id: dim.id,
       element: dim.element,
       dimension: dim.name,
       description: dim.description,
-      status: topItem?.status ?? "normal",
-      notice: noticeText,
+      status,
+      notice,
       assetId: dim.assetId,
     };
   });
 
-  // Timeline
-  const currentYear = new Date().getFullYear().toString();
+  // Timeline — demo year is fixed at 2026 to avoid coupling to current time.
+  const DEMO_YEAR = "2026";
   const timeline: GuardianProfileTimelineEvent[] = [
-    { date: currentYear, label: "本次 Demo 建档记录", status: "recorded" },
+    { date: DEMO_YEAR, label: "本次 Demo 建档记录", status: "recorded" },
   ];
 
-  // Archive ref — deterministic
-  const genderChar = identity.gender === "male" ? "M" : "F";
-  const archiveRef = `LELAN-DEMO-GEN-${identity.age}-${genderChar}-${currentYear}`;
+  const archiveRef = buildArchiveRef(input);
 
   return {
     id: archiveRef,
@@ -377,22 +446,76 @@ export async function createGuardianDemoProfile(
 
 export const GENERATED_PROFILE_KEY = "lelan_generated_guardian_profile";
 
+/**
+ * Check whether a parsed value has the minimum shape we expect
+ * for a GuardianProfile. Used by getGeneratedProfile to defend against
+ * corrupt cache without crashing the page.
+ */
+function isValidGuardianProfileShape(parsed: unknown): parsed is GuardianProfile {
+  if (!parsed || typeof parsed !== "object") return false;
+  const p = parsed as Record<string, unknown>;
+
+  if (typeof p.id !== "string" || typeof p.archiveRef !== "string") return false;
+  if (typeof p.demo !== "boolean") return false;
+
+  const identity = p.identity as Record<string, unknown> | undefined;
+  if (!identity || typeof identity.age !== "number") return false;
+  if (typeof identity.gender !== "string") return false;
+  if (typeof identity.genderLabel !== "string") return false;
+
+  const stage = p.stage as Record<string, unknown> | undefined;
+  if (!stage || typeof stage.id !== "string") return false;
+  if (typeof stage.trigram !== "string" || typeof stage.name !== "string") return false;
+  if (typeof stage.ageRange !== "string") return false;
+
+  if (!Array.isArray(p.tasks)) return false;
+  if (!Array.isArray(p.elements)) return false;
+  if (!Array.isArray(p.timeline)) return false;
+
+  const progress = p.progress as Record<string, unknown> | undefined;
+  if (!progress || typeof progress.completed !== "number") return false;
+  if (typeof progress.total !== "number") return false;
+
+  return true;
+}
+
+/**
+ * Read the generated profile from sessionStorage.
+ *
+ * Phase 1E.3-A: defends against corrupt cache (JSON malformed,
+ * shape invalid, missing required fields). On any failure,
+ * clears the corrupt entry and returns null — caller can show
+ * the safe empty state.
+ */
 export function getGeneratedProfile(): GuardianProfile | null {
   if (typeof window === "undefined") return null;
+  let raw: string | null = null;
   try {
-    const raw = sessionStorage.getItem(GENERATED_PROFILE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as unknown;
-    if (
-      parsed &&
-      typeof parsed === "object" &&
-      "id" in parsed &&
-      "archiveRef" in parsed
-    ) {
-      return parsed as GuardianProfile;
-    }
-    return null;
+    raw = sessionStorage.getItem(GENERATED_PROFILE_KEY);
   } catch {
+    return null;
+  }
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!isValidGuardianProfileShape(parsed)) {
+      // shape invalid — discard corrupt cache
+      try {
+        sessionStorage.removeItem(GENERATED_PROFILE_KEY);
+      } catch {
+        /* ignore */
+      }
+      return null;
+    }
+    return parsed;
+  } catch {
+    // JSON malformed — discard corrupt cache
+    try {
+      sessionStorage.removeItem(GENERATED_PROFILE_KEY);
+    } catch {
+      /* ignore */
+    }
     return null;
   }
 }

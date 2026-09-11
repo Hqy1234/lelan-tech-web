@@ -69,6 +69,8 @@ export interface GuardianStage {
   name: string;
   /** Age range string (display only — not medical/actuarial data) */
   ageRange: string;
+  /** Short stage code for deterministic archiveRef (e.g. DUI / LI / ZHEN) */
+  shortCode: string;
   /** Visual asset id from assets.ts */
   stageAssetId: VisualAssetId;
   /** Example tasks for this stage (display purpose only) */
@@ -89,6 +91,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     trigram: "震",
     name: "婴儿期",
     ageRange: "0–9",
+    shortCode: "ZHEN",
     stageAssetId: "guardianStage01",
     sceneLabel: "婴儿期 · 人生起点",
     demoDoneCount: 0,
@@ -106,6 +109,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     trigram: "巽",
     name: "少儿期",
     ageRange: "10–19",
+    shortCode: "XUN",
     stageAssetId: "guardianStage02",
     sceneLabel: "少儿期 · 成长奠基",
     demoDoneCount: 0,
@@ -123,6 +127,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     trigram: "离",
     name: "青少年期",
     ageRange: "20–29",
+    shortCode: "LI",
     stageAssetId: "guardianStage03",
     sceneLabel: "青少年期 · 求学探索",
     demoDoneCount: 0,
@@ -140,6 +145,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     trigram: "兑",
     name: "青年期",
     ageRange: "30–39",
+    shortCode: "DUI",
     stageAssetId: "guardianStage04",
     sceneLabel: "青年期 · 创业场景示例",
     demoDoneCount: 4,
@@ -160,6 +166,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     trigram: "乾",
     name: "壮年期",
     ageRange: "40–49",
+    shortCode: "QIAN",
     stageAssetId: "guardianStage05",
     sceneLabel: "壮年期 · 事业稳健",
     demoDoneCount: 0,
@@ -177,6 +184,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     trigram: "坎",
     name: "中年期",
     ageRange: "50–59",
+    shortCode: "KAN",
     stageAssetId: "guardianStage06",
     sceneLabel: "中年期 · 承上启下",
     demoDoneCount: 0,
@@ -194,6 +202,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     trigram: "艮",
     name: "中老年期",
     ageRange: "60–69",
+    shortCode: "GEN",
     stageAssetId: "guardianStage07",
     sceneLabel: "中老年期 · 颐养过渡",
     demoDoneCount: 0,
@@ -211,6 +220,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     trigram: "坤",
     name: "老年期",
     ageRange: "70+",
+    shortCode: "KUN",
     stageAssetId: "guardianStage08",
     sceneLabel: "老年期 · 安享晚年",
     demoDoneCount: 0,
@@ -766,6 +776,36 @@ export function isValidAge(age: number): boolean {
   return Number.isInteger(age) && age >= 0 && age <= 120;
 }
 
+/**
+ * Set of all valid scenario ids (V1).
+ * (Stage id set, dimension tag set, and task id set are defined at the
+ *  bottom of the file after DIMENSION_TAGS / GUARDIAN_SCENARIOS.)
+ */
+export const VALID_SCENARIO_ID_SET: ReadonlySet<GuardianScenarioId> = new Set<GuardianScenarioId>([
+  "general",
+  "study-career",
+  "startup",
+  "health",
+  "wealth",
+]);
+
+/** Parse a user-entered age string into a validated integer.
+ *
+ * Rules (D-PHASE1E.3-A):
+ * - Trim and treat empty string as invalid
+ * - Use Number(value) (NOT parseInt) so "36.8" cannot silently become 36
+ * - Must be a finite integer in [0, 120]
+ * - Returns null for any invalid input
+ */
+export function parseAndValidateAge(raw: string): number | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (trimmed === "") return null;
+  const n = Number(trimmed);
+  if (!Number.isFinite(n)) return null;
+  return isValidAge(n) ? n : null;
+}
+
 /* ========================================================================
    Dimension tag → dimension mapping
    ======================================================================== */
@@ -966,3 +1006,38 @@ export const GUARDIAN_DIMENSIONS: ReadonlyArray<GuardianDimensionMeta> = [
     assetId: "guardianHarmony",
   },
 ] as const;
+
+/* ========================================================================
+   Validation helper Sets (declared after DIMENSION_TAGS / GUARDIAN_SCENARIOS)
+   Phase 1E.3-A — used by mock-adapter for input validation.
+   ======================================================================== */
+
+/** Set of all valid stage ids. */
+export const VALID_STAGE_ID_SET: ReadonlySet<GuardianStageId> = new Set<GuardianStageId>([
+  "zhen-infant",
+  "xun-child",
+  "li-adolescent",
+  "dui-young-adult",
+  "qian-adult",
+  "kan-middle-age",
+  "gen-later-life",
+  "kun-elder",
+]);
+
+/** Set of all valid dimension tag ids. */
+export const VALID_DIMENSION_TAG_ID_SET: ReadonlySet<GuardianDimensionTagId> =
+  new Set<GuardianDimensionTagId>(
+    DIMENSION_TAGS.map((t) => t.id)
+  );
+
+/** All task ids across all V1 scenarios. */
+export const ALL_VALID_TASK_ID_SET: ReadonlySet<string> = new Set<string>(
+  GUARDIAN_SCENARIOS.flatMap((s) => s.tasks.map((t) => t.id))
+);
+
+/** Look up a stage by id. Returns undefined if not found. */
+export function findStageById(
+  id: GuardianStageId | string
+): GuardianStage | undefined {
+  return guardianStages.find((s) => s.id === id);
+}

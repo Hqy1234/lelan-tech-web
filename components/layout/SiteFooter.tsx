@@ -1,10 +1,15 @@
 /**
  * LELAN TECHNOLOGY · Site Footer
  *
- * Phase 1C alignment with header:
- * - Nav items match header: 首页 / 产品 / 成果小镇 / 乐懒守护 / 关于
- * - Beta availability shown consistently (Beta 即将开放, not "申请 Beta")
- * - Consistent honest treatment: both header and footer show "Beta 即将开放"
+ * Phase 1E.3-A — Engineering Hardening + grouped links.
+ *
+ * Changes from Phase 1C:
+ * - All cross-page anchors use "/#section" absolute paths so links
+ *   work from any subpage (matches Header).
+ * - Grouped by SYSTEMS / SOFTWARE / COMPANY / LEGAL.
+ * - Footer Beta entry replaced with explicit software status so it
+ *   does not contradict AI's "体验版可用" — LeLan AI is in SOFTWARE
+ *   group, with status text matching the AI section.
  *
  * Server component. Static.
  */
@@ -13,35 +18,34 @@ import { brandName, siteName } from "@/content/site";
 import { Container } from "./Container";
 
 const FOOTER_SECTIONS: ReadonlyArray<{
-  title: string;
-  links: ReadonlyArray<{ label: string; href: string; pending?: boolean }>;
+  group: string;
+  links: ReadonlyArray<{ label: string; href: string }>;
 }> = [
   {
-    title: "产品",
+    group: "SYSTEMS",
     links: [
-      { label: "成果小镇", href: "#town" },
-      { label: "乐懒守护", href: "#guardian" },
-      { label: "乐懒 AI · 论文智能助手", href: "#ai" },
+      { label: "乐懒守护", href: "/#guardian" },
+      { label: "成果小镇", href: "/#town" },
     ],
   },
   {
-    title: "了解乐懒",
+    group: "SOFTWARE",
     links: [
-      { label: "首页", href: "#hero" },
-      { label: "关于", href: "#about" },
+      { label: "乐懒 AI · 论文智能助手", href: "/#ai" },
     ],
   },
   {
-    title: "Beta",
+    group: "COMPANY",
     links: [
-      { label: "Beta 即将开放", href: "#ai", pending: true },
+      { label: "首页", href: "/#hero" },
+      { label: "关于", href: "/#about" },
     ],
   },
   {
-    title: "法务",
+    group: "LEGAL",
     links: [
-      { label: "隐私政策", href: "#privacy" },
-      { label: "使用条款", href: "#terms" },
+      { label: "隐私政策", href: "/#privacy" },
+      { label: "使用条款", href: "/#terms" },
     ],
   },
 ];
@@ -50,13 +54,13 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
   return (
     <footer
-      className="mt-12 border-t border-rule bg-paper-pure text-ink sm:mt-16"
+      className="mt-16 border-t border-rule bg-paper-pure text-ink"
       role="contentinfo"
     >
       <Container density="default">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
           {/* Identity column */}
-          <div className="md:col-span-1">
+          <div className="col-span-2 sm:col-span-1">
             <p className="font-mono text-[0.65rem] uppercase tracking-[0.25em] text-muted">
               {siteName}
             </p>
@@ -67,28 +71,19 @@ export function SiteFooter() {
           </div>
 
           {FOOTER_SECTIONS.map((section) => (
-            <div key={section.title}>
+            <div key={section.group}>
               <p className="font-mono text-[0.65rem] uppercase tracking-[0.25em] text-muted">
-                {section.title}
+                {section.group}
               </p>
               <ul className="mt-2 space-y-1.5 text-sm">
                 {section.links.map((link) => (
                   <li key={link.label}>
-                    {link.pending ? (
-                      <span
-                        className="inline-flex items-baseline gap-2 text-muted"
-                        aria-disabled="true"
-                      >
-                        <span>{link.label}</span>
-                      </span>
-                    ) : (
-                      <Link
-                        href={link.href}
-                        className="text-ink/80 transition-colors hover:text-ink"
-                      >
-                        {link.label}
-                      </Link>
-                    )}
+                    <Link
+                      href={link.href}
+                      className="text-ink/80 transition-colors hover:text-ink"
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -96,14 +91,12 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <hr className="my-10 border-rule" />
-
-        <div className="flex flex-col items-start justify-between gap-2 text-xs text-muted sm:flex-row sm:items-center">
-          <p>
+        <div className="mt-10 flex flex-col gap-3 border-t border-rule pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted">
             © {year} {brandName}. 保留所有权利。
           </p>
-          <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em]">
-            当前为公开预览阶段 · noindex
+          <p className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-muted">
+            公开预览 · noindex
           </p>
         </div>
       </Container>

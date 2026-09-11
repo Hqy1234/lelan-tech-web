@@ -36,7 +36,19 @@ export interface HomeHeroSection extends HomeSectionBase {
   pillars: ReadonlyArray<{
     name: string;
     description: string;
+    /** Explicit anchor href — keeps pillar lookup decoupled from display label. */
+    href: string;
   }>;
+  /**
+   * Software product line (rendered separately from system pillars).
+   * The two systems + one software relationship is structural.
+   */
+  software: {
+    name: string;
+    description: string;
+    href: string;
+    status: string;
+  };
 }
 
 export interface HomeGuardianSection extends HomeSectionBase {
@@ -109,16 +121,25 @@ export const homeSections: ReadonlyArray<HomeSection> = [
       {
         name: "乐懒守护",
         description: "人生档案 · 人生坐标 · 八阶段 · 五行生活维度",
+        href: "#guardian",
       },
       {
         name: "成果小镇",
         description: "科研服务空间入口 · 八条服务链路",
+        href: "#town",
       },
       {
         name: "乐懒 AI",
         description: "论文智能助手 · 已上线体验版",
+        href: "#ai",
       },
     ],
+    software: {
+      name: "乐懒 AI · 论文智能助手",
+      description: "独立软件产品 · 已上线体验版 · 三档降重 / AIGC 分析 / 自然化改写",
+      href: "#ai",
+      status: "体验版可用",
+    },
   },
 
   /* ── 01 乐懒守护 ──────────────────────────────────────────────────────── */
@@ -223,23 +244,25 @@ export const homeSections: ReadonlyArray<HomeSection> = [
     number: "05",
     kind: "technology",
     title: "工程与能力",
-    intro: "克制的工程原则，透明的能力组合。",
+    intro: "克制的工程原则，诚实的能力描述。",
     pillars: [
       {
-        id: "data-trace",
+        id: "trace",
         name: "可追溯",
-        oneLine: "所有生成内容可回溯到来源与编辑过程，避免黑盒结论。",
+        oneLine:
+          "工程目标：所有生成内容可被回溯到来源、模型与编辑过程。",
       },
       {
         id: "human-loop",
         name: "人在回路",
-        oneLine: "关键判断保留人类复核环节，AI 不替代最终决策。",
+        oneLine:
+          "设计原则：关键判断保留人类复核环节，AI 不替代最终决策。",
       },
       {
-        id: "privacy-min",
+        id: "data-min",
         name: "最小数据",
         oneLine:
-          "面向最小数据原则设计：仅在必要环节收集与存储必要的数据；用户控制权作为产品目标持续推进。",
+          "设计原则：面向最小数据原则设计；用户控制权作为产品目标持续推进。",
       },
     ],
   },

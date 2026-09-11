@@ -1,23 +1,34 @@
 /**
  * LELAN TECHNOLOGY · Site Header
  *
- * Phase 1D-G3 — Guardian-first navigation:
- * - Nav order: 首页 / 乐懒守护 / 成果小镇 / 乐懒 AI / 关于
- * - "产品" anchor removed (HomeArchitecture section removed)
- * - 乐懒 AI → #ai
- * - Demo login via DemoAccountNav client island.
+ * Phase 1E.3-A — Engineering Hardening + Visual refinement.
+ *
+ * Anchor nav: use absolute "/#section" paths so that from /profile,
+ * /login, /guardian/demo the user lands on the homepage section
+ * rather than the wrong sub-page path (D-PHASE1E.3-A / Codex P1).
+ *
+ * "Demo / 档案" panel distinguishes three states:
+ *   1. Not logged in              → "登录" link
+ *   2. Demo-account logged in     → "我的档案" + "退出"
+ *   3. Generated profile present  → "本次档案" + "查看" + "清除"
+ *   4. Both present               → priority 1 (demo account wins for nav,
+ *                                   but generated profile also exposes a
+ *                                   clear /profile access entry)
+ *
+ * Server-component shell; DemoAccountNav is the only client island.
  */
+
 import Link from "next/link";
 import { brandName, siteName } from "@/content/site";
 import { Container } from "./Container";
 import { DemoAccountNav } from "./DemoAccountNav";
 
 const NAV_ITEMS = [
-  { href: "#hero", label: "首页" },
-  { href: "#guardian", label: "乐懒守护" },
-  { href: "#town", label: "成果小镇" },
-  { href: "#ai", label: "乐懒 AI" },
-  { href: "#about", label: "关于" },
+  { href: "/#hero", label: "首页" },
+  { href: "/#guardian", label: "乐懒守护" },
+  { href: "/#town", label: "成果小镇" },
+  { href: "/#ai", label: "乐懒 AI" },
+  { href: "/#about", label: "关于" },
 ] as const;
 
 export function SiteHeader() {
@@ -30,7 +41,7 @@ export function SiteHeader() {
         <div className="flex items-center justify-between gap-6">
           {/* Identity */}
           <Link
-            href="#hero"
+            href="/#hero"
             className="group inline-flex items-baseline gap-2 font-serif text-ink no-underline"
             aria-label={`${siteName} ${brandName} 首页`}
           >
@@ -59,7 +70,7 @@ export function SiteHeader() {
             ))}
           </nav>
 
-          {/* Demo account nav — client island */}
+          {/* Demo account / profile nav — client island */}
           <DemoAccountNav />
         </div>
 

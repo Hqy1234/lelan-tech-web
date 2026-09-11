@@ -1,10 +1,16 @@
 /**
  * LELAN TECHNOLOGY · Guardian Lifecycle Rail
  *
- * Phase 2 — Interactive 8-stage lifecycle coordinate (八卦·八阶段).
+ * Phase 1E.3-A — Editorial stage rail (no thumbnails).
  *
- * Desktop: horizontal rail across the full width.
+ * Desktop: horizontal rail across the full width, position nodes + coordinate lines.
  * Mobile: horizontal scroll with snap points.
+ *
+ * The 8 stage thumbnails (40–56px) that previously sat on each node
+ * have been removed from the main rail. They were visual noise; the
+ * rail is now defined by structural marks: trigram · name · age range.
+ * Stage imagery is preserved in assets.ts for /profile detail views
+ * and remains available if needed later.
  *
  * Default active: 04 兑 · 青年期.
  *
@@ -13,10 +19,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Image from "next/image";
-import { guardianStages, DEFAULT_STAGE_ID } from "@/content/guardian";
-import { visualAssets } from "@/content/assets";
-import type { GuardianStage } from "@/content/guardian";
+import {
+  guardianStages,
+  DEFAULT_STAGE_ID,
+  type GuardianStage,
+} from "@/content/guardian";
 
 interface GuardianLifecycleProps {
   /** Called when the user selects a stage — passes stage id */
@@ -25,12 +32,9 @@ interface GuardianLifecycleProps {
   selectedId?: string;
 }
 
-function resolveStageAsset(assetId: string) {
-  return (visualAssets as Record<string, { src: string; alt: string; width: number; height: number }>)[assetId] ?? null;
-}
-
 /**
  * Single stage node in the lifecycle rail.
+ * Phase 1E.3-A: structural marks only, no thumbnail.
  */
 function StageNode({
   stage,
@@ -41,8 +45,6 @@ function StageNode({
   isSelected: boolean;
   onSelect: (id: string) => void;
 }) {
-  const asset = resolveStageAsset(stage.stageAssetId);
-
   return (
     <button
       type="button"
@@ -50,46 +52,30 @@ function StageNode({
       aria-pressed={isSelected}
       aria-label={`${stage.trigram} · ${stage.name}（${stage.ageRange}）`}
       className={[
-        "group relative flex flex-col items-center gap-1.5 rounded-sm p-2 transition-all",
-        "focus-visible:outline focus-visible:outline-1 focus-visible:outline-cinnabar focus-visible:outline-offset-1",
-        isSelected
-          ? "bg-paper-pure ring-1 ring-green/40"
-          : "hover:bg-paper/60",
+        "group relative flex shrink-0 flex-col items-center gap-1 rounded-sm px-2 py-2 transition-colors",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-cinnabar focus-visible:outline-offset-2",
+        isSelected ? "bg-paper-pure" : "hover:bg-paper-pure/60",
       ].join(" ")}
     >
-      {/* Trigram badge */}
+      {/* Order number — micro */}
+      <span className="font-mono text-[0.55rem] uppercase tracking-wider text-muted/60">
+        {stage.order}
+      </span>
+
+      {/* Trigram node — primary visual mark */}
       <span
         className={[
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border font-serif text-sm transition-all",
+          "flex h-9 w-9 items-center justify-center rounded-full border font-serif text-sm transition-colors",
           isSelected
-            ? "border-green bg-green text-paper"
-            : "border-rule bg-paper text-muted group-hover:border-green/40 group-hover:text-green",
+            ? "border-ink bg-ink text-paper"
+            : "border-rule bg-paper text-muted group-hover:border-green/50 group-hover:text-green",
         ].join(" ")}
         aria-hidden
       >
         {stage.trigram}
       </span>
 
-      {/* Stage image thumbnail */}
-      {asset && (
-        <div
-          className={[
-            "relative overflow-hidden rounded-sm transition-all",
-            isSelected ? "h-14 w-14 ring-1 ring-green/30" : "h-10 w-10 opacity-70 group-hover:opacity-90",
-          ].join(" ")}
-          aria-hidden
-        >
-          <Image
-            src={asset.src}
-            alt={asset.alt}
-            fill
-            sizes="56px"
-            className="object-cover"
-          />
-        </div>
-      )}
-
-      {/* Stage label */}
+      {/* Stage name */}
       <span
         className={[
           "whitespace-nowrap font-mono text-[0.6rem] uppercase tracking-wider transition-colors",
@@ -108,14 +94,13 @@ function StageNode({
 }
 
 /**
- * Horizontal connector lines between stages.
- * Rendered as a thin rule spanning between nodes.
+ * Connector line between stage nodes.
  */
 function RailConnector() {
   return (
     <span
       aria-hidden
-      className="inline-block h-px w-4 shrink-0 bg-rule sm:w-6"
+      className="lelan-line-coordinate inline-block h-px w-6 shrink-0 bg-rule-strong sm:w-8"
     />
   );
 }
@@ -139,12 +124,12 @@ export function GuardianLifecycle({ onStageChange, selectedId: controlledId }: G
       {/* Section label */}
       <div className="flex items-center gap-3">
         <span className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-          人生坐标 · 纵轴
+          人生坐标 · 纵轴 · 八阶段
         </span>
         <span className="h-px flex-1 bg-rule" aria-hidden />
       </div>
 
-      {/* Lifecycle rail — horizontal scroll */}
+      {/* Lifecycle rail — horizontal scroll on mobile, centered on desktop */}
       <div
         role="list"
         aria-label="八阶段生命周期坐标"
@@ -169,9 +154,17 @@ export function GuardianLifecycle({ onStageChange, selectedId: controlledId }: G
         ))}
       </div>
 
-      {/* Active stage detail */}
-      <div className="flex items-center gap-4 rounded-sm border border-rule bg-paper p-3 sm:p-4">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-green bg-green font-serif text-sm text-paper">
+      {/* Active stage detail — current coordinate caption */}
+      <div
+        className={[
+          "flex items-center gap-4 rounded-sm border p-3 sm:p-4",
+          "border-green/30 bg-green/5",
+        ].join(" ")}
+      >
+        <span
+          aria-hidden
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink bg-ink font-serif text-sm text-paper"
+        >
           {activeStage.trigram}
         </span>
         <div className="min-w-0 flex-1">
@@ -182,21 +175,13 @@ export function GuardianLifecycle({ onStageChange, selectedId: controlledId }: G
             {activeStage.ageRange}
           </p>
         </div>
-        <div className="shrink-0 text-right">
-          <p className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
-            场景
+        <div className="hidden shrink-0 text-right sm:block">
+          <p className="lelan-archive-id">场景</p>
+          <p className="mt-0.5 max-w-[12rem] text-xs text-muted">
+            {activeStage.sceneLabel}
           </p>
-          <p className="mt-0.5 text-xs text-muted">{activeStage.sceneLabel}</p>
         </div>
       </div>
-
-      {/* Hidden — passes active stage id for parent to read */}
-      <input
-        type="hidden"
-        name="guardian-stage"
-        value={activeStage.id}
-        aria-label="当前选中阶段"
-      />
     </div>
   );
 }

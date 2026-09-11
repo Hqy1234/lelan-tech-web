@@ -204,3 +204,89 @@ Guardian 首页已升级为**乐懒守护符·人生坐标系统**：
 | Metadata / OG | `lib/seo.ts` |
 | 路由清单 | `content/site.ts` → `publicRoutes` |
 | 静态导出 | `next.config.ts` |
+
+---
+
+## 8. Phase 1E.3-A — 视觉系统升级（追加于 2026-09-11）
+
+### 8.1 全站 Graphic System（6 元素）
+
+Phase 1E.3-A 在 `app/globals.css` 建立 6 元素全站 Visual Grammar：
+
+| 编号 | 元素 | 用途 | 工程实现 |
+|---|---|---|---|
+| 1 | Coordinate Line（坐标线） | 视觉结构、Y轴/X轴暗示 | `.lelan-line-coordinate` |
+| 2 | Position Node（位置节点） | lifecycle rail、task chain 节点 | `.lelan-node` / `.lelan-node-current` / `.lelan-node-done` |
+| 3 | Archive ID（档案编号） | 固定 micro 格式 | `.lelan-archive-id` |
+| 4 | Guardian Square Seal（方形守护印） | 档案身份标记 | `components/guardian/GuardianSeal.tsx` |
+| 5 | Archive Corner（档案边角） | 档案封面四角落 | `.lelan-corner` |
+| 6 | Annotation Leader（边注引线） | 微型注释 | `.lelan-annotation` |
+
+### 8.2 Spatial Depth System
+
+`app/globals.css` 中的 CSS 变量和 utility class：
+
+| Layer | 用途 | CSS token | class |
+|---|---|---|---|
+| Depth 0 | 背景 | — | — |
+| Depth 1 | Coordinate / Ground Plane | `--depth-1-translate` | `.lelan-depth-1` |
+| Depth 2 | Main Surface（archive sheet） | `--depth-2-translate` | `.lelan-depth-2` |
+| Depth 3 | Primary Object（GuardianSeal） | `--depth-3-translate` | `.lelan-depth-3` |
+| Depth 4 | Annotation | `--depth-4-translate` | `.lelan-depth-4` |
+
+- Mobile（≤640px）：所有 perspective/translateZ 禁用（`.lelan-flat-mobile`）
+- Desktop（≥641px）：CSS `perspective` + `translateZ()`
+- 仅用于 archive sheet / GuardianSeal / coordinate canvas；普通按钮 / 文字 / 列表不使用 depth
+- Contact shadow：`--depth-1-shadow` 至 `--depth-4-shadow`（`.lelan-contact-shadow-1` 至 `.lelan-contact-shadow-4`）
+
+### 8.3 Background System
+
+| Layer | 用途 | CSS class |
+|---|---|---|
+| L0 | Editorial base（Hero / Technology / About） | `.lelan-bg-l0` |
+| L1 | Paper / Archive（Demo / Profile） | `.lelan-bg-l1` |
+| L1-soft | Archive soft variant | `.lelan-bg-l1-soft` |
+| L2 | Coordinate canvas | `.lelan-bg-coordinate`（graph-paper 背景） |
+
+### 8.4 GuardianSeal
+
+`components/guardian/GuardianSeal.tsx`：
+
+- 不是传统红印章 / 玄学护符 / 八卦罗盘
+- 现代档案身份标记：open square frame + stage marks + coordinate point + minimal lines + LELAN archive marker
+- 三种状态：outline / partial / complete
+- 主色：墨绿；朱砂极局部（current dot）
+- 禁止：gold glow / red glow / mystic light / 完整八卦盘
+
+### 8.5 Five Elements Archive Band
+
+- Desktop（≥640）：单行 5 列，细竖线分隔
+- Mobile（<640）：5 行堆叠（不再横向挤压）
+- 每项：element badge + dimension name + status label + notice text
+- 禁止：五行球 / 五宝石 / 五神兽 / 五行转盘 / 相生相克箭头
+
+### 8.6 Guardian Homepage Coordinate Plane
+
+- Layer 0：淡 Guardian background field（可选）
+- Layer 1：coordinate plane（graph-paper 背景）
+- Layer 2：archive sheet（轻 translateZ，1–2° rotateX/Y，桌面）
+- Layer 3：GuardianSeal（压 archive 边缘）
+- Layer 4：small annotations
+
+### 8.7 Responsive Flatten Strategy
+
+- 375px：禁用所有 perspective / rotateX / rotateY
+- 保留：layer overlap / contact shadow / paper hierarchy / foreground/background
+- 三栏 Guardian → 垂直堆叠（mobile）
+
+### 8.8 Typography Scale（Phase 1E.3-A）
+
+| 层级 | 尺寸 | 用途 |
+|---|---|---|
+| Display | 60px / 40px mobile | Hero 标题 |
+| H2 | 44px / 32px mobile | Section heading |
+| H3 | 26px | Subsection |
+| Body | 17px | 正文 |
+| Label | 14px | 标签 |
+| Archive ID | 13px | 档案编号 |
+| Micro | 12px | 注释（最低） |

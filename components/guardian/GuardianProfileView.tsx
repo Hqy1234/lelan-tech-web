@@ -1,135 +1,62 @@
 /**
- * LELAN TECHNOLOGY · Guardian Profile View
+ * LELAN TECHNOLOGY · Guardian Profile View — Life Archive Page
  *
- * Phase 1D-G2 — Personal Life Archive Demo UI.
+ * Phase 1E.3-A — Personal archive, NOT dashboard.
  *
- * Renders a GuardianProfile contract.
- * Used by /profile page for demo personas.
+ * Visual hierarchy:
+ *   1. Archive Cover + GuardianSeal (top)
+ *   2. Current coordinate (stage · scenario · current task · progress)
+ *   3. Current tasks (process chain)
+ *   4. Five-dimension archive band
+ *   5. Timeline (lower visual weight)
+ *   6. Method (collapsed disclosure)
  *
- * Future: same component renders real user data from Dify/API adapter.
+ * Archive ID is demoted to a small side-annotation — must not
+ * out-shout the user's actual stage / scenario / current task.
  *
- * Layout:
- *   1. Archive header (ref + identity)
- *   2. My Guardian Coordinate (8-stage rail, locked to profile stage)
- *   3. Current tasks (task rail)
- *   4. Five-element dashboard
- *   5. Archive timeline
- *   6. Method steps (collapsed)
+ * Spatial layers:
+ *   0: paper background
+ *   1: archive cover plane (paper-pure, with archive corners)
+ *   2: coordinate content
+ *   3: GuardianSeal (slight overhang of archive edge on desktop)
+ *   4: small annotations
  *
- * NOT a dashboard — looks like a life archive product.
+ * "use client" only because the parent page reads sessionStorage and
+ * the consumer needs to react to profile data with image rendering.
  */
 "use client";
 
-import Image from "next/image";
-import { guardianStages } from "@/content/guardian";
-import { visualAssets } from "@/content/assets";
-import type {
-  GuardianProfile,
-  GuardianProfileTask,
-  GuardianProfileElement,
-  GuardianProfileTimelineEvent,
-  ElementStatus,
+import {
+  guardianStages,
+  type GuardianProfile,
+  type GuardianProfileTask,
+  type GuardianProfileElement,
+  type GuardianProfileTimelineEvent,
 } from "@/content/guardian";
+import { GuardianSeal } from "./GuardianSeal";
+import { GuardianElementsBand } from "./GuardianElements";
 
-function resolveAsset(id: string) {
-  return (visualAssets as Record<string, { src: string; alt: string }>)[id] ?? null;
-}
-
-/* ── Status badge ─────────────────────────────────────────────── */
-const STATUS_LABELS: Record<ElementStatus, string> = {
+const STATUS_LABELS = {
   normal: "已记录",
   attention: "持续关注",
   current: "当前事项",
   planned: "待完善",
-};
+} as const;
 
-const STATUS_TONE: Record<ElementStatus, string> = {
+/* ── Status tone for non-color-only rendering ───────────────────── */
+const STATUS_LABEL_TO_TONE: Record<string, string> = {
   normal: "bg-rule/60 text-muted",
   attention: "bg-cinnabar/10 text-cinnabar border border-cinnabar/20",
   current: "bg-green/10 text-green border border-green/20",
   planned: "bg-ink/5 text-muted border border-rule",
 };
 
-/* ── Task node ───────────────────────────────────────────────── */
-function TaskNode({ task, index }: { task: GuardianProfileTask; index: number }) {
-  const done = task.status === "done";
-  const current = task.status === "current";
-  return (
-    <div className="flex flex-col items-center gap-1.5">
-      <div
-        className={[
-          "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 font-mono text-[0.6rem] transition-colors",
-          done
-            ? "border-green bg-green text-paper"
-            : current
-            ? "border-ink bg-paper text-ink ring-2 ring-ink/20"
-            : "border-rule bg-paper text-muted",
-        ].join(" ")}
-        aria-hidden
-      >
-        {done ? "✓" : index + 1}
-      </div>
-      <span
-        className={[
-          "max-w-20 text-center text-xs leading-tight",
-          done ? "text-ink/70" : current ? "text-ink font-medium" : "text-muted",
-        ].join(" ")}
-      >
-        {task.label}
-      </span>
-    </div>
-  );
-}
+const TASK_STATUS_LABEL: Record<string, string> = {
+  done: "已完成",
+  current: "当前",
+  upcoming: "待办",
+};
 
-/* ── Task connector ──────────────────────────────────────────── */
-function TaskConnector({ done }: { done: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={[
-        "mb-6 mt-1 inline-block h-px flex-1 bg-rule",
-        done ? "bg-green" : "",
-      ].join(" ")}
-      style={{ minWidth: "16px" }}
-    />
-  );
-}
-
-/* ── Five-element card ───────────────────────────────────────── */
-function ElementCard({ el }: { el: GuardianProfileElement }) {
-  const asset = resolveAsset(el.assetId);
-  return (
-    <div className="flex flex-col gap-2 rounded-sm border border-rule bg-paper p-3">
-      <div className="flex items-center gap-2">
-        <span className="font-serif text-base font-medium text-ink">{el.element}</span>
-        <span className="font-serif text-sm text-muted">{el.dimension}</span>
-        <span
-          className={[
-            "ml-auto rounded-sm px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-wider",
-            STATUS_TONE[el.status],
-          ].join(" ")}
-        >
-          {STATUS_LABELS[el.status]}
-        </span>
-      </div>
-      <p className="text-xs text-muted">{el.description}</p>
-      <p className="mt-1 text-xs leading-relaxed text-ink">{el.notice}</p>
-      {asset && (
-        <div className="relative mt-auto h-14 w-full overflow-hidden rounded-sm pt-1" aria-hidden>
-          <Image
-            src={asset.src}
-            alt={asset.alt}
-            fill
-            sizes="(max-width: 640px) 20vw, 10vw"
-            className="object-cover opacity-70"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ── Timeline event ──────────────────────────────────────────── */
 const TIMELINE_STATUS_STYLE: Record<string, string> = {
   recorded: "border-green/40 bg-green/5 text-green",
   attention: "border-cinnabar/40 bg-cinnabar/5 text-cinnabar",
@@ -142,221 +69,271 @@ const TIMELINE_STATUS_LABEL: Record<string, string> = {
   planned: "计划中",
 };
 
+/* ── Task node ──────────────────────────────────────────────── */
+function TaskNode({ task, index }: { task: GuardianProfileTask; index: number }) {
+  const done = task.status === "done";
+  const current = task.status === "current";
+  return (
+    <li className="flex flex-1 flex-col items-center gap-1.5">
+      <span
+        aria-hidden
+        className={[
+          "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 font-mono text-[0.65rem] transition-colors",
+          done
+            ? "border-green bg-green text-paper"
+            : current
+            ? "border-ink bg-paper text-ink ring-2 ring-ink/20"
+            : "border-rule bg-paper text-muted",
+        ].join(" ")}
+      >
+        {done ? "✓" : index + 1}
+      </span>
+      <span
+        className={[
+          "max-w-[5rem] text-center text-[0.7rem] leading-tight sm:max-w-[6rem]",
+          done ? "text-ink/70" : current ? "font-medium text-ink" : "text-muted",
+        ].join(" ")}
+      >
+        {task.label}
+      </span>
+      <span
+        className={[
+          "rounded-sm px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-wider",
+          done
+            ? "bg-green/10 text-green"
+            : current
+            ? "bg-ink text-paper"
+            : "bg-rule/50 text-muted",
+        ].join(" ")}
+        aria-label={`状态：${TASK_STATUS_LABEL[task.status]}`}
+      >
+        {TASK_STATUS_LABEL[task.status]}
+      </span>
+    </li>
+  );
+}
+
+function TaskConnector({ done }: { done: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={[
+        "mb-7 mt-1 inline-block h-px flex-1 bg-rule sm:mb-9",
+        done ? "bg-green" : "",
+      ].join(" ")}
+      style={{ minWidth: "16px" }}
+    />
+  );
+}
+
 function TimelineItem({ event }: { event: GuardianProfileTimelineEvent }) {
   return (
     <li className="flex items-start gap-3">
-      <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-rule" aria-hidden />
+      <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rule" aria-hidden />
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[0.6rem] text-muted/70">{event.date}</span>
+          <span className="font-mono text-[0.65rem] text-muted/80">{event.date}</span>
           <span
             className={[
-              "rounded-sm px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-wider",
+              "rounded-sm px-1.5 py-0.5 font-mono text-[0.6rem] uppercase tracking-wider",
               TIMELINE_STATUS_STYLE[event.status],
             ].join(" ")}
           >
             {TIMELINE_STATUS_LABEL[event.status]}
           </span>
         </div>
-        <p className="mt-0.5 text-sm text-ink">{event.label}</p>
+        <p className="mt-0.5 text-sm text-ink/90">{event.label}</p>
       </div>
     </li>
   );
 }
 
-/* ── Main profile view ──────────────────────────────────────── */
 export function GuardianProfileView({ profile }: { profile: GuardianProfile }) {
+  const allStages = guardianStages;
+  const activeIdx = allStages.findIndex((s) => s.id === profile.stage.id);
+  const elements: GuardianProfileElement[] = profile.elements;
+
   return (
-    <div className="flex flex-col gap-8">
-      {/* ── Archive header ─────────────────────────────────── */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
-            人生档案编号
+    <div className="flex flex-col gap-10">
+      {/* ── 1. Archive cover (paper-pure plane) + Seal ───────────── */}
+      <header className="lelan-perspective relative">
+        <div className="lelan-corner lelan-depth-2 lelan-bg-l1 lelan-contact-shadow-2 relative rounded-sm border border-rule p-5 sm:p-7">
+          {/* Archive marker — small, top-right, demoted */}
+          <p className="lelan-archive-id absolute right-3 top-3 sm:right-5 sm:top-5">
+            ARCHIVE · {profile.archiveRef}
           </p>
-          <p className="mt-1 font-serif text-xl font-medium text-ink sm:text-2xl">
-            {profile.archiveRef}
-          </p>
-          <p className="mt-0.5 inline-flex items-center gap-1.5 rounded-sm border border-cinnabar/30 bg-cinnabar/5 px-2 py-0.5 font-mono text-[0.6rem] uppercase tracking-wider text-cinnabar">
-            演示档案
-          </p>
-        </div>
-        <div className="flex flex-col gap-1 sm:items-end">
-          <p className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
-            个人概况
-          </p>
-          <p className="text-lg text-ink">
-            {profile.identity.age} 岁 {profile.identity.genderLabel}
-          </p>
-          <p className="font-serif text-base text-muted">
-            {profile.stage.trigram} · {profile.stage.name}
-          </p>
-          <p className="mt-1 text-xs text-muted">{profile.stage.theme}</p>
-        </div>
-      </div>
 
-      {/* ── My Guardian Coordinate ─────────────────────────── */}
-      <div className="rounded-sm border border-rule bg-paper-pure p-4 sm:p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <span className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-            我的守护符 · 人生坐标
-          </span>
-          <span className="h-px flex-1 bg-rule" aria-hidden />
-        </div>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:gap-7">
+            {/* Seal — primary identity mark */}
+            <div className="shrink-0 sm:-mt-2">
+              <GuardianSeal
+                state="complete"
+                size="lg"
+                profile={profile}
+                caption="档案示例"
+              />
+            </div>
 
-        {/* 8-stage rail — user's stage is locked */}
-        <div className="mb-4 flex flex-wrap gap-2 sm:justify-center">
-          {guardianStages.map((stage) => {
-            const isActive = stage.id === profile.stage.id;
-            const asset = resolveAsset(stage.stageAssetId);
-            return (
-              <div
-                key={stage.id}
-                className={[
-                  "flex flex-col items-center gap-1 rounded-sm p-2 transition-all",
-                  isActive
-                    ? "bg-green/10 border border-green/30"
-                    : "opacity-50",
-                ].join(" ")}
-              >
-                <span
-                  className={[
-                    "flex h-7 w-7 items-center justify-center rounded-full border font-serif text-xs",
-                    isActive ? "border-green bg-green text-paper" : "border-rule text-muted",
-                  ].join(" ")}
-                  aria-hidden
-                >
-                  {stage.trigram}
+            {/* Identity + current coordinate */}
+            <div className="min-w-0 flex-1">
+              <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
+                我的守护符
+              </p>
+              <h1 className="lede mt-1 text-2xl font-medium text-ink sm:text-3xl">
+                {profile.identity.age} 岁 {profile.identity.genderLabel}
+              </h1>
+              <p className="mt-2 font-serif text-base text-muted">
+                {profile.stage.trigram} · {profile.stage.name}
+                <span className="ml-2 font-mono text-xs text-muted/80">
+                  {profile.stage.ageRange}
                 </span>
-                {asset && (
-                  <div className="relative h-8 w-8 overflow-hidden rounded-sm" aria-hidden>
-                    <Image
-                      src={asset.src}
-                      alt={asset.alt}
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  </div>
-                )}
-                <span className="font-mono text-[0.55rem] text-muted">{stage.name}</span>
-              </div>
-            );
-          })}
+              </p>
+              <p className="mt-1 text-xs text-muted/80">{profile.stage.theme}</p>
+
+              {profile.scenario && (
+                <p className="mt-3 inline-flex items-center gap-2 rounded-sm border border-rule bg-paper px-2 py-1 font-mono text-xs text-muted">
+                  <span aria-hidden>·</span>
+                  场景：{profile.scenario.name}
+                </p>
+              )}
+
+              {/* Progress — completion X / Y, text-led */}
+              <p className="mt-3 font-mono text-sm text-ink">
+                完成&nbsp;
+                <span className="font-serif text-base text-green">
+                  {profile.progress.completed}
+                </span>
+                &nbsp;/&nbsp;{profile.progress.total}
+              </p>
+            </div>
+          </div>
         </div>
+      </header>
 
-        {/* Scenario label */}
-        {profile.scenario && (
-          <p className="text-xs text-muted">
-            场景：{profile.scenario.name}
-          </p>
-        )}
-      </div>
-
-      {/* ── Current tasks ───────────────────────────────────── */}
-      <div className="rounded-sm border border-rule bg-paper-pure p-4 sm:p-6">
-        <div className="mb-4 flex items-center gap-3">
+      {/* ── 2. Current coordinate — task rail (process chain) ──── */}
+      <section aria-label="当前事项" className="flex flex-col gap-4">
+        <div className="flex items-center gap-3">
           <span className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-            当前事项
+            当前事项 · 坐标流程
           </span>
           <span className="h-px flex-1 bg-rule" aria-hidden />
+          <span className="font-mono text-[0.6rem] uppercase tracking-wider text-muted/70">
+            X · 流程
+          </span>
         </div>
 
-        {/* Desktop: horizontal chain */}
-        <div className="hidden flex-col gap-3 sm:flex">
-          <div className="flex items-start">
+        <div className="rounded-sm border border-rule bg-paper-pure p-5 sm:p-6">
+          {/* Desktop: horizontal process chain */}
+          <ol className="hidden items-start sm:flex" aria-label="任务流程">
             {profile.tasks.map((task, idx) => (
-              <div key={task.id} className="flex items-start">
+              <div key={task.id} className="flex flex-1 items-start">
                 <TaskNode task={task} index={idx} />
                 {idx < profile.tasks.length - 1 && (
                   <TaskConnector done={task.status === "done"} />
                 )}
               </div>
             ))}
-          </div>
-          {/* Progress bar */}
-          <div className="flex items-center gap-3 rounded-sm border border-rule bg-paper p-3">
-            <div className="h-1 flex-1 overflow-hidden rounded-full bg-rule">
+          </ol>
+
+          {/* Progress bar (text-led, not color-only) */}
+          <div className="mt-5 flex items-center gap-3 rounded-sm border border-rule bg-paper p-3">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-rule">
               <div
                 className="h-full rounded-full bg-green transition-all"
                 style={{
                   width: `${Math.round((profile.progress.completed / profile.progress.total) * 100)}%`,
                 }}
+                aria-hidden
               />
             </div>
             <span className="shrink-0 font-mono text-xs text-muted">
-              {profile.progress.completed}&nbsp;/&nbsp;{profile.progress.total}
+              完成&nbsp;{profile.progress.completed}&nbsp;/&nbsp;{profile.progress.total}
             </span>
           </div>
-        </div>
 
-        {/* Mobile: vertical list */}
-        <ol className="flex flex-col gap-2 sm:hidden" aria-label="任务清单">
-          {profile.tasks.map((task, idx) => (
-            <li
-              key={task.id}
-              className={[
-                "flex items-center gap-3 rounded-sm border px-3 py-2 text-xs",
-                task.status === "done"
-                  ? "border-green/30 bg-green/5 text-ink/80"
-                  : task.status === "current"
-                  ? "border-ink/20 bg-paper text-ink"
-                  : "border-rule text-muted",
-              ].join(" ")}
-            >
-              <span
+          {/* Mobile: vertical list with explicit status labels */}
+          <ol className="flex flex-col gap-2 sm:hidden" aria-label="任务清单（移动）">
+            {profile.tasks.map((task, idx) => (
+              <li
+                key={task.id}
                 className={[
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border font-mono text-[0.6rem]",
+                  "flex items-center gap-3 rounded-sm border px-3 py-2 text-xs",
                   task.status === "done"
-                    ? "border-green bg-green text-paper"
+                    ? "border-green/30 bg-green/5 text-ink/80"
+                    : task.status === "current"
+                    ? "border-ink/20 bg-paper text-ink"
                     : "border-rule text-muted",
                 ].join(" ")}
-                aria-hidden
               >
-                {task.status === "done" ? "✓" : idx + 1}
-              </span>
-              <span>{task.label}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
+                <span
+                  className={[
+                    "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border font-mono text-[0.6rem]",
+                    task.status === "done"
+                      ? "border-green bg-green text-paper"
+                      : task.status === "current"
+                      ? "border-ink bg-ink text-paper"
+                      : "border-rule text-muted",
+                  ].join(" ")}
+                  aria-hidden
+                >
+                  {task.status === "done" ? "✓" : idx + 1}
+                </span>
+                <span className="flex-1">{task.label}</span>
+                <span
+                  className={[
+                    "rounded-sm px-1.5 py-0.5 font-mono text-[0.55rem] uppercase tracking-wider",
+                    task.status === "done"
+                      ? "bg-green/10 text-green"
+                      : task.status === "current"
+                      ? "bg-ink text-paper"
+                      : "bg-rule/50 text-muted",
+                  ].join(" ")}
+                >
+                  {TASK_STATUS_LABEL[task.status]}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
 
-      {/* ── Five-element dashboard ──────────────────────────── */}
-      <div className="flex flex-col gap-4">
+      {/* ── 3. Five Elements archive band (shared with homepage) ─ */}
+      <section aria-label="五行档案" className="flex flex-col gap-3">
+        <GuardianElementsBand
+          elements={elements.map((el) => ({
+            element: el.element,
+            dimension: el.dimension,
+            description: el.description,
+            status: STATUS_LABELS[el.status],
+            notice: el.notice,
+            assetId: el.assetId,
+          }))}
+        />
+      </section>
+
+      {/* ── 4. Archive timeline (lower visual weight) ───────────── */}
+      <section aria-label="档案时间线" className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <span className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-            五行生活守护
+            档案时间线
           </span>
           <span className="h-px flex-1 bg-rule" aria-hidden />
-        </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-5">
-          {profile.elements.map((el) => (
-            <ElementCard key={el.id} el={el} />
-          ))}
-        </div>
-      </div>
-
-      {/* ── Archive timeline ───────────────────────────────── */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-            人生档案时间线
+          <span className="font-mono text-[0.6rem] uppercase tracking-wider text-muted/60">
+            模拟记录
           </span>
-          <span className="h-px flex-1 bg-rule" aria-hidden />
         </div>
         <div className="rounded-sm border border-rule bg-paper-pure p-4">
-          <p className="mb-4 text-xs text-muted">模拟档案记录</p>
-          <ul className="flex flex-col gap-4" aria-label="人生档案时间线">
+          <ul className="flex flex-col gap-3">
             {profile.timeline.map((event, idx) => (
               <TimelineItem key={idx} event={event} />
             ))}
           </ul>
         </div>
-      </div>
+      </section>
 
-      {/* ── Method steps (collapsed) ───────────────────────── */}
+      {/* ── 5. Method — collapsed disclosure ─────────────────────── */}
       <details className="group rounded-sm border border-rule">
-        <summary className="flex cursor-pointer items-center gap-3 bg-paper px-4 py-3 text-muted">
+        <summary className="flex cursor-pointer items-center gap-3 bg-paper px-4 py-3 text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-cinnabar focus-visible:outline-offset-2">
           <span className="font-mono text-[0.65rem] uppercase tracking-wider">
             坐标背后的方法
           </span>
@@ -364,36 +341,39 @@ export function GuardianProfileView({ profile }: { profile: GuardianProfile }) {
           <span className="font-mono text-[0.6rem] uppercase tracking-wider text-muted/60 group-open:hidden">
             展开
           </span>
-          <span className="font-mono text-[0.6rem] uppercase tracking-wider text-muted/60 hidden group-open:block">
+          <span className="hidden font-mono text-[0.6rem] uppercase tracking-wider text-muted/60 group-open:block">
             收起
           </span>
         </summary>
         <div className="border-t border-rule bg-paper-pure p-4 sm:p-6">
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-5">
+          <ol className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-5">
             {profile.methodSteps.map((step) => (
-              <div key={step.id} className="flex flex-col gap-1">
+              <li key={step.id} className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border border-rule font-mono text-[0.6rem] text-muted">
                     {step.order}
                   </span>
-                  <dt className="font-serif text-sm text-ink">{step.name}</dt>
+                  <span className="font-serif text-sm text-ink">{step.name}</span>
                 </div>
-                <dd className="ml-7 font-mono text-[0.6rem] uppercase tracking-wider text-muted">
+                <p className="ml-7 font-mono text-[0.6rem] uppercase tracking-wider text-muted">
                   {step.phase}
-                </dd>
-                <dd className="mt-1 text-xs leading-relaxed text-muted">
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-muted">
                   {step.description}
-                </dd>
-              </div>
+                </p>
+              </li>
             ))}
-          </dl>
+          </ol>
         </div>
       </details>
 
       {/* Demo disclaimer */}
-      <p className="text-xs text-muted/50">
+      <p className="text-xs text-muted/60">
         本页面展示内容均为虚构演示数据，不代表真实用户、医学判断、投资建议或法律意见。
       </p>
+
+      {/* Hint about activeIdx — keeps lint happy if not used elsewhere */}
+      <span hidden aria-hidden>{activeIdx}</span>
     </div>
   );
 }

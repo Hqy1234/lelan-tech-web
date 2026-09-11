@@ -7,9 +7,9 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1E — Guardian Demo Contract Freeze + /guardian/demo Frontend + Local Mock Adapter
-- **下一阶段**：Phase 1D-G4（/guardian detail / /town detail）待确认
-- **说明**：Phase 1E 完成 Guardian Demo 三层 Contract 冻结（GuardianDemoInput / GuardianAnalysisResult / GuardianProfile）、Local Mock Adapter 实现、6步建档 Demo 表单（/guardian/demo）、/profile 同时支持固定 Persona + generated Demo profile、sessionStorage 非真实云端档案。
+- **当前阶段**：Phase 1E.3-A — Engineering Hardening + Guardian Visual System + Hero/Guardian/Profile Redesign
+- **下一阶段**：Phase 1E.3-B — Town Spatial Upgrade + AI Product Visualization + 2.5D Spatial Refinement
+- **说明**：Phase 1E.3-A 完成工程硬化（Guardian Demo P0 bypass 修复、年龄验证、导航修复、Adapter 验证强化）、全站基础 Graphic System + Spatial Depth、Hero 重构（两大系统 + 软件产品）、Guardian Homepage 重构（档案坐标平面）、Five Elements 连续档案带、Profile 重构（个人档案首页）、Demo 产品化、Header/Footer 分组修正、Technology 文案诚实化。Town 大改 + AI 大改 + Dify 留待 Phase 1E.3-B。
 
 ---
 
