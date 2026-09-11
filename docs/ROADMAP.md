@@ -7,23 +7,27 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1E.4-B1 — Town Globe Composition Fixes（已完成）
-- **下一阶段**：Phase 1E.4-C — Town Art Production / Polish（**尚未开始**）
-- **说明**：Phase 1E.4-B1 完成（Phase 1E.4-B Final Audit 的 PASS WITH FIXES 小修轮）。
-  建筑统一放大 **1.25×**（只放大建筑，globe/terrain/roads 不变；放大前已核算碰撞，
-  最近一对 19.0° vs 需要 8.35°，余量 10.6°）；stage 改为 `min(54vh, 500px)`、
-  相机 `[0, 1.13, 3.85]` + `lookAt y=0.02`，实测模型填充画布高度 65% → **83%**，
-  1440×900 下**完整沙盘不再被 fold 裁切**；cap 加宽至 **130°** 使轮廓更扁平；
-  drawer 修复 header 贴挤（archive ID → **18px** → 店铺名）并与 stage **等高**
-  （486 = 486），消除右下方空置；proxy 屋顶柔和化（更矮更宽）；
-  01/02 仅调立面比例，未重做素材。
-  **重要发现（已实测四种方案）**：当前相机仰角下，任何可见宽底座都会在沙盘中部横切出
-  一条浅色带，因此底座保持不可见承托脚，**正式宽底座移交 Art Pass**。
-  favicon 仍缺失，记为 known limitation。
-  lint/tsc/build 全通过；1440/1024/768/375 无横向溢出；0 broken image；
-  0 JS error / 0 exception / 0 404；初始 JS 646,414 bytes（与 1E.4-B 一致，
-  **首屏无回归**）；three chunk 仍为懒加载。本轮**未**进入 Dify，
-  **未**修改 `lelan-shouhu`，**未**改 selection / hash / fallback architecture。
+- **当前阶段**：Phase 1E.4-C — Town Art Pass（已完成）
+- **下一阶段**：资产版权复核 + 正式插画替换 + 真实 GPU 设备性能验证（**尚未开始**）
+- **说明**：Phase 1E.4-C 完成。Town 从"技术成立的 3D prototype"提升为
+  "有明确品牌识别的东方微缩成果小镇"。**正式采用 Hybrid 建筑系统**
+  （程序化 3D 体量 + 2.5D 立面资产），**8 栋全部使用同一系统** ——
+  01/02 不再特殊。补齐 6 栋缺失建筑，8 栋 delivery 统一为 **668×508 WebP**，
+  总计 **188.4 KB**（单栋 14.9–35.5 KB，远低于预算）。
+  **透明抠图经实测裁定不可行**：8 张 reference 虽为 RGBA 但 alpha 全为 255
+  （无可保留透明主体），且 6/8 背景边缘标准差 37–59（无法安全分割），
+  故按简报要求退回统一纸装裱建筑板 —— **统一优先于强行透明**。
+  建筑改为**直立且面向相机**（径向站立与部分倾斜均已实测否决）。
+  新增 **terrain art pass**：2 个院落 + 1 个小水面（muted grey-green）+ 2 阶极浅
+  terrace + 6 棵剪影树 + 3 个灯。**2D fallback 同步受益，768/375 现显示 8 个真实建筑**
+  （此前 2 实图 + 6 灰代理）。
+  性能不变量全部保持（lazy load / demand 空闲 0 rAF / dpr ≤1.5 / 无阴影 /
+  无 postprocessing / 无自动旋转 / 无 wheel zoom）；四断点无横向溢出；
+  0 broken image；0 JS error / 0 exception / 0 404；交互回归全通过。
+  **已知限制**：WebGL 立面纹理在评审所用软件光栅化环境中无法验证
+  （纹理加载与上传均已确认成功、图层遮挡与重绘问题均已排除，但建筑板在该环境
+  仍渲染为空白）—— 真实 GPU 浏览器验收待进行；2D fallback 与交互不受影响。
+  版权状态保持 placeholder / 待清。本轮**未**进入 Dify，**未**修改 `lelan-shouhu`。
 
 ---
 
@@ -215,7 +219,43 @@ Phase 1E.4-B Final Audit（verdict: PASS WITH FIXES）的小修轮。
   aria-live / reduced-motion / context-loss / 375 / 768 全部通过；
   四断点无横向溢出；0 broken image；0 JS error / 0 exception / 0 404
 
-## Phase 1E.4-C · Town Art Production / Polish（下一阶段 · 尚未开始）
+## Phase 1E.4-C · Town Art Pass + Oriental Miniature Town Visual Unification（已完成）
+
+将 Town 从"技术成立的 3D prototype"提升为"有明确品牌识别的东方微缩成果小镇"。
+**未**改动 R3F architecture / selection / hash / fallback；**未**重设计 Guardian / AI。
+
+- **Hybrid Building System（正式采用）**：程序化 3D 体量
+  （backing slab + art plane + ledge + plinth）＋ 2.5D 立面资产。
+  **8 栋同一系统**，01/02 不再特殊；允许 scale / 立面宽度差异，结构逻辑一致
+- **透明抠图裁定：不可行**。8 张 reference 虽为 RGBA，但 **alpha 全为 255**
+  （无可保留透明主体）；6/8 背景边缘标准差 37–59（无法安全分割）。
+  按简报要求退回**统一纸装裱建筑板** —— 统一优先于强行透明。
+  未去水印、未裁主体、未重绘
+- **补齐 6 栋缺失建筑**：8 栋 delivery 统一 **668×508 WebP**，
+  由新增 `scripts/derive-town-buildings.cjs` 确定性生成，总计 **188.4 KB**
+- **色彩统一（grading 非重绘）**：saturation 0.30 + 暖象牙洗 0.20 +
+  统一左上光 ramp 0.07，把 8 种不同光温收敛到 town palette；
+  压掉素材中的饱和蓝 / 紫 / 亮金
+- **建筑摆放**：直立 + 面向相机（径向站立与部分倾斜均已实测否决并记录原因）
+- **Terrain Art Pass**：2 院落 + 1 小水面（muted grey-green，非蓝湖）+
+  2 阶极浅 terrace + 6 剪影树 + 3 灯；道路仍 5 条主路，非 network graph
+- **2D fallback 同步升级**：768/375 现显示 **8 个真实建筑**（此前 2 实图 + 6 灰代理），
+  实测 `imgCount=8 / broken=0`
+- **性能不变量全部保持**：lazy load（滚动前 canvas=0）/ `frameloop="demand"`
+  （空闲 0 rAF）/ dpr ≤1.5 / 无阴影 / 无 postprocessing / 无 HDRI /
+  无自动旋转 / 无 wheel zoom（wheel 300px → 页面滚动 300px）
+- **QA**：lint 0 / tsc 0 / build 8 页；四断点无横向溢出；0 broken image；
+  0 JS error / 0 exception / 0 404；交互回归全通过（drag / globe click /
+  rotate-to ×8 / index / drawer / hash / wheel / reduced-motion /
+  context-loss fallback / 8 项语义索引 + 8 radio + aria-live）
+- **已知限制**：WebGL 立面纹理在本环境（headless SwiftShader 软件光栅化）
+  **无法验证** —— 纹理加载与上传均确认成功，图层遮挡、demand 重绘、
+  上传路径、材质记忆化四类原因均已逐一排除，但建筑板在该环境仍渲染为空白。
+  **真实 GPU 浏览器验收待进行**；2D fallback 与全部交互不受影响
+- favicon 仍缺失（唯一真实 404），保持 known limitation
+
+## Phase 1E.4-D · 资产版权复核 + 正式插画替换 + 真实设备验证（下一阶段 · 尚未开始）
+
 
 
 **前置条件**：本轮完成后，Town Globe 的**渲染器与交互已就绪**，瓶颈转为**美术资产**。

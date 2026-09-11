@@ -29,6 +29,7 @@ import {
   CatmullRomCurve3,
   DoubleSide,
   Group,
+  Matrix4,
   Quaternion,
   TubeGeometry,
   Vector3,
@@ -42,6 +43,7 @@ import {
 } from "@/lib/town/globe";
 import { TOWN_PALETTE, TownBuildingVisual } from "./TownBuildingVisual";
 import { TownTerrain } from "./TownTerrain";
+import { TownTerrainDressing } from "./TownTerrainDressing";
 
 /* Tuning */
 
@@ -366,6 +368,48 @@ const CAMERA_CONFIG = {
 };
 
 /**
+ * Phase 1E.4-C — buildings are UPRIGHT and CAMERA-FACING.
+ *
+ * Two earlier approaches both failed in review, and the reason is worth
+ * recording so it is not retried:
+ *
+ *   1. Radial (up = surface normal). Physically correct, but the camera looks
+ *      DOWN onto the sand-table from ~16°, so every facade met the view almost
+ *      edge-on and the eight buildings rendered as thin white slivers.
+ *   2. Partially tilted toward the viewer. Better, but at the dome's flanks the
+ *      "toward viewer" direction runs sideways, so those buildings turned nearly
+ *      profile-on while the near ones faced forward — precisely the
+ *      inconsistency this art pass exists to remove.
+ *
+ * What works — and what physical model villages and isometric city views
+ * overwhelmingly do — is to keep every building UPRIGHT (world +Y) and rotate it
+ * about Y so its facade faces the camera. All 8 then present identically at
+ * every orientation, which is the uniformity this pass is judged on.
+ *
+ * Each building is still POSITIONED on the sphere surface, so the town keeps its
+ * curvature and the settlement still reads as sitting on a globe.
+ */
+function uprightFacingBasis(normal: Vector3): {
+  right: Vector3;
+  up: Vector3;
+  fwd: Vector3;
+} {
+  const up = new Vector3(0, 1, 0);
+  // Horizontal projection of the surface normal = the direction the facade
+  // should look along (away from the sphere centre, flattened to the XZ plane).
+  const horiz = new Vector3(normal.x, 0, normal.z);
+  if (horiz.lengthSq() < 1e-8) horiz.set(0, 0, 1);
+  horiz.normalize();
+
+  // Face the camera: the facade normal (+Z) points toward +Z world.
+  const fwd = new Vector3(0, 0, 1);
+  const right = new Vector3().crossVectors(up, fwd).normalize();
+  // Re-derive fwd so the basis is exactly orthonormal.
+  const fwdFixed = new Vector3().crossVectors(right, up).normalize();
+  return { right, up, fwd: fwdFixed };
+}
+
+/**
  * Forces the initial paint.
  *
  * `frameloop="demand"` never renders on its own, and the first `invalidate()`
@@ -594,9 +638,14 @@ export function TownGlobeScene({
       shops.map((shop, index) => {
         const p = globeToCartesian(shop.globe, GLOBE_RADIUS);
         const n = globeNormal(shop.globe, GLOBE_RADIUS);
-        const up = new Vector3(0, 1, 0);
         const normal = new Vector3(n.x, n.y, n.z).normalize();
-        const orientation = new Quaternion().setFromUnitVectors(up, normal);
+
+        // Upright, camera-facing basis (see uprightFacingBasis notes).
+        const { right, up, fwd } = uprightFacingBasis(normal);
+        const orientation = new Quaternion().setFromRotationMatrix(
+          new Matrix4().makeBasis(right, up, fwd)
+        );
+
         return {
           shop,
           index,
@@ -655,6 +704,9 @@ export function TownGlobeScene({
 
         <group ref={worldRef}>
           <TownTerrain />
+          {/* Terrain art pass: courtyards, water, terraces, trees, lanterns.
+              Sits above the terrain but below the buildings. */}
+          <TownTerrainDressing />
           <TownRoads shops={shops} />
           {nodes.map(({ shop, index, position, orientation }) => (
             <ShopNode

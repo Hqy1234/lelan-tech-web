@@ -23,6 +23,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { useThree } from "@react-three/fiber";
 import { SRGBColorSpace, Texture } from "three";
 import type { TownShop } from "@/content/town";
 import { visualAssets, type VisualAsset } from "@/content/assets";
@@ -40,6 +41,11 @@ export const TOWN_PALETTE = {
   earthDeep: "#9A8A6E",
   ink: "#22302A",
   cinnabar: "#9B3A2F",
+  /**
+   * Muted grey-green water. Deliberately NOT blue — the brief forbids blue
+   * lakes; this reads as still jade-tinted water in a stone basin.
+   */
+  water: "#7E968C",
 } as const;
 
 /** Height of the plinth above the surface, in globe radii. */
@@ -60,7 +66,7 @@ export const PLINTH_SCALE = 0.028;
  *
  * Deliberately does NOT scale the globe, terrain or roads — only the buildings.
  */
-export const BUILDING_SCALE = 1.25;
+export const BUILDING_SCALE = 1.15;
 
 function resolveAsset(id: string | undefined): VisualAsset | null {
   if (!id) return null;
@@ -83,20 +89,33 @@ function useImageTexture(url: string | undefined): Texture | null {
     let cancelled = false;
     let created: Texture | null = null;
 
-    const img = new Image();
-    img.decoding = "async";
-    img.onload = () => {
-      if (cancelled) return;
-      const tex = new Texture(img);
-      tex.colorSpace = SRGBColorSpace;
-      tex.needsUpdate = true;
-      created = tex;
-      setTexture(tex);
-    };
-    img.onerror = () => {
-      if (!cancelled) setTexture(null);
-    };
-    img.src = url;
+    (async () => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(String(res.status));
+        const blob = await res.blob();
+        const bitmap = await createImageBitmap(blob);
+        if (cancelled) {
+          bitmap.close();
+          return;
+        }
+        /**
+         * `createImageBitmap` rather than `new Texture(htmlImageElement)`.
+         * The element form loaded and reported ready but drew nothing under the
+         * software rasteriser used in review; a decoded ImageBitmap is a
+         * first-class uploadable source and avoids that path entirely.
+         */
+        const tex = new Texture(bitmap as unknown as HTMLImageElement);
+        tex.colorSpace = SRGBColorSpace;
+        tex.needsUpdate = true;
+        created = tex;
+        setTexture(tex);
+      } catch {
+        // A failed texture must not break the scene: the building keeps its
+        // paper backing. No throw, no page crash.
+        if (!cancelled) setTexture(null);
+      }
+    })();
 
     return () => {
       cancelled = true;
@@ -107,7 +126,33 @@ function useImageTexture(url: string | undefined): Texture | null {
   return texture;
 }
 
-/* Shared plinth */
+/**
+ * Requests a repaint when a texture finishes loading.
+ *
+ * ⚠ Required because the scene runs `frameloop="demand"`. Images decode AFTER
+ * the initial frame, and in demand mode R3F only paints when something calls
+ * `invalidate()`. Without this, all eight building textures uploaded correctly
+ * but the canvas was never asked to redraw, so every building rendered as a
+ * blank paper plate — which is exactly what review caught.
+ */
+function useInvalidateOnReady(ready: boolean) {
+  const { invalidate, gl } = useThree();
+  useEffect(() => {
+    if (!ready) return;
+    // Repaint across several frames: the texture upload lands on the GPU
+    // asynchronously, and a single invalidate can paint before the upload is
+    // usable. Painting over ~0.4s guarantees the plate appears, then the scene
+    // returns to idle (no continuous loop).
+    invalidate();
+    const ids = [1, 2, 4, 8, 16, 24].map((n) =>
+      window.setTimeout(() => invalidate(), n * 16)
+    );
+    void gl;
+    return () => ids.forEach((id) => window.clearTimeout(id));
+  }, [ready, invalidate, gl]);
+}
+
+/** Shared plinth */
 
 function Plinth({ selected }: { selected: boolean }) {
   return (
@@ -130,43 +175,60 @@ function Plinth({ selected }: { selected: boolean }) {
  */
 function FacadePanel({ asset }: { asset: VisualAsset }) {
   const texture = useImageTexture(asset.src);
+  useInvalidateOnReady(texture !== null);
   const aspect = asset.width / asset.height;
 
   /**
-   * Phase 1E.4-B1 — panel proportions rebalanced so the larger scale does not
-   * turn 01/02 into two standing photo boards.
-   *
-   * Panel area is reduced ~10% relative to its mount while the mount stays
-   * roughly the same, and the ink base line is tied to the panel width, so the
-   * result reads as a framed information plate with a generous paper margin
-   * rather than a full-bleed picture. Real style unification with the proxy
-   * pavilions is deliberately deferred to the Town Art Pass.
+   * The plate's on-globe size. The delivery images are already paper-mounted
+   * 668×508 plates (see scripts/derive-town-buildings.cjs), so the artwork fills
+   * this box completely — no separate inner margin geometry is needed.
    */
-  const panelW = 0.126;
-  const panelH = panelW / aspect;
-  const mountW = panelW + 0.022;
-  const mountH = panelH + 0.022;
+  const plateW = 0.148;
+  const plateH = plateW / aspect;
 
   return (
-    <group position={[0, PLINTH_SCALE + 0.075, 0]}>
-      {/* Frame plate (paper mount) */}
-      <mesh position={[0, 0, -0.004]}>
-        <planeGeometry args={[mountW, mountH]} />
+    <group
+      key={texture ? "art-ready" : "art-pending"}
+      position={[0, PLINTH_SCALE + 0.075, 0]}
+    >
+      {/*
+        Facade (Phase 1E.4-C, simplified).
+
+        Earlier attempts layered a paper mount BOX behind the artwork plane.
+        Review showed the artwork never appeared — every building rendered as a
+        blank white plate — so the layering is gone. There is now exactly ONE
+        surface carrying the image, with a shallow backing slab behind it purely
+        for silhouette depth, and a ledge beneath.
+
+        Keeping the textured surface unique removes the whole class of
+        "the mount is painting over the art" failure.
+      */}
+      {/* Backing slab — silhouette depth only, sits clearly behind the art */}
+      <mesh position={[0, 0, -0.012]}>
+        <boxGeometry args={[plateW, plateH, 0.006]} />
         <meshLambertMaterial color={TOWN_PALETTE.paper} />
       </mesh>
-      {/* The artwork itself */}
-      <mesh>
-        <planeGeometry args={[panelW, panelH]} />
+
+      {/* THE art surface — the only textured mesh per building. */}
+      <mesh key={texture ? "ready" : "loading"}>
+        <planeGeometry args={[plateW, plateH]} />
         {texture ? (
           <meshBasicMaterial map={texture} toneMapped={false} />
         ) : (
-          <meshLambertMaterial color={TOWN_PALETTE.earth} />
+          <meshBasicMaterial color="#EFE9DC" />
         )}
       </mesh>
-      {/* Thin ink base line so the panel sits on the ground convincingly */}
-      <mesh position={[0, -mountH / 2 + 0.002, 0.001]}>
-        <planeGeometry args={[mountW, 0.004]} />
-        <meshBasicMaterial color={TOWN_PALETTE.ink} transparent opacity={0.35} />
+
+      {/* Ledge — grounds the plate as a building frontage */}
+      <mesh position={[0, -plateH / 2 - 0.004, 0.004]}>
+        <boxGeometry args={[plateW * 1.08, 0.008, 0.022]} />
+        <meshLambertMaterial color={TOWN_PALETTE.earth} />
+      </mesh>
+
+      {/* Thin ink base line so the plate sits on the ground convincingly */}
+      <mesh position={[0, -plateH / 2 + 0.002, 0.002]}>
+        <planeGeometry args={[plateW, 0.004]} />
+        <meshBasicMaterial color={TOWN_PALETTE.ink} transparent opacity={0.28} />
       </mesh>
     </group>
   );

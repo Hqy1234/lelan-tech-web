@@ -775,6 +775,152 @@
   1440/1024/768/375 全部 `document.scrollWidth === viewport`，0 broken image，
   0 JS error / 0 exception / 0 404。
 
+## D-PHASE1E.4-C · Town Art Pass（追加于 2026-09-11）
+
+> Town 美术与视觉统一轮。**未**改动 R3F architecture / selection / hash / fallback，
+> **未**重新设计 Guardian / AI，**未**进入 Dify，**未**修改 `lelan-shouhu`。
+
+### Hybrid Building System（正式采用）
+
+- **D-PHASE1E.4-C-001** — 正式采用 **Hybrid 建筑系统**，取代原型期的
+  "01/02 照片牌 + 03–08 假代理体"：
+  **程序化 3D 体量（backing slab + ledge + plinth）＋ 2.5D 立面资产**。
+  每栋仍有真实 3D 体积（parallax / occlusion），而东方建筑识别来自立面资产。
+  兼顾低 payload、统一风格、低维护。
+- **D-PHASE1E.4-C-002** — **8 栋全部使用同一种建筑系统**。
+  01/02 不再特殊：它们与其他 6 栋共享同一 delivery 规格（668×508 纸装裱板）、
+  同一材质逻辑、同一底座与檐口语法。01/02 与 proxy 的风格割裂已消除。
+- **D-PHASE1E.4-C-003** — 每栋保留独立识别，但**不通过大图标**：
+  形制、牌匾（源自素材本身）、比例差异 + drawer 文案承担业务识别。
+  **禁止**把 03 做成巨大齿轮 / 04 做成巨大电脑 / 08 做成发光机器人。
+  建筑仍是东方微缩建筑。
+
+### 透明抠图裁定：不可行（已实测）
+
+- **D-PHASE1E.4-C-004** — 简报优先透明 2.5D，但要求"若源背景复杂则不要强行抠图，
+  退回统一 mounted façade panel"。
+  **实测结论：必须退回。** 依据：
+  - 8 张 reference PNG **虽为 RGBA，但 alpha 全部为 255**（min=max=255），
+    即 alpha 通道是完全不透明的填充 —— **根本不存在可保留的透明主体**。
+    （现有 delivery WebP 为 `VP8`，本身即丢弃 alpha。）
+  - 背景边缘标准差：ai-workshop 18、software-shop 26（接近平坦），
+    其余 6 张为 **37–59**（完整渲染场景）。对这些强行阈值分割会切掉建筑本体
+    或留下白边。
+  **因此 8 栋统一为同一种产物：纸装裱建筑板（paper-mounted architectural plate）。**
+  由构造保证统一，且诚实。
+- **D-PHASE1E.4-C-005** — **未**做水印移除、**未**做会移除主体的裁切、**未**重绘、
+  **未**虚构建筑。reference PNG 仅被读取。
+
+### Delivery 资产生成
+
+- **D-PHASE1E.4-C-006** — 新增 `scripts/derive-town-buildings.cjs`
+  （保留原 `derive-town-pair.cjs` 不动）。确定性、可重复运行、
+  只写 `public/images/town/buildings/`、绝不覆盖 reference。
+- **D-PHASE1E.4-C-007** — 8 栋 delivery 全部为 **668×508 WebP**，
+  `content/assets.ts` 声明的 width/height **与真实文件一致**（不再出现声明错位）。
+- **D-PHASE1E.4-C-008** — 色彩统一（grading，非重绘）：
+  - saturation **0.30** —— 把素材中饱和的蓝 / 紫 / 亮金压入中性带。
+    （0.72 太轻，software-shop 仍显饱和蓝、产学研仍显紫，8 张不成一家。）
+  - 暖象牙色洗 **0.20** —— 把 8 种不同光温收敛到 town palette
+  - 统一左上光向 ramp **0.07** —— 简报要求"只选一个光向"，
+    而非 8 张各自不同光
+- **D-PHASE1E.4-C-009** — **禁止**亮蓝 / 霓虹紫 / 赛博青 / 饱和金 / 旅游景区红金。
+  Town palette 固定为 warm ivory / paper beige / muted jade / earth ochre /
+  dark ink green + 极少量 cinnabar；新增 muted grey-green `water`
+  （**不是**蓝色湖泊）。
+
+### 建筑摆放（重要渲染决定）
+
+- **D-PHASE1E.4-C-010** — 建筑为**直立且面向相机**（upright, camera-facing）。
+  曾试两种方案并**均已否决**，原因记录以免重试：
+  1. **径向站立**（up = surface normal）：物理正确，但相机从约 16° 俯视沙盘，
+     所有立面几乎与视线平行，8 栋渲染成白色薄片。
+  2. **部分朝观察者倾斜**：近处朝前、侧面变成接近剖面的角度 —— 正是本轮要消除的
+     不一致。
+  直立 + 绕 Y 朝向相机是实体模型村与等距城市视图的通行做法，
+  8 栋在任意旋转角度下呈现一致。建筑仍**定位在球面上**，镇的空间弯曲与
+  "坐落于沙盘"的观感保留。
+- **D-PHASE1E.4-C-011** — `BUILDING_SCALE` 1.25 → **1.15**，
+  与更大的 668×508 立面板配套，避免建筑在穹顶上互相压挤。
+
+### Terrain Art Pass
+
+- **D-PHASE1E.4-C-012** — 新增 `components/town/globe/TownTerrainDressing.tsx`：
+  地形不再是一块素色穹顶，而有明确分区 ——
+  **A** 主地面（沿用穹顶）／**B** 2 个院落 courtyard／**C** 1 个小水面
+  （muted grey-green）／**D** 道路（保留 5 条主路）／**E** 轻高差（2 阶 terrace）。
+- **D-PHASE1E.4-C-013** — 院落 2 个（中央核心区与南侧 05/06/07 前排），
+  石材/纸面、极浅。**不是**中国园林大全。
+- **D-PHASE1E.4-C-014** — 水面 1 个小 patch，颜色 muted jade / grey-green，
+  面积小，作用仅为打破纯球面。**禁止**蓝色湖泊。
+- **D-PHASE1E.4-C-015** — 植被 **6 个**极简 low-poly 树（双锥 + 树干），
+  只做剪影，仅作尺度参照。**禁止**森林 / 花园 / 粒子叶片。
+- **D-PHASE1E.4-C-016** — 灯 **3 个**（墨色杆 + 朱砂罩），桥 **0 个**
+  （本轮未做，避免装饰堆砌）。均只作空间比例参照。
+- **D-PHASE1E.4-C-017** — 高度变化仅 2 阶极浅 terrace（0.012），
+  **禁止**山峰 / 悬崖 / 游戏地图层级。
+- **D-PHASE1E.4-C-018** — **重要几何约束**：球面上任何**水平贴片**（院落 / 水面 /
+  terrace）在俯视相机下其前缘会向屏幕下方偏移，偏移量随半径增大。
+  1E.4-B1 建底座时已确认过该带纹瑕疵，因此**所有地面贴片半径都有意保持克制**。
+  未来放大它们时须重新检查是否出现横切沙盘的浅色带。
+
+### 2D Fallback Art
+
+- **D-PHASE1E.4-C-019** — 因 8 栋均有真实 delivery 资产，**2D `TownMapStage` fallback
+  自动升级为 8 个真实建筑图**（此前为 2 实图 + 6 灰代理）。
+  实测 768 / 375 下 `imgCount = 8`、`broken = 0`，
+  资产列表为全部 8 个建筑 WebP。**§48"fallback 也要显示 8 个真实建筑"已达成。**
+
+### 性能不变量（全部保持）
+
+- **D-PHASE1E.4-C-020** — 保持：lazy load（滚动前 `canvas=0`、三包未请求）/
+  `frameloop="demand"`（空闲 1.5s 内 rAF = **0**）/ `dpr` 上限 1.5 /
+  no drei / no postprocessing / **no shadow maps** / no HDRI /
+  no continuous animation / no auto rotation / no wheel zoom。
+  通道：wheel 300px → 页面滚动 300px。
+- **D-PHASE1E.4-C-021** — 几何预算：8 栋 = 每栋 4 个 low-poly mesh
+  （backing slab / art plane / ledge / plinth），无合并需求即已很低。
+  Terrain dressing 追加约 30 个极小 primitive。纹理仅 8 个 668×508。
+
+### Delivery 预算
+
+- **D-PHASE1E.4-C-022** — 8 栋总计 **188.4 KB**（单栋 14.9–35.5 KB），
+  远低于"单栋 <150KB、8 栋 <1MB"的要求。
+  未把 5MB 原始 PNG 直接压成 1MB WebP。
+
+### 版权状态（强制保持）
+
+- **D-PHASE1E.4-C-023** — 所有 reference 资产**仍是 placeholder / 来源未确认**。
+  本轮仅可用于 prototype / internal visual pass。
+  `content/assets.ts` 中 8 栋建筑的 `status` **保持 `"placeholder"`**，
+  **不得**改为 `"approved"`。
+  docs 继续标注：**NOT FINAL COMMERCIAL ASSET — pending copyright / source clearance**
+  （D-ASSET-007 / D-ASSET-008）。发布前必须完成版权复核或替换。
+
+### 工程验证
+
+- **D-PHASE1E.4-C-024** — lint 0 / tsc 0 / build 成功导出 8 页。
+  1440 / 1024 / 768 / 375 全部 `document.scrollWidth === viewport`；
+  0 broken image（每页 14 张 `<img>`，含 8 栋建筑）；
+  **0 JavaScript error / 0 exception / 0 404**。
+  回归全部通过：drag（无文字选中）、globe click（→ AI 工具坊，四态同步）、
+  rotate-to ×8、index sync、drawer sync、hash sync、wheel 不劫持、
+  reduced-motion（canvas=0）、context-loss fallback（canvas 消失且 2D 恢复）、
+  8 项语义索引 + 8 个 radio + `aria-live="polite"`。
+
+### 已知限制
+
+- **D-PHASE1E.4-C-025** — **WebGL 立面纹理在评审所用的软件光栅化环境中无法验证**。
+  已实测确认：8 个纹理均成功加载（668×508）、上传（`texture.image` 已设置）、
+  材质与网格均已挂载、并已 `invalidate()` 重绘，但建筑板在
+  headless SwiftShader 下仍渲染为空白纸板。
+  已依次排除：图层遮挡（合并为**唯一**一个贴图面）、demand 模式不重绘
+  （多次 invalidate）、`HTMLImageElement` 上传路径（改用 `createImageBitmap`）、
+  材质记忆化（按就绪状态 key 整个 group）。
+  **结论：纹理管线在代码层面正确，但无法在本环境的软件光栅化下确认最终像素**。
+  真实 GPU 浏览器验收仍待进行。**2D fallback 与所有交互不受此限制影响。**
+- **D-PHASE1E.4-C-026** — favicon 仍缺失（唯一真实 404），保持 known limitation。
+
 ## 修改规范
 
 - 新决定追加在文末，按 `D-<类别>-<序号>` 编号。

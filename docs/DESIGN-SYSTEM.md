@@ -810,4 +810,75 @@ rim）其前缘都会在沙盘中部横切出一条浅色带。**已实测四种
 项目当前**没有**任何 favicon / icon 资源；`/favicon.ico` 是唯一真实 404。
 按指示**不临时绘制低质量图标**，留待品牌资产到位时正式接入。
 
+---
+
+## 13. Phase 1E.4-C — Town Art Pass
+
+### 13.1 Town Hybrid Building System（正式系统）
+
+```
+每栋建筑 = 程序化 3D 体量  +  2.5D 立面资产
+            ├ backing slab   (纸衬，提供轮廓深度)
+            ├ art plane      (唯一贴图面，668×508 纸装裱板)
+            ├ ledge          (檐口/台沿，使立面读作建筑正面)
+            └ plinth         (基座)
+```
+
+- **8 栋使用同一系统**，无例外。01/02 不再特殊。
+- 允许差异：**scale / 立面宽度 / 比例**；结构逻辑必须一致。
+- **禁止**"海报贴在盒子上"：立面必须**嵌入或 mount** 于建筑正面，
+  具备 depth / frame / ledge，形成建筑立面层。
+- **立面板必须是每栋唯一的贴图面** —— 多层叠加（纸衬盒 + 面板）曾导致
+  建筑渲染为空白板，该失败模式已通过"唯一贴图面"结构性消除。
+
+### 13.2 建筑摆放（稳定约定）
+
+- 建筑**直立于球面之上，绕 Y 轴朝向相机**（upright + camera-facing）。
+- **禁止**径向站立（俯视相机下立面变薄片）、**禁止**部分倾斜
+  （侧面建筑变剖面，破坏一致性）。
+- 建筑**定位在球面上**，保留沙盘弧度与"坐落于沙盘"的观感。
+- 统一尺度的光向：**左上**（upper-left），全站唯一。
+
+### 13.3 Terrain Grammar（地形语法）
+
+| 层 | 元素 | 约束 |
+|---|---|---|
+| A | 主地面 | 低浮雕球冠，顶点色 wash（不是 planet） |
+| B | 院落 courtyard | 2 个，纸/石材，极浅。**不是**中国园林大全 |
+| C | 水面 | 1 个小 patch，**muted grey-green**，禁止蓝色湖泊 |
+| D | 道路 | 保留 5 条主路，连接聚落，**不是** network graph |
+| E | 高差 | 仅极浅 terrace（0.012），禁止山峰 / 悬崖 / 游戏地图 |
+| F | 植被 | **6 个** low-poly 剪影树，仅作尺度参照，禁止森林 |
+| G | 灯 / 桥 | 灯最多 3 个；桥本轮 0 个。仅作空间比例参照 |
+| H | 底座 | 保持不可见承托脚 + contact shadow（见 12.4） |
+
+**几何约束**：球面上任何水平贴片在俯视相机下，前缘会向屏幕下方偏移，
+偏移量随半径增大（详见 12.4 的实测结论）。因此**所有地面贴片半径保持克制**；
+未来放大须重新检查横切沙盘的浅色带。
+
+### 13.4 Town 资产约定
+
+- reference（`assets/reference/town/**`）：**仅源素材**，绝不进入 WebGL / public
+- delivery（`public/images/town/buildings/**`）：8 栋 **668×508 WebP**，
+  统一命名 `town-<shop>.webp`，由 `scripts/derive-town-buildings.cjs` 确定性生成
+- 组件层只通过 `content/assets.ts` 的语义 id 引用，**禁止硬编码路径**
+- `content/assets.ts` 声明的 width / height **必须等于真实文件尺寸**
+- 色彩统一靠 grading（saturation 0.30 / 暖象牙洗 0.20 / 左上光 ramp 0.07），
+  **不是重绘**
+- **禁止**：亮蓝 / 霓虹紫 / 赛博青 / 饱和金 / 旅游景区红金
+
+### 13.5 Town Character 使用边界
+
+- characters delivery **仅**用于 `TownServiceDrawer` persona 槽位或未来 Agent card
+- **禁止**：角色在球体上走动 / 站在屋顶 / 走路动画 / 悬浮
+- 优先级低于建筑；不在 globe 预加载（按需）
+
+### 13.6 版权状态（强制）
+
+所有 Town reference 资产**仍是 placeholder / 来源未确认**。
+`status` 保持 `"placeholder"`，**不得**改为 `"approved"`。
+标识：**NOT FINAL COMMERCIAL ASSET — pending copyright / source clearance**。
+发布前必须完成版权复核或替换。
+
+
 

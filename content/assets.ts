@@ -43,8 +43,8 @@ export interface VisualAsset {
 export const townPaperTeahouse: VisualAsset = {
   id: "townPaperTeahouse",
   src: "/images/town/buildings/town-paper-teahouse.webp",
-  width: 1200,
-  height: 900,
+  width: 668,
+  height: 508,
   alt: "论文茶寮 · 成果小镇的论文写作服务小铺",
   status: "placeholder",
   reference: "assets/reference/town/buildings/town-paper-teahouse.png",
@@ -53,11 +53,77 @@ export const townPaperTeahouse: VisualAsset = {
 export const townResearchShop: VisualAsset = {
   id: "townResearchShop",
   src: "/images/town/buildings/town-research-shop.webp",
-  width: 1200,
-  height: 900,
+  width: 668,
+  height: 508,
   alt: "课题小铺 · 成果小镇的科研课题立项支持小铺",
   status: "placeholder",
   reference: "assets/reference/town/buildings/town-research-shop.png",
+};
+
+/* -------------------------------------------------------------------------- */
+/* Town · Buildings 03–08 (Phase 1E.4-C)                                      */
+/*                                                                            */
+/* Derived by scripts/derive-town-buildings.cjs from the reference PNGs.      */
+/* All 8 buildings share ONE delivery format — a 668×508 paper-mounted        */
+/* architectural plate — so the Town art reads as a single family.            */
+/*                                                                            */
+/* ⚠ These are NOT cleared commercial assets. The reference renders are        */
+/* customer-supplied placeholders whose copyright / licensing is still         */
+/* unconfirmed (D-ASSET-007 / D-ASSET-008). Status stays "placeholder".        */
+/* -------------------------------------------------------------------------- */
+
+export const townPatentShop: VisualAsset = {
+  id: "townPatentShop",
+  src: "/images/town/buildings/town-patent-shop.webp",
+  width: 668, height: 508,
+  alt: "专利小铺 · 成果小镇的专利申请与撰写支持小铺",
+  status: "placeholder",
+  reference: "assets/reference/town/buildings/town-patent-shop.png",
+};
+
+export const townSoftwareShop: VisualAsset = {
+  id: "townSoftwareShop",
+  src: "/images/town/buildings/town-software-shop.webp",
+  width: 668, height: 508,
+  alt: "软著小铺 · 成果小镇的软件著作权登记支持小铺",
+  status: "placeholder",
+  reference: "assets/reference/town/buildings/town-software-shop.png",
+};
+
+export const townFundingShop: VisualAsset = {
+  id: "townFundingShop",
+  src: "/images/town/buildings/town-funding-shop.webp",
+  width: 668, height: 508,
+  alt: "申报辅导 · 成果小镇的科研项目与基金申报辅导小铺",
+  status: "placeholder",
+  reference: "assets/reference/town/buildings/town-funding-shop.png",
+};
+
+export const townTransferShop: VisualAsset = {
+  id: "townTransferShop",
+  src: "/images/town/buildings/town-transfer-shop.webp",
+  width: 668, height: 508,
+  alt: "成果转化 · 成果小镇的科研成果转化支持小铺",
+  status: "placeholder",
+  reference: "assets/reference/town/buildings/town-transfer-shop.png",
+};
+
+export const townIndustryResearchShop: VisualAsset = {
+  id: "townIndustryResearchShop",
+  src: "/images/town/buildings/town-industry-research-shop.webp",
+  width: 668, height: 508,
+  alt: "产学研对接 · 成果小镇的产学研资源对接支持小铺",
+  status: "placeholder",
+  reference: "assets/reference/town/buildings/town-industry-research-shop.png",
+};
+
+export const townAiWorkshop: VisualAsset = {
+  id: "townAiWorkshop",
+  src: "/images/town/buildings/town-ai-workshop.webp",
+  width: 668, height: 508,
+  alt: "AI 工具坊 · 成果小镇的科研与写作 AI 工具集合小铺",
+  status: "placeholder",
+  reference: "assets/reference/town/buildings/town-ai-workshop.png",
 };
 
 /* -------------------------------------------------------------------------- */
@@ -249,6 +315,12 @@ export const visualAssets = {
   townWenqu,
   townResearchShop,
   townLingshu,
+  townPatentShop,
+  townSoftwareShop,
+  townFundingShop,
+  townTransferShop,
+  townIndustryResearchShop,
+  townAiWorkshop,
   guardianStage01,
   guardianStage02,
   guardianStage03,
@@ -279,7 +351,7 @@ export const assetReferenceIndex: ReadonlyArray<{
   {
     reference: "assets/reference/town/buildings/town-paper-teahouse.png",
     delivery: townPaperTeahouse,
-    note: "Phase 1A representative — 已生成 webp derivative",
+    note: "Phase 1E.4-C — 论文茶寮 668×508 纸装裱建筑板（placeholder，版权待清）",
   },
   {
     reference: "assets/reference/town/characters/town-wenqu.png",
@@ -289,7 +361,37 @@ export const assetReferenceIndex: ReadonlyArray<{
   {
     reference: "assets/reference/town/buildings/town-research-shop.png",
     delivery: townResearchShop,
-    note: "Phase 1C secondary pair — 已生成 webp derivative",
+    note: "Phase 1E.4-C — 课题小铺 668×508 纸装裱建筑板（placeholder，版权待清）",
+  },
+  {
+    reference: "assets/reference/town/buildings/town-patent-shop.png",
+    delivery: townPatentShop,
+    note: "Phase 1E.4-C — 专利小铺（placeholder，版权待清）",
+  },
+  {
+    reference: "assets/reference/town/buildings/town-software-shop.png",
+    delivery: townSoftwareShop,
+    note: "Phase 1E.4-C — 软著小铺（placeholder，版权待清）",
+  },
+  {
+    reference: "assets/reference/town/buildings/town-funding-shop.png",
+    delivery: townFundingShop,
+    note: "Phase 1E.4-C — 申报辅导（placeholder，版权待清）",
+  },
+  {
+    reference: "assets/reference/town/buildings/town-transfer-shop.png",
+    delivery: townTransferShop,
+    note: "Phase 1E.4-C — 成果转化（placeholder，版权待清）",
+  },
+  {
+    reference: "assets/reference/town/buildings/town-industry-research-shop.png",
+    delivery: townIndustryResearchShop,
+    note: "Phase 1E.4-C — 产学研对接（placeholder，版权待清）",
+  },
+  {
+    reference: "assets/reference/town/buildings/town-ai-workshop.png",
+    delivery: townAiWorkshop,
+    note: "Phase 1E.4-C — AI 工具坊（placeholder，版权待清）",
   },
   {
     reference: "assets/reference/town/characters/town-lingshu.png",
