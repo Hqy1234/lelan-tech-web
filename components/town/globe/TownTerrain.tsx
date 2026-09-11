@@ -27,18 +27,44 @@ import { TOWN_PALETTE } from "./TownBuildingVisual";
 /**
  * How far down from the pole the cap extends (radians from the top).
  *
- * Deliberately WIDE (136°): a shallow slice read as a slab, while a narrow one
- * read as a planet. At 136° the rim sits well below the equator, so the piece
- * presents a broad, gently domed surface — a sand-table you look down onto —
- * while still being a solid display object with a base.
+ * Phase 1E.4-B1 — widened 124° → 130° to flatten the silhouette. The audit
+ * found the 124° version still read as a globe; the extra 6° takes the rim
+ * lower (y −0.643 vs −0.559) so the dome is visibly a broad, settled landform
+ * sitting on its stand, rather than a sphere floating in space.
  */
-export const CAP_THETA_LENGTH = (124 * Math.PI) / 180;
+export const CAP_THETA_LENGTH = (130 * Math.PI) / 180;
 
 /** Y coordinate of the cap's rim — also where the display stand meets it. */
 export const CAP_RIM_Y = -Math.cos(CAP_THETA_LENGTH) * GLOBE_RADIUS;
 
 /** Rim radius of the cap. */
 export const CAP_RIM_RADIUS = Math.sin(CAP_THETA_LENGTH) * GLOBE_RADIUS;
+
+/**
+ * Display base proportions (Phase 1E.4-B1).
+ *
+ * After four measured attempts the honest conclusion is that this camera angle
+ * cannot show a classic wide display plinth without a rendering artefact, and
+ * the reasoning is worth recording:
+ *
+ *   The base is a horizontal disc at the rim's height (world y = −0.643). A disc
+ *   seen from a camera above its plane projects with its FRONT edge *lower* on
+ *   screen than its centre, and that offset grows with the disc's radius. Any
+ *   disc wide enough to protrude past the dome's silhouette (≥ ~1.25× rim) has a
+ *   front edge that lands far enough down the screen to draw a pale band across
+ *   the middle of the sand-table — exactly the artefact seen in review.
+ *
+ * So the base is kept just inside the terrain's rim radius (1.04× / 1.0×). It
+ * passes beneath the dome as a shallow foot that reads at the bottom silhouette
+ * without crossing the model's face, and the contact shadow below it grounds the
+ * piece on the page. A true wide display plinth belongs with the Town Art Pass,
+ * where the camera elevation can be reconsidered together with the terrain.
+ */
+const BASE_TOP_RADIUS = CAP_RIM_RADIUS * 0.83;
+const BASE_BOTTOM_RADIUS = CAP_RIM_RADIUS * 0.78;
+const BASE_HEIGHT = 0.1;
+/** World-Y of the base's top face — flush with the terrain rim. */
+const BASE_TOP_Y = CAP_RIM_Y;
 
 /**
  * Terrain wash, low (rim) to high (pole).
@@ -104,25 +130,55 @@ export function TownTerrain() {
         <meshLambertMaterial vertexColors />
       </mesh>
 
-      {/* Rim disc — closes the cap and reads as the model's base plate.
-          Slightly deeper in tone than the terrain so the piece has a defined
-          edge, like the rim of a physical sand-table. */}
+      {/* Rim disc — closes the cap. Deeper in tone than the terrain so the
+          piece has a defined edge where it meets the base. */}
       <mesh position={[0, CAP_RIM_Y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[CAP_RIM_RADIUS, 44]} />
-        <meshLambertMaterial color={TOWN_PALETTE.earth} />
+        <circleGeometry args={[CAP_RIM_RADIUS * 1.005, 44]} />
+        <meshLambertMaterial color={TOWN_PALETTE.earthDeep} />
+      </mesh>
+
+      {/*
+        Display base (Phase 1E.4-B1).
+
+        This is the change that stops the piece reading as a floating planet: a
+        plain paper-ivory stand whose top face sits just below the dome's widest
+        section, so its outer band is visible on both sides. Short (0.14 globe
+        radii) and barely tapered, so it reads as a display stand rather than a
+        pedestal. No metal, no bevel, no sci-fi ring.
+      */}
+      <mesh position={[0, BASE_TOP_Y - BASE_HEIGHT / 2, 0]}>
+        <cylinderGeometry
+          args={[BASE_TOP_RADIUS, BASE_BOTTOM_RADIUS, BASE_HEIGHT, 64]}
+        />
+        <meshLambertMaterial color={TOWN_PALETTE.paper} />
+      </mesh>
+
+      {/* A hairline ink ring on the base's top face — one restrained line that
+          reads as a machined edge on a physical model. */}
+      <mesh
+        position={[0, BASE_TOP_Y + 0.001, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <ringGeometry args={[BASE_TOP_RADIUS * 0.93, BASE_TOP_RADIUS, 64]} />
+        <meshBasicMaterial
+          color={TOWN_PALETTE.ink}
+          transparent
+          opacity={0.2}
+          depthWrite={false}
+        />
       </mesh>
 
       {/* Contact shadow — a dark disc with normal alpha, directly below the
-          rim. Much cheaper than a shadow map and keeps the frame budget flat. */}
+          base. Much cheaper than a shadow map. */}
       <mesh
-        position={[0, CAP_RIM_Y - 0.006, 0]}
+        position={[0, BASE_TOP_Y - BASE_HEIGHT - 0.004, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <circleGeometry args={[CAP_RIM_RADIUS * 1.1, 44]} />
+        <circleGeometry args={[BASE_BOTTOM_RADIUS * 1.2, 48]} />
         <meshBasicMaterial
           color="#2A241C"
           transparent
-          opacity={0.1}
+          opacity={0.11}
           depthWrite={false}
         />
       </mesh>

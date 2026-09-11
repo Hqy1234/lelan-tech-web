@@ -43,7 +43,24 @@ export const TOWN_PALETTE = {
 } as const;
 
 /** Height of the plinth above the surface, in globe radii. */
-export const PLINTH_SCALE = 0.022;
+export const PLINTH_SCALE = 0.028;
+
+/**
+ * Phase 1E.4-B1 — overall building scale multiplier.
+ *
+ * At 1.0 the eight shops rendered ~40px against a ~330px dome, which read as
+ * "a few dots on a sphere" rather than a town. 1.25 is the audited sweet spot:
+ *
+ *   - geometry: widest eave half-extent 0.058 → 0.073 globe radii
+ *   - collision check: the closest shop pair (04 software ↔ 07 industry) sits
+ *     19.0° apart, while 1.25 needs only 8.35°, leaving ~10.6° of margin
+ *   - applied ONCE, on a wrapper group, so the plinth, massing, eave, roof,
+ *     façade panel, marker ring AND the hit target all scale together and can
+ *     never drift out of alignment
+ *
+ * Deliberately does NOT scale the globe, terrain or roads — only the buildings.
+ */
+export const BUILDING_SCALE = 1.25;
 
 function resolveAsset(id: string | undefined): VisualAsset | null {
   if (!id) return null;
@@ -115,16 +132,31 @@ function FacadePanel({ asset }: { asset: VisualAsset }) {
   const texture = useImageTexture(asset.src);
   const aspect = asset.width / asset.height;
 
+  /**
+   * Phase 1E.4-B1 — panel proportions rebalanced so the larger scale does not
+   * turn 01/02 into two standing photo boards.
+   *
+   * Panel area is reduced ~10% relative to its mount while the mount stays
+   * roughly the same, and the ink base line is tied to the panel width, so the
+   * result reads as a framed information plate with a generous paper margin
+   * rather than a full-bleed picture. Real style unification with the proxy
+   * pavilions is deliberately deferred to the Town Art Pass.
+   */
+  const panelW = 0.126;
+  const panelH = panelW / aspect;
+  const mountW = panelW + 0.022;
+  const mountH = panelH + 0.022;
+
   return (
     <group position={[0, PLINTH_SCALE + 0.075, 0]}>
       {/* Frame plate (paper mount) */}
       <mesh position={[0, 0, -0.004]}>
-        <planeGeometry args={[0.15, 0.15 / aspect + 0.012]} />
+        <planeGeometry args={[mountW, mountH]} />
         <meshLambertMaterial color={TOWN_PALETTE.paper} />
       </mesh>
       {/* The artwork itself */}
       <mesh>
-        <planeGeometry args={[0.14, 0.14 / aspect]} />
+        <planeGeometry args={[panelW, panelH]} />
         {texture ? (
           <meshBasicMaterial map={texture} toneMapped={false} />
         ) : (
@@ -132,8 +164,8 @@ function FacadePanel({ asset }: { asset: VisualAsset }) {
         )}
       </mesh>
       {/* Thin ink base line so the panel sits on the ground convincingly */}
-      <mesh position={[0, -0.078, 0.001]}>
-        <planeGeometry args={[0.15, 0.004]} />
+      <mesh position={[0, -mountH / 2 + 0.002, 0.001]}>
+        <planeGeometry args={[mountW, 0.004]} />
         <meshBasicMaterial color={TOWN_PALETTE.ink} transparent opacity={0.35} />
       </mesh>
     </group>
@@ -162,7 +194,13 @@ function ProxyPavilion({
   // Deterministic variation — no randomness, keeps SSR/repeated renders stable.
   const w = 0.075 + (variant % 3) * 0.006;
   const h = 0.055 + (variant % 2) * 0.012;
-  const roofH = 0.03 + (variant % 3) * 0.006;
+  /**
+   * Phase 1E.4-B1 — softened roof.
+   * Previously 0.030–0.042 tall on a 0.80·w base, which produced a sharp spike
+   * once the buildings were scaled up. Now shorter (0.022–0.030) on a wider
+   * base (0.94·w): a shallow, spreading eastern roof instead of a spire.
+   */
+  const roofH = 0.022 + (variant % 3) * 0.004;
 
   return (
     <group position={[0, PLINTH_SCALE, 0]}>
@@ -172,14 +210,16 @@ function ProxyPavilion({
         <meshLambertMaterial color={bodyColor} />
       </mesh>
       {/* Eave — a flat overhanging canopy slab. This is the detail that makes a
-          box read as an eastern pavilion rather than a plain block. */}
+          box read as an eastern pavilion rather than a plain block. Widened
+          slightly (1.34 → 1.42) so the overhang stays proportionate to the
+          broader roof beneath it. */}
       <mesh position={[0, h + 0.004, 0]}>
-        <boxGeometry args={[w * 1.34, 0.008, w * 1.34]} />
+        <boxGeometry args={[w * 1.42, 0.008, w * 1.42]} />
         <meshLambertMaterial color={roofColor} />
       </mesh>
-      {/* Roof — a shallow 4-sided pyramid. */}
-      <mesh position={[0, h + roofH / 2 + 0.008, 0]} rotation={[0, Math.PI / 4, 0]}>
-        <coneGeometry args={[w * 0.8, roofH, 4]} />
+      {/* Roof — a shallow, spreading 4-sided pyramid. */}
+      <mesh position={[0, h + roofH / 2 + 0.006, 0]} rotation={[0, Math.PI / 4, 0]}>
+        <coneGeometry args={[w * 0.94, roofH, 4]} />
         <meshLambertMaterial color={roofColor} flatShading />
       </mesh>
     </group>
@@ -213,7 +253,10 @@ export function TownBuildingVisual({
   const hasArtwork = shop.hasBuildingAsset && building !== null;
 
   return (
-    <group>
+    /* Single scale point for the whole building: plinth, body, eave, roof,
+       façade panel and marker all scale together, so they can never drift out
+       of alignment. */
+    <group scale={BUILDING_SCALE}>
       <Plinth selected={selected} />
       {hasArtwork ? (
         <FacadePanel asset={building} />

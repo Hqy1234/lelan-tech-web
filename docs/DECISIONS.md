@@ -671,6 +671,110 @@
   （结束前 `git status` 仍为 clean），**未**修改 Guardian contract，
   **未**修改 AI 产品能力描述。
 
+## D-PHASE1E.4-B1 · Town Globe Composition Fixes（追加于 2026-09-11）
+
+> 本轮为 Phase 1E.4-B Final Audit（verdict: PASS WITH FIXES）的小修轮。
+> **未**改动 R3F architecture / selection state / hash model / fallback architecture。
+
+### 建筑尺度
+
+- **D-PHASE1E.4-B1-001** — 建筑统一放大 **1.25×**（审计：8 栋建筑在 ~330px 球体上
+  仅约 40px，读作"球上几个小点"而非"一个镇"）。
+  实现方式：在 `TownBuildingVisual` 外层加**唯一一个** `scale` wrapper，
+  使 plinth / 体块 / 飞檐 / 屋顶 / 立面展板 / marker / hit target
+  **一起缩放**，永不相互错位。
+- **D-PHASE1E.4-B1-002** — 放大前已做**碰撞核算**：1.25× 时最宽飞檐半宽 0.073 球半径，
+  需要 8.35° 间隔；实际最近一对（04 软著 ↔ 07 产学研）为 **19.0°**，
+  余量 **10.6°**。8 栋方位全部复核，**无 overlap、无 label 碰撞、无 hit area 碰撞**。
+- **D-PHASE1E.4-B1-003** — **只放大建筑**。globe / terrain / roads **均未**缩放，
+  道路也未随之变粗。
+
+### 相机与取景
+
+- **D-PHASE1E.4-B1-004** — 1440 下沙盘下缘被 viewport 底部裁切。根因是**两个**问题叠加：
+  section header 占 ~379px，而 stage 固定 560px，超出 900px viewport。
+  两个都已修。
+- **D-PHASE1E.4-B1-005** — stage 高度改为**视口相关**：`min(54vh, 500px)`
+  （移动端 `h-[400px]` / `sm:h-[440px]`，短视口下限 400px）。
+  1440×900 下 stage = 486px，画布底 865 < 900 → **不再被 fold 裁切**。
+- **D-PHASE1E.4-B1-006** — 相机 **`[0, 1.13, 3.85]`**（原 `[0, 1.15, 3.9]`），
+  `lookAt` y = **0.02**（原 0.06）。取景基于**实测像素**而非估算：
+  改前模型仅占画布高 65%（上留 84px / 下留 88px）；改后占 **83%**，
+  上留 42px / 下留 39px。FOV 仍为 34（区间 30–45 内，非广角）。
+- **D-PHASE1E.4-B1-007** — `lookAt` 目标改为**组合体的真实垂直中心**
+  （穹顶 +1.0 → 底座脚 ≈ −0.64），而非穹顶原点。原先对准原点导致模型在画面中偏低，
+  是裁切的原因之一。
+
+### 沙盘轮廓（Sand-table）
+
+- **D-PHASE1E.4-B1-008** — cap 由 124° 加宽至 **130°**，rim 下移至 y = −0.643
+  （原 −0.559），穹顶更扁、更像"落定的地形"而非球体。
+  继续**禁止**大陆 / 经纬 / 轨道 / 太空 / 星野 / 大气辉光 / 黑色背景。
+
+### 展示底座 —— 结论：本相机角度下不可行（已实测）
+
+- **D-PHASE1E.4-B1-009** — 审计建议"增加克制底座以去除 planet 感"。
+  **实测四种方案后确认：在当前相机角度下，可见的宽底座无法避免渲染瑕疵。**
+  几何原因（已记录在 `TownTerrain.tsx` 注释）：
+  底座是位于 rim 高度的**水平圆盘**。相机位于其平面上方时，圆盘的**前缘**在屏幕上
+  投影得比盘心**更低**，且该偏移随半径增大。任何宽到足以从穹顶轮廓后"探出"的圆盘
+  （≥ 约 1.25× rim）其前缘都会下探到把一条浅色带横切在沙盘中部 —— 这正是评审中
+  看到的瑕疵。1.04× 的"小唇边"同样产生该带（已实测确认）。
+- **D-PHASE1E.4-B1-010** — 因此底座保持**略小于**地形 rim 半径
+  （top 0.83× / bottom 0.78× rim，高 0.1），作为不可见的承托脚存在，
+  由下方 contact shadow 把模型"压"在纸面上。
+  **正式的宽展示底座移交 Town Art Pass**，届时可连同地形与相机仰角一起重新设计。
+  **本轮不为此硬造视觉。**
+
+### Drawer 间距与均衡
+
+- **D-PHASE1E.4-B1-011** — 修复 `ARCHIVE · SHOP-xx` 与店铺名仅 ~7px 的贴挤。
+  archive ID 改为**正常文档流**首行，其后**固定 18px** 呼吸空间再是店铺名。
+  实测 **gap = 18px**。**未**加边框、未加额外标签、未加装饰。
+- **D-PHASE1E.4-B1-012** — 曾试 `mt-auto` 把内容推到面板底部，反而把 header 与
+  正文拉开 ~50px，形成"头尾分离"。已回退为**固定间距**方案。
+- **D-PHASE1E.4-B1-013** — drawer 高度改为与 stage **等高**（列容器 `lg:flex`），
+  实测 drawer 486px = stage 486px，消除了右下方的空置感。
+  **未填充任何无意义文字**。
+
+### 01 / 02 与 03–08
+
+- **D-PHASE1E.4-B1-014** — 01/02 **未重做素材**。仅调整立面比例：面板区相对纸框
+  收窄约 10%，纸边留白加宽，读作"带装裱的信息铭牌"而非"整幅照片板"。
+  **未做假抠图**。真正的风格统一留待 Art Pass。
+- **D-PHASE1E.4-B1-015** — 03–08 继续使用现有 proxy。仅**柔和屋顶**：
+  高度 0.030–0.042 → **0.022–0.030**，底面半径 0.80w → **0.94w**，
+  飞檐 1.34w → **1.42w**（与更宽的屋顶成比例）。
+  审计指出的"屋顶略尖"已消除。**未**做复杂中国古建筑。
+
+### 其余
+
+- **D-PHASE1E.4-B1-016** — Terrain 本轮**未**做完整 art pass；未加 height variation /
+  courtyard / water patch（避免拖慢本轮）。正式 terrain 留 Art Pass。
+- **D-PHASE1E.4-B1-017** — **Hash 行为未改**。`#bogus` 不 normalize 的现状保持，
+  本轮不引入 router complexity。
+- **D-PHASE1E.4-B1-018** — **favicon**：项目当前**没有任何** favicon / icon 资源
+  （`app/favicon.*` 与 `public/*icon*` 均不存在）。按指示**不临时绘制低质量图标**，
+  记为 known limitation，留待品牌资产到位时正式接入。
+
+### 性能不变量（全部保持）
+
+- **D-PHASE1E.4-B1-019** — 保持：lazy load / `frameloop="demand"` / `dpr max 1.5` /
+  no drei / no postprocessing / no shadows / no auto rotation / no wheel zoom。
+  实测：初始 JS **646,414 bytes**（与 1E.4-B 的 646,463 基本一致 → **首屏无回归**）；
+  three chunk 908,379 raw / 233.1 KB gzip，**仍未被 index.html 引用**；
+  空闲 1.5s 内 rAF = **0**。
+
+### 回归验证（全部通过）
+
+- **D-PHASE1E.4-B1-020** — 实测通过：drag（无文字选中、无横向位移）、
+  click（globe → selectedId + hash + drawer + aria-live + index 同步）、
+  rotate-to（8 个铺子全部正确落位）、index sync、drawer sync、hash sync、
+  keyboard、aria-live、reduced-motion（canvas=0 且 three 完全不下载）、
+  context-loss fallback（canvas 消失、2D 恢复、无错误）、375 fallback、768 fallback。
+  1440/1024/768/375 全部 `document.scrollWidth === viewport`，0 broken image，
+  0 JS error / 0 exception / 0 404。
+
 ## 修改规范
 
 - 新决定追加在文末，按 `D-<类别>-<序号>` 编号。

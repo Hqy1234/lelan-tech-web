@@ -334,26 +334,37 @@ export function TownServiceDrawer({ shop, agentRoleLabel }: TownServiceDrawerPro
   return (
     <aside
       aria-label={`${shop.name} 档案详情`}
-      className="lelan-corner lelan-glass-raised relative rounded-sm p-4 sm:p-5"
+      className="lelan-corner lelan-glass-raised relative flex flex-col rounded-sm p-4 sm:p-5"
     >
-      {/* Archive ID — demoted, top right */}
-      <p className="lelan-archive-id absolute right-3 top-3 z-10">
-        ARCHIVE · SHOP-{shop.number}
-      </p>
+      {/*
+        Header (Phase 1E.4-B1).
 
-      <div className="flex flex-col gap-3">
-        <div>
-          <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-            服务档案
-          </p>
-          <h3 className="mt-1 font-serif text-lg text-ink sm:text-xl">
-            {shop.name}
-          </h3>
-          <p className="mt-0.5 text-xs text-muted">
-            {shop.plainLanguageService}
-          </p>
-        </div>
+        The audit found the "ARCHIVE · SHOP-01" label sat only ~7px above the
+        shop name, which read as a collision. The archive ID is now in NORMAL
+        FLOW as the first line of a header block, followed by an explicit 18px
+        of breathing room above the shop name — a clear vertical hierarchy:
+        archive ID → 18px → shop identity.
 
+        Kept as a fixed 18px gap (not `mt-auto`), because an elastic gap pushed
+        the two ~50px apart, which over-corrected into a disconnected header.
+        Implemented as spacing only: no border, no extra label, no decoration.
+      */}
+      <div className="flex flex-col">
+        <p className="lelan-archive-id">ARCHIVE · SHOP-{shop.number}</p>
+
+        <h3 className="mt-[18px] font-serif text-lg leading-tight text-ink sm:text-xl">
+          {shop.name}
+        </h3>
+        <p className="mt-1 text-xs text-muted">{shop.plainLanguageService}</p>
+      </div>
+
+      {/*
+        Body — a fixed generous gap (pt-6) below the identity block. The audit
+        found the drawer clustered at the top leaving the lower right empty; a
+        pure push-to-bottom overshot; pt-6 plus the taller stage now spans the
+        panel evenly without stranding whitespace inside the header.
+      */}
+      <div className="flex flex-col gap-3 pt-6">
         <p className="text-xs leading-relaxed text-ink/85 sm:text-sm">
           {shop.shortDescription}
         </p>

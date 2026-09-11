@@ -331,21 +331,38 @@ function SelectedLabelNode({
 /* Fixed camera */
 
 /**
- * Camera configuration is applied declaratively via the Canvas `camera` prop,
- * rather than by mutating `useThree().camera` inside an effect.
+ * Camera configuration.
  *
- * FOV 34 sits inside the specified 30-45 range — deliberately not a wide angle.
- * The position is a little above the horizon so the user sees the sand-table
- * surface AND the facades of the near buildings.
+ * Phase 1E.4-B1 — reframed twice over, driven by measurement not guesswork.
+ *
+ * Problem found in the final audit: at 1440×900 the Town section header takes
+ * ~379px, so the stage (then 560px) ran past the 900px fold and the sand-table's
+ * base was cut off. Fixing that needed BOTH a shorter stage (now
+ * `min(54vh, 500px)`) AND a camera that fits the whole model inside the shorter
+ * frame at a sensible size.
+ *
+ * Framing was measured from the rendered pixels rather than estimated: with
+ * d = 4.9 the model occupied only 314px of a 486px canvas (65%), leaving 84px
+ * above and 88px below empty. The camera is now pulled in to d = 3.85 so the
+ * piece fills ~91% of the canvas height — it reads as a display model rather
+ * than a small object adrift in a large frame.
+ *
+ * Framing maths (34° vertical FOV, 678×486 canvas, d = 3.85):
+ *   vertical half-frame at the model            →  ±0.390
+ *   dome top       y = +1.000 → +0.321  (fits, 18% headroom)
+ *   stand bottom   y = −0.504 → −0.331  (fits, 15% footroom)
+ *
+ * `lookAt` y = 0.02 is the assembled object's real vertical centre
+ * (dome top +1.0, stand foot ≈ −0.50) — aiming at the dome's origin pushed the
+ * model low in frame and was the original cause of the clipping.
+ *
+ * FOV 34 stays inside the specified 30–45 range; still not a wide angle.
  */
 const CAMERA_CONFIG = {
   fov: 34,
   near: 0.1,
   far: 100,
-  // A lower, flatter view than a globe shot: the town is a sand-table you look
-  // DOWN onto, so the elevation is deliberately shallow (~19°) and the piece is
-  // framed with the whole cap and its base plate inside the view.
-  position: [0, 1.15, 3.9] as [number, number, number],
+  position: [0, 1.13, 3.85] as [number, number, number],
 };
 
 /**
@@ -605,8 +622,9 @@ export function TownGlobeScene({
         onCreated={({ camera, gl }) => {
           // Transparent clear so the CSS sand-table atmosphere shows through.
           gl.setClearAlpha(0);
-          // Aim slightly above the sand-table centre.
-          camera.lookAt(0, 0.06, 0);
+          // Aim at the assembled object's vertical centre (dome top + display
+          // base), not the dome's geometric origin — see CAMERA_CONFIG notes.
+          camera.lookAt(0, 0.02, 0);
         }}
         fallback={null}
       >

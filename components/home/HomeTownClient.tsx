@@ -214,8 +214,16 @@ export function HomeTownClient({ shops, statusNote }: HomeTownClientProps) {
       {/* ── Centre: the town renderer ───────────────────────────
           TownGlobe mounts a WebGL canvas only on capable desktops and only
           once this element nears the viewport; otherwise the 2D map is shown.
-          Both read the same `selectedId` and emit the same `onSelect`. */}
-      <div className="relative h-[420px] min-w-0 lg:h-[560px] lg:flex-1">
+          Both read the same `selectedId` and emit the same `onSelect`.
+
+          Height (Phase 1E.4-B1): the stage is now VIEWPORT-RELATIVE
+          (`min(54vh, 500px)`) rather than a flat 560px. At 1440×900 the section
+          header consumes ~379px, so a 560px stage ran past the fold and cut the
+          sand-table's base off. 54vh/500px leaves the whole model visible with
+          the header in view — Town reads as the spatial climax without the user
+          needing to scroll within the section. Floored at 400px for short
+          viewports so the globe never collapses. */}
+      <div className="relative h-[400px] min-w-0 sm:h-[440px] lg:h-[min(54vh,500px)] lg:flex-1">
         <TownGlobe
           shops={shops}
           selectedId={selected.id}
@@ -232,7 +240,7 @@ export function HomeTownClient({ shops, statusNote }: HomeTownClientProps) {
           Real HTML, never moved into the canvas. The small negative margin on
           large screens lets it overlap the globe edge for a foreground feel;
           it can never cross the section's right edge. */}
-      <div className="w-full shrink-0 lg:w-[22%] lg:min-w-[15rem] lg:-ml-4 lg:z-10">
+      <div className="w-full shrink-0 lg:flex lg:w-[22%] lg:min-w-[15rem] lg:-ml-4 lg:z-10">
         <TownServiceDrawer shop={selected} agentRoleLabel={agentRoleLabel} />
       </div>
 

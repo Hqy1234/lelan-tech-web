@@ -7,19 +7,23 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1E.4-B — Interactive Town Globe Prototype（已完成）
-- **下一阶段**：Town art production / polish（**尚未开始**，见下）
-- **说明**：Phase 1E.4-B 完成。成果小镇升级为**可拖动旋转的东方微缩数字城镇沙盘球体**
-  （LELAN TOWN GLOBE）。新增依赖仅 `three` + `@react-three/fiber`（+ `@types/three`）；
-  **未采用** `@react-three/drei`（自写纹理加载与标签投影即可，避免无谓体积）；
-  **未引入** globe.gl / postprocessing / GSAP / framer-motion / leva / rapier / cannon。
-  Globe **仅在 ≥1024px 且 WebGL 可用、非 reduced-motion、非低功耗设备**时挂载，
-  并仅在 Town 区块接近视口时经 `dynamic({ssr:false})` 懒加载 → three **不进静态导出
-  HTML、不进首屏 bundle**（实测 907KB raw / 233KB gzip）。2D `TownMapStage` 永久保留为
-  fallback 与加载态，业务入口恒为 HTML（8 铺子语义索引 + 抽屉 + aria-live）。
-  `frameloop="demand"` 空闲 0 渲染帧。1440/1024/768/375 全部无横向溢出，
-  0 broken image，**0 JS error / 0 exception / 0 404**。
-  本轮**未**进入 Dify，**未**修改 `lelan-shouhu`，**未**改 Guardian contract 与 AI 能力描述。
+- **当前阶段**：Phase 1E.4-B1 — Town Globe Composition Fixes（已完成）
+- **下一阶段**：Phase 1E.4-C — Town Art Production / Polish（**尚未开始**）
+- **说明**：Phase 1E.4-B1 完成（Phase 1E.4-B Final Audit 的 PASS WITH FIXES 小修轮）。
+  建筑统一放大 **1.25×**（只放大建筑，globe/terrain/roads 不变；放大前已核算碰撞，
+  最近一对 19.0° vs 需要 8.35°，余量 10.6°）；stage 改为 `min(54vh, 500px)`、
+  相机 `[0, 1.13, 3.85]` + `lookAt y=0.02`，实测模型填充画布高度 65% → **83%**，
+  1440×900 下**完整沙盘不再被 fold 裁切**；cap 加宽至 **130°** 使轮廓更扁平；
+  drawer 修复 header 贴挤（archive ID → **18px** → 店铺名）并与 stage **等高**
+  （486 = 486），消除右下方空置；proxy 屋顶柔和化（更矮更宽）；
+  01/02 仅调立面比例，未重做素材。
+  **重要发现（已实测四种方案）**：当前相机仰角下，任何可见宽底座都会在沙盘中部横切出
+  一条浅色带，因此底座保持不可见承托脚，**正式宽底座移交 Art Pass**。
+  favicon 仍缺失，记为 known limitation。
+  lint/tsc/build 全通过；1440/1024/768/375 无横向溢出；0 broken image；
+  0 JS error / 0 exception / 0 404；初始 JS 646,414 bytes（与 1E.4-B 一致，
+  **首屏无回归**）；three chunk 仍为懒加载。本轮**未**进入 Dify，
+  **未**修改 `lelan-shouhu`，**未**改 selection / hash / fallback architecture。
 
 ---
 
@@ -176,7 +180,43 @@
   （拖拽 yaw 变化、rotate-to 精确落点、pitch 精确 clamp、globe→index/hash/drawer 同步、
   wheel 不劫持页面）
 
+## Phase 1E.4-B1 · Town Globe Composition Fixes（已完成）
+
+Phase 1E.4-B Final Audit（verdict: PASS WITH FIXES）的小修轮。
+**未**改动 R3F architecture / selection state / hash model / fallback architecture。
+
+- **建筑尺度**：统一 **1.25×**（唯一 `scale` wrapper，plinth / 体块 / 飞檐 / 屋顶 /
+  立面 / marker / hit target 一起缩放）。**只放大建筑**，globe / terrain / roads 不变。
+  放大前核算碰撞：1.25× 需 8.35°，实际最近一对 19.0°，余量 10.6° →
+  **无 overlap / 无 label 碰撞 / 无 hit area 碰撞**
+- **取景**：stage `min(54vh, 500px)`（移动端 400 / tablet 440，下限 400）；
+  相机 `[0, 1.13, 3.85]`，`lookAt` y = 0.02（组合体真实垂直中心）。
+  实测模型填充画布高度 **65% → 83%**；1440×900 画布底 865 < 900 →
+  **完整沙盘 + 底座不再被 fold 裁切**。1024 画布 536×486，不拥挤
+- **Sand-table 轮廓**：cap 加宽至 **130°**（rim y = −0.643），更扁、更少 planet 感
+- **展示底座（重要约束）**：实测四种方案后确认，**当前相机仰角下任何可见宽底座都会
+  在沙盘中部横切出一条浅色带**（水平圆盘前缘的屏幕投影随半径下移所致）。
+  因此底座保持**不可见承托脚**（0.83× / 0.78× rim，高 0.1），由 contact shadow 接地。
+  **正式宽底座移交 Art Pass** —— 届时须连同地形与相机仰角一起重新设计
+- **Drawer**：archive ID 回到正常文档流首行 + **固定 18px** 呼吸空间 + 店铺名
+  （实测 gap = 18px；**禁用** `mt-auto` 弹性间距，会把 header 与正文拉开约 50px）；
+  drawer 与 stage **等高**（486 = 486），消除右下方空置；未填充无意义文字
+- **Proxy 屋顶柔和化**：高度 0.022–0.030（原 0.030–0.042），底面半径 0.94w（原 0.80w），
+  飞檐 1.42w（原 1.34w）
+- **01/02**：仅调整立面比例（面板相对纸框收窄约 10%），**未重做素材**、**未假抠图**；
+  风格统一留 Art Pass
+- **未做**：terrain 完整 art pass（避免拖慢本轮）；hash 行为未改；
+  favicon 仍缺失 → known limitation（不临时绘制低质量图标）
+- **性能不变量全部保持**：lazy load / `frameloop="demand"`（空闲 0 rAF）/
+  `dpr max 1.5` / no drei / no postprocessing / no shadows / no auto rotation /
+  no wheel zoom。初始 JS **646,414 bytes**（与 1E.4-B 一致 → **首屏无回归**）；
+  three chunk 仍未被 `index.html` 引用
+- **回归**：drag / click / rotate-to（8 铺子）/ index / drawer / hash / keyboard /
+  aria-live / reduced-motion / context-loss / 375 / 768 全部通过；
+  四断点无横向溢出；0 broken image；0 JS error / 0 exception / 0 404
+
 ## Phase 1E.4-C · Town Art Production / Polish（下一阶段 · 尚未开始）
+
 
 **前置条件**：本轮完成后，Town Globe 的**渲染器与交互已就绪**，瓶颈转为**美术资产**。
 
