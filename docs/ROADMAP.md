@@ -7,18 +7,19 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1E.4-A — Visual De-noising + Guardian Subject Restoration + AI Simplification（已完成）
-- **下一阶段**：Phase 1E.4-B — Town Globe Prototype（WebGL / React Three Fiber，**尚未开始**）
-- **说明**：Phase 1E.4-A 完成。修复 1440 横向 overflow 根因（`ai-glass-center` 百分
-  margin 于绝对定位下解析为包含块宽度 → 116% 宽；`town-drawer-float` 负偏移），
-  1440/1024/768/375 全部 `document.scrollWidth === viewport`；Guardian 恢复单一视觉
-  主体（1 张大阶段图跟随选择 + 5 张五行图连续档案带），**未**恢复 8 张小缩略图，
-  **女娲保持 BLOCKED**；Guardian 当前坐标读数由 3 处去重为 1 处；Glass 由 5 降至 2
-  （仅 Guardian LIVE + Town 服务面板，AI/Hero/Technology/About = 0）；AI 重构为 quiet
-  document workspace，1440 高度 1603px→1157px，section overflow 0；Town 仅降噪并冻结
-  renderer seam；section 编号修复为连续 00–05；lint/tsc/build 全通过，无 broken image，
-  无 console error。Town Globe **未实现**，three.js/R3F **未安装**，`lelan-shouhu`
-  **未修改**。
+- **当前阶段**：Phase 1E.4-B — Interactive Town Globe Prototype（已完成）
+- **下一阶段**：Town art production / polish（**尚未开始**，见下）
+- **说明**：Phase 1E.4-B 完成。成果小镇升级为**可拖动旋转的东方微缩数字城镇沙盘球体**
+  （LELAN TOWN GLOBE）。新增依赖仅 `three` + `@react-three/fiber`（+ `@types/three`）；
+  **未采用** `@react-three/drei`（自写纹理加载与标签投影即可，避免无谓体积）；
+  **未引入** globe.gl / postprocessing / GSAP / framer-motion / leva / rapier / cannon。
+  Globe **仅在 ≥1024px 且 WebGL 可用、非 reduced-motion、非低功耗设备**时挂载，
+  并仅在 Town 区块接近视口时经 `dynamic({ssr:false})` 懒加载 → three **不进静态导出
+  HTML、不进首屏 bundle**（实测 907KB raw / 233KB gzip）。2D `TownMapStage` 永久保留为
+  fallback 与加载态，业务入口恒为 HTML（8 铺子语义索引 + 抽屉 + aria-live）。
+  `frameloop="demand"` 空闲 0 渲染帧。1440/1024/768/375 全部无横向溢出，
+  0 broken image，**0 JS error / 0 exception / 0 404**。
+  本轮**未**进入 Dify，**未**修改 `lelan-shouhu`，**未**改 Guardian contract 与 AI 能力描述。
 
 ---
 
@@ -133,6 +134,68 @@
 - **静态导出兼容**：`output: "export"` 保持，`/guardian/demo` 静态生成
 - 文档更新：PROJECT / DESIGN-SYSTEM / DECISIONS / ROADMAP
 
+## Phase 1E.4-B · Interactive Town Globe Prototype（已完成）
+
+**目标**：把成果小镇从 2D / 2.5D flat map 升级为**可拖动旋转的东方微缩数字城镇沙盘球体**。
+
+- **技术路线**：`three` + `@react-three/fiber`（React Three Fiber 优先）
+  - **不采用** `@react-three/drei`：自写纹理加载 + 自写 world→NDC 标签投影即可，
+    drei 会把大量额外代码并入 three chunk
+  - **禁止** globe.gl / react-globe.gl / three-globe / cobe
+  - **禁止** postprocessing / HDR environment / 复杂 shader / 高面数模型 / 物理引擎
+- **Scene 结构**：程序化低浮雕**球冠** + 平面 rim disc（沙盘底座）+ 5 条大圆弧道路
+  + 8 个 shop node + 1 个 HTML 标签；仅 AmbientLight + 2 × DirectionalLight；
+  无实时阴影（极淡 painted contact disc）
+- **不是地球**：无大陆 / 国界 / 经纬 / 卫星图 / 物流弧线 / 轨道线 / 星野 / 星系 /
+  行星环 / 太空背景；材质限 warm ivory / muted jade / earth beige / ink green + 极少量 cinnabar
+- **相机**：PerspectiveCamera FOV 34，略高于赤道面；**旋转世界而非环绕相机**；
+  pitch clamp −0.40 … 0.62
+- **交互**：drag 旋转（threshold 5px）、click 建筑选择、index → rotate-to
+  （700ms ease-out）、**wheel 不劫持页面滚动**、**无自动旋转**
+- **8 铺子全部存在**，不因缺美术而减少：
+  - 01 / 02 → architectural display panel（现有非透明 WebP，诚实呈现为微缩立面展板）
+  - 03–08 → 统一低浮雕 proxy pavilion（明确读作「待建形态」，非空灰盒）
+  - **禁止**复制同一张建筑图 / 换色伪装
+- **能力门（capability gate）**：feature detect first, heuristic second, fallback safe
+  - **≥1024px 才挂载 WebGL**；768–1023 与 ≤767 使用 2D fallback
+  - WebGL 不可用 / context lost / reduced-motion / 低功耗 → 2D fallback
+  - 低功耗判定**只接受正向证据**（`undefined` 不判为弱设备）
+  - **门控使用 viewport 宽度，不是组件容器宽度**
+- **懒加载**：`IntersectionObserver`（rootMargin 300px）+ `dynamic({ssr:false})`
+  → three 不进静态导出 HTML / 首屏 bundle（实测 907KB raw / 233KB gzip）
+- **性能**：`frameloop="demand"` 空闲 0 渲染帧；`dpr={[1, 1.5]}`；基础 antialias
+- **无障碍**：Canvas `aria-hidden` + `role="presentation"`，不 trap focus；
+  业务入口恒为 HTML（8 铺子语义索引 + 抽屉 + `aria-live` 播报）
+- **URL**：保留既有 hash，同时支持 `#shop-01`…`#shop-08` 与 `#shop-paper-teahouse`；
+  写回仍用 slug → 旧 deep link 不破坏
+- **seam 冻结**：`HomeTownClient` 独占状态；`TownGlobe` / `TownMapStage` 为纯渲染器；
+  `content/town.ts` 唯一真相源（新增 `globe` 字段，`plot` 保留给 2D fallback）；
+  `TownBuildingVisual` 为**唯一**未来资产替换点
+- **QA**：lint 0 / tsc 0 / build 8 页；1440/1024/768/375 无横向溢出；
+  0 broken image；**0 JS error / 0 exception / 0 404**；交互经实测验证
+  （拖拽 yaw 变化、rotate-to 精确落点、pitch 精确 clamp、globe→index/hash/drawer 同步、
+  wheel 不劫持页面）
+
+## Phase 1E.4-C · Town Art Production / Polish（下一阶段 · 尚未开始）
+
+**前置条件**：本轮完成后，Town Globe 的**渲染器与交互已就绪**，瓶颈转为**美术资产**。
+
+- **必须补齐 6 栋缺失建筑**：专利小铺 / 软著小铺 / 申报辅导 / 成果转化 /
+  产学研对接 / AI 工具坊 —— reference PNG 已存在（2364×1773），
+  但**没有 delivery WebP**；需先派生，或直接制作 globe-ready 资产
+- **需要一套 globe-ready 建筑资产**：现有 reference 是**带背景的方形构图 PNG**，
+  不是抠图资产，无法直接用于球体。需：
+  - 透明背景 WebP/AVIF，或低模 3D / 2.5D sprite
+  - **统一光影方向与色板**（否则 8 栋会像来自不同世界）
+  - 保持 `public/images/` 原路径文件名，以便零代码替换
+- **可选地形升级**：单一高分辨率东方风地形贴图（equirect 或球冠 UV），
+  或简单 heightfield；**不得**使用真实卫星图
+- **替换点唯一**：只改 `components/town/globe/TownBuildingVisual.tsx`，
+  **不得**改动 selection / rotation / camera / hash / fallback / drawer
+- **版权前置**：全部 30 张 reference 需完成版权 / 授权复核（D-ASSET-007/008）；
+  女娲仍 **BLOCKED**
+- **不进入 Dify**：Phase 1F（Dify / Adapter）仍 gated by user confirmation
+
 ## Phase 1E.4-A · Visual De-noising + Guardian Subject Restoration + AI Simplification（已完成）
 
 **问题诊断**：不是"设计不够多"，而是"结构语言过多、视觉主体过少"。
@@ -173,21 +236,10 @@ Phase 1E.3-B/C 连续两轮只做加法（glass、Z0–Z5、section field、飞�
 - **本轮明确未做**：Town Globe 未实现；three.js / @react-three/fiber / drei 未安装；
   Dify 未进入；`lelan-shouhu` 未修改
 
-## Phase 1E.4-B · Town Globe Prototype（下一阶段 · 尚未开始）
-
-- 目标：可拖动旋转的"东方数字城镇沙盘"（LELAN DIGITAL TOWN SANDBOX）
-- 技术方向：React Three Fiber（+ 按需 drei），**提案待实施**
-- 前置约束（Phase 1E.4-A 已锁定）
-  - 保持 `TownMapStage` 的 renderer seam 契约不变
-  - 仅在 Town section 动态加载；进入 viewport 才加载
-  - 必须提供 fallback：WebGL unavailable / `prefers-reduced-motion` /
-    低功耗移动端 / `noscript` / 键盘可达的服务索引 / SEO 静态 HTML
-  - ≤767px 不挂载 WebGL
-  - 不做真实地球（无大陆 / 国界 / 经纬 / 物流弧线 / 赛博）
-  - 不做游戏化（无 RPG HUD / 角色跑动 / 任务系统 / 金币 / 经验 / 摇杆 /
-    昼夜 / 满屏粒子 / 背景音乐）
-  - **素材前置**：6 个铺子缺 delivery WebP（reference 已有），
-    3D/globe 资产尚无 —— 素材生产需先于 WebGL 实现
+> **注**：原「Phase 1E.4-B · Town Globe Prototype（下一阶段 · 尚未开始）」条目
+> 已由上文 **Phase 1E.4-B · Interactive Town Globe Prototype（已完成）** 取代。
+> 差异记录：drei **最终未采用**（自写纹理与标签投影），且 3D 资产并非本阶段的
+> 阻塞项 —— renderer / 交互先落地，**美术资产生产移交 Phase 1E.4-C**。
 
 ## Phase 1D-G3 · Guardian-first Homepage + LeLan AI Integration（已完成）
 

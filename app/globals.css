@@ -959,9 +959,11 @@ summary::marker {
  *   - Future buildings = architectural volumes (not placeholders)
  * ============================================================ */
 
-/* Town map container — taller for visual impact */
+/* Town map container — Phase 1E.4-B: the grid map is now the FALLBACK /
+   loading surface beneath the WebGL globe, so it fills the host height
+   instead of forcing a tall box of its own. */
 .lelan-town-map-container {
-  min-height: min(68vh, 640px);
+  height: 100%;
 }
 
 /* Phase 1E.4-A — `.lelan-town-drawer-float` deleted.
@@ -1161,4 +1163,41 @@ summary::marker {
  * Guardian glass overlay was removed. Neither is referenced by any
  * component. Deleted rather than left as dead CSS.
  * ============================================================ */
+
+/* ============================================================
+ * Phase 1E.4-B — Town Globe stage
+ *
+ * The WebGL canvas sits inside a fixed-height host in HomeTownClient, with the
+ * 2D town map underneath it acting as both the loading state and the fallback.
+ * The background is a warm spatial field, NOT space: no stars, no galaxy, no
+ * orbit lines, no planet ring, no black background.
+ * ============================================================ */
+.lelan-globe-stage {
+  /* Horizontal drag rotates the world; vertical scroll still scrolls the page.
+     This is what stops the globe from hijacking touch scrolling. */
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  background:
+    radial-gradient(
+      120% 90% at 50% 18%,
+      rgba(255, 253, 246, 0.9) 0%,
+      rgba(238, 233, 220, 0.55) 45%,
+      rgba(214, 208, 192, 0.35) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(196, 207, 193, 0.22) 0%,
+      rgba(243, 238, 226, 0.4) 55%,
+      rgba(216, 203, 171, 0.3) 100%
+    );
+}
+.lelan-globe-stage:active {
+  cursor: grabbing;
+}
+.lelan-globe-stage canvas {
+  display: block;
+  outline: none;
+}
 

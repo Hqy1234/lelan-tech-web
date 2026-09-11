@@ -56,6 +56,37 @@ export interface TownShopPlotPosition {
   y: number;
 }
 
+/**
+ * Phase 1E.4-B — Town Globe position (spherical), used by the WebGL renderer.
+ *
+ * `plot {x, y}` above remains the source of truth for the 2D fallback map.
+ * This is the globe equivalent, kept explicit rather than hardcoded as eight
+ * JSX positions.
+ *
+ * Convention (right-handed, +Y is the town's local "north pole"):
+ *   latitude  0  = equator      +90 = pole
+ *   longitude 0  = prime meridian, increasing eastward (0–360)
+ *
+ * Distribution intent — a TOWN SETTLEMENT, not eight evenly-spaced satellites:
+ *   01 论文茶寮 is the civic centre (faces the camera first, longitude 0).
+ *   02–04 form an upstream research cluster hugging the centre.
+ *   05–07 form a second cluster (funding / transformation) to the south-east.
+ *   08 AI 工具坊 sits slightly separated and raised, like a hill workshop.
+ *
+ * All 8 must stay reachable by rotating the world.
+ */
+export interface TownShopGlobePosition {
+  /** Latitude in degrees. Positive = toward the local north pole. */
+  latitude: number;
+  /** Longitude in degrees, 0–360. */
+  longitude: number;
+  /**
+   * Visual elevation above the terrain surface (in globe radii).
+   * Only 08 uses a raised value — it reads as a hill workshop.
+   */
+  elevation?: number;
+}
+
 export interface TownShop {
   /** 锁定映射使用的语义 id */
   id:
@@ -104,8 +135,15 @@ export interface TownShop {
   /**
    * Plot 坐标（normalized 0–100）。必须与 TownMapStage 的路面网格对齐。
    * Phase 1E.3-B 锁定位置，未来调整需要双轴同步。
+   * Phase 1E.4-B：保留给 2D fallback renderer 使用，**不得删除**。
    */
   plot: TownShopPlotPosition;
+
+  /**
+   * Phase 1E.4-B — Town Globe 球面坐标（WebGL renderer 使用）。
+   * 与 `plot` 双轨并存：Globe 用 `globe`，2D fallback 用 `plot`。
+   */
+  globe: TownShopGlobePosition;
 
   /** 该店铺当前是否可被点击跳转到真实目的地 */
   availability: ShopAvailability;
@@ -127,6 +165,7 @@ export const townShops: ReadonlyArray<TownShop> = [
     hasBuildingAsset: true,
     hasCharacterAsset: true,
     plot: { x: 35, y: 28 },
+    globe: { latitude: 42, longitude: 0 },
     availability: "preview",
   },
   {
@@ -143,6 +182,7 @@ export const townShops: ReadonlyArray<TownShop> = [
     hasBuildingAsset: true,
     hasCharacterAsset: true,
     plot: { x: 50, y: 28 },
+    globe: { latitude: 24, longitude: 300 },
     availability: "concept",
   },
   {
@@ -157,6 +197,7 @@ export const townShops: ReadonlyArray<TownShop> = [
     hasBuildingAsset: false,
     hasCharacterAsset: false,
     plot: { x: 20, y: 28 },
+    globe: { latitude: 32, longitude: 330 },
     availability: "concept",
   },
   {
@@ -171,6 +212,7 @@ export const townShops: ReadonlyArray<TownShop> = [
     hasBuildingAsset: false,
     hasCharacterAsset: false,
     plot: { x: 65, y: 28 },
+    globe: { latitude: 30, longitude: 26 },
     availability: "concept",
   },
   {
@@ -185,6 +227,7 @@ export const townShops: ReadonlyArray<TownShop> = [
     hasBuildingAsset: false,
     hasCharacterAsset: false,
     plot: { x: 35, y: 62 },
+    globe: { latitude: 14, longitude: 348 },
     availability: "concept",
   },
   {
@@ -199,6 +242,7 @@ export const townShops: ReadonlyArray<TownShop> = [
     hasBuildingAsset: false,
     hasCharacterAsset: false,
     plot: { x: 65, y: 62 },
+    globe: { latitude: 8, longitude: 62 },
     availability: "concept",
   },
   {
@@ -213,6 +257,7 @@ export const townShops: ReadonlyArray<TownShop> = [
     hasBuildingAsset: false,
     hasCharacterAsset: false,
     plot: { x: 50, y: 62 },
+    globe: { latitude: 16, longitude: 40 },
     availability: "concept",
   },
   {
@@ -227,6 +272,7 @@ export const townShops: ReadonlyArray<TownShop> = [
     hasBuildingAsset: false,
     hasCharacterAsset: false,
     plot: { x: 80, y: 28 },
+    globe: { latitude: 48, longitude: 88, elevation: 0.03 },
     availability: "concept",
   },
 ] as const;

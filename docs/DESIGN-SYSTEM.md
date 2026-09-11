@@ -603,3 +603,140 @@ Glass on Glass、每个状态都 Glass、同一坐标重复出现。
 | guardian/overview (女娲) | 1773×2364 | 400×533 | **400×533**（BLOCKED） |
 | town/buildings | 2364×1773 | 1200×900 | 1200×900 |
 | town/characters | 2048×2048 | 800×800 | 800×800 |
+
+---
+
+## 11. Phase 1E.4-B — Town Globe（LELAN TOWN GLOBE）
+
+> **东方微缩沙盘，不是地球。**
+> Town 成为首页最强空间高潮；这是唯一允许 WebGL 的区块。
+
+### 11.1 WebGL 使用边界（硬规则）
+
+| 区块 | 允许 WebGL |
+|---|---|
+| **Town** | ✅ 是（唯一） |
+| Hero | ❌ |
+| Guardian | ❌（档案 / 坐标 / 纸张语言） |
+| AI | ❌（安静软件语言） |
+| Technology / About | ❌ |
+
+**禁止**：`globe.gl` / `react-globe.gl` / `three-globe` / `cobe`；
+postprocessing / HDR environment / 复杂 shader / 高面数模型 / 物理引擎；
+GSAP / framer-motion / leva / rapier / cannon。
+**允许**：`three` + `@react-three/fiber`。
+
+### 11.2 Globe 视觉语法（Visual Grammar）
+
+| 层 | 内容 | 实现 |
+|---|---|---|
+| L0 背景 | warm spatial field（paper / jade 渐变，**非太空**） | `.lelan-globe-stage` CSS |
+| L1 地形 | 程序化低浮雕**球冠**（不是完整球体） | `TownTerrain`，`SphereGeometry` + 顶点色 |
+| L2 收口 | 平面 rim disc = 沙盘底座 | `circleGeometry` |
+| L3 道路 | **5 条**大圆弧 Tube；镇内街道，**不是数据关系图** | `TownRoads`，`CatmullRomCurve3` |
+| L4 建筑 | 01/02 = 立面展板；03–08 = proxy pavilion | `TownBuildingVisual`（= 资产替换 seam） |
+| L5 标签 | **仅选中项**一个 HTML 标签 | 自写 world→NDC 投影 |
+
+**禁止**：大陆 / 国界 / 经纬网格 / 卫星图 / 物流弧线 / 轨道线 / 星野 / 星系 /
+行星环 / 月亮 / 太空尘埃 / 黑色背景 / 八卦铺满球面 / 龙凤 / 传统红金。
+
+### 11.3 相机与旋转模型
+
+- `PerspectiveCamera`，**FOV 34**（规定区间 30–45，刻意不用超广角）
+- 初始位置略高于赤道面（约 19°），同时看到**上表面与近处建筑立面**；
+  **不**正对球心如普通地球仪
+- **旋转世界（town group），不是环绕世界的相机**
+- 允许 yaw + 少量 pitch；**pitch clamp −0.40 … 0.62**，不得翻到球底
+- **禁止持续自动旋转**；仅 selectedId 变化时 rotate-to **700ms ease-out**，
+  reduced-motion 时瞬时；旋转后**不完全正中**，保留世界上下文
+
+### 11.4 交互契约
+
+| 输入 | 行为 |
+|---|---|
+| pointer drag | 旋转世界（yaw + clamped pitch） |
+| wheel | **页面继续滚动**，不劫持；本阶段无 zoom |
+| click 建筑 / marker | `onSelect(shop.id)` |
+| click 服务索引 | selectedId + hash + globe rotate-to（三者同步） |
+| keyboard（radio + 方向键） | 同 index 选择 |
+| touch swipe | 旋转世界（`touch-action: pan-y`） |
+| tap | 选择 |
+
+- **drag threshold 5px**：区分 click 与 drag
+- 选中态克制：cinnabar marker ring + 少量 scale + HTML 标签；**禁止 neon glow**
+- **禁止游戏化**：无 RPG HUD / 角色跑动 / 任务系统 / 金币 / 经验 / 摇杆 /
+  昼夜循环 / 满屏粒子 / 背景音乐
+
+### 11.5 Desktop-only 策略与 2D Fallback
+
+| 视口 | 渲染器 |
+|---|---|
+| ≥1024px + WebGL + 非 reduced-motion + 非低功耗 | **Town Globe（WebGL）** |
+| 768–1023px | 2D `TownMapStage` |
+| ≤767px | 2D `TownMapStage` |
+| `prefers-reduced-motion: reduce` | 2D `TownMapStage` |
+| WebGL 不可用 / context lost | 2D `TownMapStage` |
+
+- **门控使用 viewport 宽度，不是组件容器宽度**（Town 内 globe 列在 1440 下仅约
+  678px 宽，用容器宽度会误判）
+- 低功耗判定**只接受正向证据**（`hardwareConcurrency < 4` / `deviceMemory < 4`）；
+  `undefined` **不得**判为弱设备
+- 2D 地图**始终在 DOM 中**，作为加载态 + fallback + no-JS/SEO 表面；
+  Globe 在其上淡入 → **永不出现空白或 spinner**
+
+### 11.6 无障碍（Canvas 不是业务来源）
+
+- Canvas：`aria-hidden="true"` + `role="presentation"`，**不得** trap focus
+- **业务入口永远是 HTML**：语义化服务索引（8 项）+ `TownServiceDrawer` + 静态 HTML
+- `aria-live="polite"`：「已选择 01 论文茶寮 · 文曲茶娘」
+- 键盘：原生 radio + Tab / 方向键；选中 → globe rotate-to
+- 标签为真实 HTML（继承站点字体、可选中），**不是 3D text**
+- **仅显示选中项标签**；其余仅 marker ring → 8 个大标签不得铺满球体
+
+### 11.7 性能预算
+
+- **`frameloop="demand"`**：空闲 **0 连续渲染帧**；仅拖拽 / tween / 初始挂载
+  `invalidate()`
+- ⚠ **关键**：demand 模式下任何只改数值不 `invalidate()` 的交互都不会重绘；
+  拖拽处理器**必须位于 `<Canvas>` 内**以取得 `invalidate`
+- `dpr={[1, 1.5]}`（上限 1.75）；基础 antialias；**无** MSAA / supersampling
+- 灯光：AmbientLight + 2 × DirectionalLight；**无** HDR / env map / bloom / SSAO
+- **第一版不用实时阴影**（极淡 painted contact disc 代替）
+- 几何预算：8 nodes + 1 terrain + 5 roads + 2 image planes + 6 proxy volumes
+- 懒加载：`IntersectionObserver`（`rootMargin: 300px`）+ `dynamic(..., {ssr:false})`
+  → three **完全不进静态导出 HTML / 首屏 bundle**
+- 实测：three chunk **907KB raw / 233KB gzip**，Town 进入视口后才请求
+- ⚠ **每个 R3F hook 组件必须在 `<Canvas>` 内**：`useFrame` / `useThree` 在 Canvas 外
+  调用会抛 "R3F: Hooks can only be used within the Canvas component!"
+
+### 11.8 资产替换 seam（未来只改一处）
+
+`components/town/globe/TownBuildingVisual.tsx` 是**唯一**未来资产替换点。
+
+- 现状：01/02 = **architectural display panel**（纸框立面展板，立在 plinth 上），
+  明确是「微缩立面展板」而**不假装是抠图 3D 建筑**，不使用 alpha 欺骗
+- 现状：03–08 = 统一 **proxy pavilion**（plinth + 体块 + 飞檐板 + 四坡顶），
+  必须明显读作「待建形态」，**不是空灰盒**
+- **禁止**：把论文茶寮 / 课题小铺复制给其他铺子；换色伪装 8 栋建筑；
+  引用 136MB reference PNG 作为 texture；任何新增网络资产
+- 正式资产到位后：**只替换该组件**，selection / rotation / camera / hash /
+  fallback / drawer **不得**改动
+
+### 11.9 与 Town 状态架构的关系（不得破坏）
+
+```
+HomeTownClient      owns selectedId + URL hash + aria-live   ← 状态唯一来源
+  ├─ TownGlobe      纯渲染器 { shops, selectedId, onSelect }  ← 可被替换
+  └─ TownMapStage   纯渲染器 { shops, selectedId }            ← 永久 fallback
+TownServiceDrawer   纯详情面板 { shop, agentRoleLabel }        ← 真实 HTML，不搬进 Canvas
+content/town.ts     唯一业务真相源（8 铺子 + plot + globe）
+```
+
+**禁止**在 `TownGlobe` 内维护第二份 selected state。
+
+### 11.10 Hash 契约
+
+- 支持 `#shop-01`…`#shop-08`（数字别名）**与** `#shop-paper-teahouse`（slug）
+- 写回 URL 使用 **slug 作为规范形式** → **旧 deep link 不被破坏**
+- 非法 hash → 回落 `paper-teahouse` 并规范化 URL
+

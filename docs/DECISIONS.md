@@ -515,6 +515,162 @@
   R3F 方案评估已被接受为**下一阶段原型方向**，但本阶段**未**实现，
   文档中不得表述为已完成。
 
+## D-PHASE1E.4-B · Interactive Town Globe Prototype（追加于 2026-09-11）
+
+### WebGL 使用边界（正式取代 D-VISUAL-005 的绝对禁令）
+
+- **D-PHASE1E.4-B-001** — 正式允许 `three` + `@react-three/fiber` 用于**成果小镇
+  区块的 3D 渲染**。取代 D-VISUAL-005「第一阶段不引入 Three.js」与
+  D-ASSET-006 的绝对禁令。
+  **仅限 Town**：Guardian 与 AI **不得**使用 WebGL（D-PHASE1E.4-A 已分别确立
+  「档案/坐标」与「安静软件」的视觉语言）。
+- **D-PHASE1E.4-B-002** — **明确禁止** globe 类库：`globe.gl` / `react-globe.gl` /
+  `three-globe` / `cobe`。理由：自带 three 造成重复打包，且把 Earth 语义
+  （geojson / 经纬 / 弧线）强加进「东方微缩沙盘」。
+- **D-PHASE1E.4-B-003** — `@react-three/drei` **最终未采用**。初版用于 `<Html>` 与
+  `useTexture`，但二者均可用极少量代码自行实现；drei 会把大量额外代码并入
+  three chunk 而收益极小。已从依赖中移除，改为自写纹理加载 + 自写标签投影。
+- **D-PHASE1E.4-B-004** — 新增依赖**仅 3 个**：`three@^0.186.0`、
+  `@react-three/fiber@^9.7.0`（dependencies），`@types/three@^0.185.4`
+  （devDependencies）。**未引入** GSAP / framer-motion / postprocessing /
+  leva / rapier / cannon；`zustand` 仅为 drei 的传递依赖，随 drei 一并移除。
+
+### 不是地球（Earth Semantics Forbidden）
+
+- **D-PHASE1E.4-B-005** — Town Globe **不是**地球/世界地图/物流球/太空星球。
+  **禁止**：大陆、国界、经纬网格、卫星贴图、物流弧线、轨道线、星野、星系、
+  行星环、卫星、太空尘埃、黑色太空背景。
+- **D-PHASE1E.4-B-006** — 地形为**程序化低浮雕球冠**（spherical cap），不是完整球体。
+  视觉目标是「放在展示台上的东方微缩沙盘」。球冠下方以平面 rim disc 收口，
+  使其读作有底座的实体模型，而非悬空球。
+- **D-PHASE1E.4-B-007** — 材质色板限定为 warm ivory / muted jade / earth beige /
+  ink green + 极少量 cinnabar（仅用于选中态）。**禁止**蓝色海洋星球、游戏草地绿、
+  neon。**未使用** HDR / Environment map / Bloom / SSAO / god rays / lens flare，
+  仅 AmbientLight + 2 × DirectionalLight。**第一版不使用实时阴影**
+  （改用极淡的 painted contact disc）。
+
+### 架构与状态（seam 冻结，不得破坏）
+
+- **D-PHASE1E.4-B-008** — Town 状态归属**不变**：`HomeTownClient` 独占
+  `selectedId` + URL hash + aria-live。`TownGlobe` 与 `TownMapStage` 都是
+  **纯渲染器**，接口为 `{ shops, selectedId, onSelect }`，**不得**各自维护第二份
+  selected state。
+- **D-PHASE1E.4-B-009** — `TownMapStage` 作为**2D fallback renderer 永久保留**，
+  同时充当 Globe 的加载态。Globe 在其之上淡入，因此**永远不会出现空白或 spinner**。
+- **D-PHASE1E.4-B-010** — `content/town.ts` 仍为唯一业务真相源。新增 `globe:
+  { latitude, longitude, elevation? }` 字段；**`plot {x, y}` 保留不删**，
+  供 2D fallback 使用。**禁止**把 8 个位置硬编码为 JSX。
+- **D-PHASE1E.4-B-011** — `components/town/globe/TownBuildingVisual.tsx` 是**未来资产
+  替换 seam**。正式 3D/2.5D 建筑资产到位后，**只需替换该组件**；selection / rotation /
+  camera / hash / fallback / drawer **不得**改动。
+
+### 素材诚实性
+
+- **D-PHASE1E.4-B-012** — 01 / 02 使用现有**非透明** WebP，渲染为
+  **architectural display panel**（纸框建筑铭牌，立在 plinth 上），
+  明确是「微缩立面展板」，**不假装是抠图 3D 建筑**，不使用 alpha 欺骗。
+- **D-PHASE1E.4-B-013** — 03–08 无美术资产，统一渲染为**低浮雕 proxy pavilion**
+  （plinth + 体块 + 飞檐板 + 四坡顶），必须明显读作「待建/占位建筑形态」，
+  **不是空灰盒**。
+- **D-PHASE1E.4-B-014** — **禁止**把论文茶寮或课题小铺的图复制给其他铺子，
+  **禁止**用换色伪装成 8 栋建筑。8 个业务全部存在，**不因缺美术而减少**。
+- **D-PHASE1E.4-B-015** — 只加载现有 2 张 delivery WebP（52KB / 104KB）作为纹理。
+  **禁止**把 136MB reference PNG 直接作为 WebGL texture。
+  **禁止**任何新增网络资产（模型 / texture / HDRI / skybox / stock map）。
+
+### 能力门（Capability Gate）
+
+- **D-PHASE1E.4-B-016** — 原则：**feature detect first, heuristic second,
+  fallback safe**。判定顺序：viewport ≥1024 → WebGL 可用 → 非
+  `prefers-reduced-motion` → 非低功耗设备。
+- **D-PHASE1E.4-B-017** — 低功耗判定**只接受正向证据**：
+  `hardwareConcurrency < 4` 或 `deviceMemory < 4`。**`undefined` 不得判为弱设备**
+  （否则会误伤全部 Safari / Firefox 用户）。
+- **D-PHASE1E.4-B-018** — **门控必须使用 viewport 宽度，不得使用组件容器宽度**。
+  Town 区块内 globe 列在 1440 viewport 下仅约 678px 宽（服务索引与抽屉占用其余
+  空间），若以容器宽度门控会在完全合格的桌面上误判为窄视口而永不挂载。
+  （此为 Phase 1E.4-B 实际踩到的缺陷，已修。）
+- **D-PHASE1E.4-B-019** — `prefers-reduced-motion: reduce` → 直接使用 2D fallback
+  （本阶段策略）。Globe 的本体是「手拨沙盘」，向要求减少动效的用户提供只有拖拽的
+  3D 体验不如提供已存在的、完全可导航的镇地图。
+
+### 交互
+
+- **D-PHASE1E.4-B-020** — **旋转世界，不是环绕世界的相机**。拖拽 = 转动手中的沙盘
+  模型，效果如「手拨沙盘球体」。允许 yaw + 少量 pitch；
+  **pitch clamp 为 −0.40 … 0.62**，不得翻到球底。
+- **D-PHASE1E.4-B-021** — **禁止持续自动旋转**（无 auto-rotate、无 idle spin）。
+  仅在 selectedId 变化时做程序化 rotate-to：**700ms ease-out**；
+  `prefers-reduced-motion` 时**瞬时**。旋转后**不完全正中**，保留少量世界上下文。
+- **D-PHASE1E.4-B-022** — **wheel 不劫持页面滚动**。本阶段**不提供 zoom**；
+  wheel 完全交给浏览器。已在 QA 中验证：wheel 300px → 页面滚动 300px。
+- **D-PHASE1E.4-B-023** — 拖拽需有 **drag threshold（5px）**，避免 click 被识别为
+  drag；pointer capture + `touch-action: pan-y`（横向拖拽旋转，纵向仍可滚动页面）。
+- **D-PHASE1E.4-B-024** — **`frameloop="demand"`**：空闲时**0 连续渲染帧**
+  （QA 实测 1.5s 内 requestAnimationFrame 调用 = 0）。仅在拖拽 / selection tween /
+  初始挂载时 `invalidate()`。
+  ⚠ **关键工程约束**：`frameloop="demand"` 下任何只改数值而不调用 `invalidate()`
+  的交互都**不会重绘**。拖拽处理器因此**必须位于 `<Canvas>` 内**以取得
+  `invalidate`（此为本阶段实际踩到的缺陷，已修）。
+- **D-PHASE1E.4-B-025** — `dpr={[1, 1.5]}`（上限 1.75），基础 antialias，
+  不使用 MSAA / supersampling。`<Canvas>` 每个 R3F hook 组件必须在 Canvas 内：
+  `useFrame` / `useThree` 在 Canvas 外调用会抛
+  "R3F: Hooks can only be used within the Canvas component!"。
+
+### 无障碍
+
+- **D-PHASE1E.4-B-026** — Canvas 为 `aria-hidden="true"` + `role="presentation"`；
+  **业务入口永远是 HTML**（左侧语义化服务索引 + 抽屉 + 静态 HTML 8 铺子）。
+  Canvas **不得** trap focus。
+- **D-PHASE1E.4-B-027** — 新增 `aria-live="polite"` 播报选中项：
+  「已选择 01 论文茶寮 · 文曲茶娘」（编号 + 名称 + 人格，不播报长描述）。
+- **D-PHASE1E.4-B-028** — 键盘模型不变：原生 `<input type="radio">` + Tab / 方向键 /
+  Enter / Space；index 选择 → globe rotate-to。**未因 3D 破坏键盘可达性**。
+- **D-PHASE1E.4-B-029** — 标签为**真实 HTML**（不是 3D text），且**只显示选中项一个**；
+  其余铺子仅以底座 marker ring 表示，避免 8 个大标签覆盖球体。
+  投影由自写 world→NDC 计算完成，避免为一个小徽标引入 drei。
+
+### URL / Hash
+
+- **D-PHASE1E.4-B-030** — 保留既有 hash 机制。**同时支持**
+  `#shop-01`…`#shop-08`（数字别名）**与** 原有 `#shop-paper-teahouse`（slug）。
+  写回 URL 时仍使用 **slug 作为规范形式**，因此**旧 deep link 不被破坏**。
+  非法 hash → 回落 `paper-teahouse` 并规范化 URL。
+
+### 降级与移动端
+
+- **D-PHASE1E.4-B-031** — **≥1024px 才允许挂载 WebGL**。
+  **768–1023 与 ≤767 一律使用 2D fallback**，绝不出现
+  「浏览器不支持 3D」之类提示，也绝不让手机用户被迫旋转 3D。
+- **D-PHASE1E.4-B-032** — Globe **不随页面加载**。仅在 Town 区块接近视口时
+  （`IntersectionObserver`，`rootMargin: 300px`）才动态挂载。用户若从未滚到 Town，
+  **three / R3F 完全不下载**。
+- **D-PHASE1E.4-B-033** — three / R3F 以 `dynamic(..., { ssr: false })` 引入：
+  **静态导出 HTML 中不含 canvas、不含 three**，爬虫与 no-JS 只看到完整的
+  语义化 8 铺子索引与 2D 地图。
+- **D-PHASE1E.4-B-034** — WebGL context lost / 初始化失败 → **自动回落 2D**，
+  不抛错、不崩溃页面。
+
+### QA 结果
+
+- **D-PHASE1E.4-B-035** — lint 0 / tsc 0 / build 成功导出 8 页。
+  1440 / 1024 / 768 / 375 全部 `document.scrollWidth === viewport`（无横向溢出）；
+  `/guardian/demo`、`/login`、`/profile` 同样无溢出。
+  0 broken image（8 张图全部 naturalWidth > 0）。
+  **0 JavaScript error / 0 exception / 0 404**。
+  唯一 console 输出为 `THREE.Clock is deprecated` 的 warning，来自
+  `@react-three/fiber` 内部（`frameloop` 计时），非本项目代码，不影响功能。
+- **D-PHASE1E.4-B-036** — three chunk 实测 **907KB raw / 233KB gzip**，
+  **未被 `index.html` 引用**（纯懒加载）。Town 进入视口后才请求。
+  首屏 JS 总量约 646KB raw（未含 three）。
+- **D-PHASE1E.4-B-037** — 交互已实测验证（非仅代码审查）：
+  拖拽 yaw 变化 = 像素位移 × 灵敏度；rotate-to 最终 yaw = 目标经度精确值；
+  pitch 精确停在 clamp 上限 0.62；globe 点击 → selectedId + hash + drawer + index
+  四者同步；wheel 不劫持页面。
+- **D-PHASE1E.4-B-038** — 本轮**未**进入 Dify，**未**修改 `lelan-shouhu`
+  （结束前 `git status` 仍为 clean），**未**修改 Guardian contract，
+  **未**修改 AI 产品能力描述。
+
 ## 修改规范
 
 - 新决定追加在文末，按 `D-<类别>-<序号>` 编号。
