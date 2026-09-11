@@ -43,14 +43,6 @@ const STATUS_LABELS = {
   planned: "待完善",
 } as const;
 
-/* ── Status tone for non-color-only rendering ───────────────────── */
-const STATUS_LABEL_TO_TONE: Record<string, string> = {
-  normal: "bg-rule/60 text-muted",
-  attention: "bg-cinnabar/10 text-cinnabar border border-cinnabar/20",
-  current: "bg-green/10 text-green border border-green/20",
-  planned: "bg-ink/5 text-muted border border-rule",
-};
-
 const TASK_STATUS_LABEL: Record<string, string> = {
   done: "已完成",
   current: "当前",

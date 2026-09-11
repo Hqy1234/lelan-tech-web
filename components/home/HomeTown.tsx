@@ -1,20 +1,27 @@
 /**
  * LELAN TECHNOLOGY · Home · Town (成果小镇) V1.5
  *
- * Phase 1C: Accessible eight-service index + selected-shop spatial stage.
+ * Phase 1E.3-B — Eastern Digital Town (东方数字城镇).
+ *
+ * Spatial rhythm (Phase A §16 + Phase B §11):
+ *   - This section = STRONGEST DEPTH on the homepage
+ *   - Background = L3 (warm jade / paper earth, CSS-only distant silhouette)
+ *   - TownMapStage = L0–L4 spatial layers inside the section
  *
  * Architecture:
- * - Server Component: renders section shell (heading, capabilities strip, status).
- * - Client Component `HomeTownClient`: renders the interactive index + stage.
+ *   - Server Component: renders section shell (heading, capabilities strip).
+ *   - Client Component `HomeTownClient`: handles selection + URL hash sync
+ *     + renders the spatial map (TownMapStage) and the service drawer.
  *
- * All 8 shops' names, numbers, plain-language services, agents, and availability
- * are present in the server-rendered HTML (passed as props to the client island).
+ * Section transition:
+ *   - Top edge: `.lelan-divider-coord-fade` — picks up the coordinate cross
+ *     that ends Guardian's coordinate plane and fades into Town ground.
+ *   - Bottom edge: subtle flat hairline — Town ground flattens into AI
+ *     document plane.
  *
  * Default selected shop: paper-teahouse (01).
  * No hover-only information.
- * Visual pending state for shops without delivery assets.
- *
- * Server component (section shell) + Client island (interaction).
+ * Visual pending state for shops without delivery assets (6 of 8).
  */
 import { Container } from "@/components/layout/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -28,14 +35,13 @@ interface HomeTownProps {
 }
 
 export function HomeTown({ section }: HomeTownProps) {
-  // Show all shops — no shopIds filter needed in this version
   const ordered = [...townShops];
 
   return (
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="border-b border-rule bg-paper"
+      className="lelan-bg-l3-town lelan-divider-coord-fade relative border-b border-rule"
     >
       <Container as="div">
         {/* Section header */}
@@ -68,7 +74,7 @@ export function HomeTown({ section }: HomeTownProps) {
           ))}
         </div>
 
-        {/* Interactive Town V1.5 island */}
+        {/* Interactive Town V1.5 island — full spatial composition */}
         <div className="mt-8" role="region" aria-label="乐懒成果小镇服务入口">
           <HomeTownClient shops={ordered} statusNote={section.statusNote} />
         </div>

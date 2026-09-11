@@ -655,3 +655,143 @@
 
 - **D-PHASE1E.3-A-025** — 本次 Phase 严格保持 `lelan-shouhu` 为 READ ONLY。
   未复制任何代码 / CSS / 组件 / API routes。未实现 monorepo / submodule / shared session。
+
+---
+
+## D-PHASE1E.3-B · Town Spatial Upgrade + AI Product Visualization + Visual Polish
+
+### Visual System
+
+- **D-PHASE1E.3-B-001** — 成果小镇升级为"东方数字城镇 / Spatial Product Interface"。
+  Town 不再是 8 张服务卡的目录，而是一个有地面、道路、地块、建筑、标签、详情 6 个层级的共同空间。
+  所有 8 个服务坐标 (`plot: {x, y}`) 锁定在 `content/town.ts`，双轴同步；调整需同时更新 plot 坐标和地面网格。
+
+- **D-PHASE1E.3-B-002** — 复用 Phase A 已建立的 6 个 Graphic System 元素（Coordinate Line / Position Node / Archive ID / Guardian Square Seal / Archive Corner / Annotation Leader）。
+  Town 与 AI 不引入新的视觉语言；新元素（如服务档案角注、过程追踪 step 数字）均来自现有元素家族。
+  禁止：另起 Town 字体系统或 AI 图标族。
+
+- **D-PHASE1E.3-B-003** — 继续使用 Phase A 5 层 Spatial Depth System（Depth 0–4）。
+  Town 是 STRONG depth（最强），AI 是 MEDIUM depth。
+  没有创建 DEPTH 7 / DEPTH 20 / z-index 9999 等混乱层级。
+
+- **D-PHASE1E.3-B-004** — 全站空间节奏：Hero (flat) → Guardian (medium) → Town (strong) → AI (medium) → Technology/About (flat)。
+  这是 Phase 1E.3-B 的核心验收指标之一。
+  在 `globals.css` 中显式建立两个 transition helper：
+  `.lelan-divider-coord-fade`（Guardian → Town 淡入）和 `.lelan-divider-paper-flat`（AI → Technology 平面分隔）。
+
+### Town Implementation
+
+- **D-PHASE1E.3-B-005** — 新增 `components/town/TownMapStage.tsx`：
+  TownMapStage (L0–L4) + TownServiceDrawer (L4 详情)。
+  5 个 layer 全部用 CSS / SVG / HTML 实现；零 Canvas、零 WebGL、零 3D 数学。
+
+- **D-PHASE1E.3-B-006** — 地面实现：`.lelan-town-ground` 暖土色梯度 + `.lelan-town-grid` CSS 路面网格。
+  桌面端 (≥768) 应用 `perspective: 1200px; perspective-origin: 50% 30%`（在 `@media (min-width: 768px)` 内）。
+  移动端 (≤767) 完全禁用 perspective：layout 退化为 2D layered composition。
+
+- **D-PHASE1E.3-B-007** — 建筑素材策略：
+  严格使用 `visualAssets` registry 中已注册的素材（`townPaperTeahouse` + `townResearchShop`）。
+  仅有 2 栋真实建筑时，只在对应 plot 渲染这 2 张图；其余 6 个 plot 显示 architectural placeholder（dashed footprint + "未来建筑位"标签）。
+  禁止：把同一张建筑图复制到 8 个 plot / 用 CSS mask 假装抠图 / mix-blend-mode。
+
+- **D-PHASE1E.3-B-008** — Hash 双向同步：
+  `HomeTownClient` 在 `useEffect` 中监听 `hashchange` 并解析 `#shop-<id>`。
+  selection 变化时用 `history.replaceState` 写回 hash；无效 hash 回落 `DEFAULT_SHOP_ID = paper-teahouse`。
+  刷新：hash → selection 保持。键盘：原生 `<input type="radio">` group 支持 Tab + 方向键。
+
+- **D-PHASE1E.3-B-009** — Town compact service index（左列）：
+  8 个店铺的索引条目，使用编号 + 名称 + 通俗业务描述 + selected node。
+  不是 8 张 cards。视觉比例约 20%；桌面端 `lg:w-48 xl:w-52`。
+
+### AI Implementation
+
+- **D-PHASE1E.3-B-010** — 新增 `components/ai/AiWorkflowPreview.tsx`：
+  AiWorkflowPreview (L0–L4)。从 lelan-shouhu READ-ONLY 审计确认的实际能力出发，独立实现（未复制任何组件 / CSS）。
+  视觉流程：INPUT DOCUMENT → MODE/PROCESS TRACE → RESULT DOCUMENT → WORD OUTPUT TOKENS。
+  这是软件工作流而非营销步骤卡。
+
+- **D-PHASE1E.3-B-011** — AI 模式名称仅使用 lelan-shouhu 实际存在的 3 档：
+  轻度 / 中度 / 深度（`light_rewrite_word`, `medium_rewrite_word`, `deep_rewrite_word`）。
+  未发明：Ultra / Expert / GPT Research / Auto Publish 等。
+
+- **D-PHASE1E.3-B-012** — 7 份 Word 成品：
+  内容模型 `HomeAiSection.wordOutputs` 完全镜像 `lelan-shouhu/src/lib/output-options.ts`：
+  - 轻度降重后的Word
+  - 中度降重后的Word
+  - 深度降重后的Word
+  - AIGC检测报告-Word标红版
+  - AIGC特征分析摘要Word
+  - 原Word降AIGC批注版
+  - 降AIGC后的Word
+
+  没有凭记忆新增任何文件类型；没有伪造准确率 / 通过率 / AIGC 降低率。
+
+- **D-PHASE1E.3-B-013** — AI 视觉主体是文档页面（3 列：input / process / result），不是 feature cards。
+  删除了 Phase A 的 `verifiedFeatures` 6-cell grid 和 `flowSteps` 4-card 流程卡；
+  保留 `limits` 紧凑文本列表（输入格式 / 单次上限 / 登录要求 / 当前状态）。
+  没有：聊天机器人 UI、AI orb、蓝紫 gradient、玻璃面板、neon、fake terminal、data dashboard。
+
+- **D-PHASE1E.3-B-014** — AI CTA 保守文案：
+  因 source-of-truth (`docs/PROJECT.md`) 尚未确认 public product URL，文案使用
+  "了解乐懒 AI" / "体验入口整理中"；未把 Render URL / GitHub URL 包装为正式产品入口。
+
+### Responsive Flatten
+
+- **D-PHASE1E.3-B-015** — `.lelan-perspective` 加 `@media (min-width: 768px)` 守卫：
+  mobile (≤767) 不应用 perspective；只保留 overlap / shadow / paper stack / position node。
+
+- **D-PHASE1E.3-B-016** — AI 工作台在 768 不硬挤 3 列：
+  桌面 (≥1024) `lg:grid-cols-12` 三列；平板 (≥640) `sm:grid-cols-2` 两列；
+  mobile (≤639) 单列堆叠。
+  Word output token grid：mobile 2 列，tablet 4 列，desktop 7 列。
+
+### Card Reduction
+
+- **D-PHASE1E.3-B-017** — 显式减少卡片堆叠：
+  Town 不再是"8 cards + detail card + capability cards"。视觉主体是 TownMapStage。
+  AI 不再是"6 cards + 4 cards"。视觉主体是 AiWorkflowPreview。
+  保留少量 archive-style drawer / text list，但不再依赖 cards 表达。
+
+### Motion + Accessibility
+
+- **D-PHASE1E.3-B-018** — Motion：
+  Town plot hover / selected：160–220ms translateY / box-shadow ease；
+  AI stack item hover：180ms translateY；
+  AI process pulse：2200ms 单 cycle（仅 `.lelan-ai-pulse[data-active="true"]` 触发）。
+  所有动画受 `@media (prefers-reduced-motion: reduce)` 影响：hover 静止、pulse 不触发。
+  禁用：bounce / large zoom / rotate / shake / continuous floating。
+
+- **D-PHASE1E.3-B-019** — Accessibility：
+  Town shop 选择器：真实 `<input type="radio">`，不是 `<div onClick>`。原生支持 Tab / 方向键。
+  Selected state 不只靠颜色：checked 属性 + 加粗字体 + 左 border-l-2 + 绿色背景填充。
+  AI 预览是静态 preview，明确标注 "产品界面示意" / "实际处理流程以独立产品体验版为准"，避免误导交互。
+  所有装饰 SVG：`aria-hidden="true" pointer-events-none`。
+  Shop 名称 / 编号 / 维度全部为真实 HTML。
+
+### Repo Safety
+
+- **D-PHASE1E.3-B-020** — 持续保持 `lelan-shouhu` 为 READ ONLY。
+  Phase 1E.3-B 期间所有 AI 能力信息通过 `cd D:\Cursor-work\check-Projects\lelan-shouhu && git status`
+  + 读源码确认（`src/lib/output-options.ts`、`src/app/process/page.tsx`），未复制 / 修改任何文件。
+  提交前最终验证 `lelan-shouhu` working tree clean。
+
+### Lint + Build
+
+- **D-PHASE1E.3-B-021** — 修复 Phase A 留下的 `STATUS_LABEL_TO_TONE` lint warning：
+  彻底删除（该变量未被任何组件引用），无任何对 GuardianProfile 的功能性改动。
+  最终 lint：0 errors, 0 warnings.
+
+- **D-PHASE1E.3-B-022** — production validation 全通过：
+  `npm run lint` 0/0；`npx tsc --noEmit` 0 errors；`npm run build` 成功生成 8 个静态页。
+  使用 `npx serve out -l 5000` 在生产静态构建上验证 hydration，无 hydration 错误。
+  网络：所有 1st-party 资源 200/304；404 仅来自 RSC prefetch URL（next.js Link prefetch 在静态导出下
+  不适用，与功能无关）。
+
+### Documentation
+
+- **D-PHASE1E.3-B-023** — 更新 `docs/DESIGN-SYSTEM.md` 新增 §9：Town Spatial System、
+  AI Document Workspace、Section Transitions、Background System L3/L4、Future Asset Hooks。
+- **D-PHASE1E.3-B-024** — 更新 `docs/DECISIONS.md`（本文件）记录本 Phase 24 项决策。
+- **D-PHASE1E.3-B-025** — 更新 `docs/ROADMAP.md`：标记 Phase 1E.3-B 完成；
+  Phase 1E.3 Visual V1 视为基本完成；下一步等待用户 + ChatGPT + Codex 进行 Visual V1 验收；
+  Phase 1F (Dify / Adapter) 仍 gated，由用户确认后才进入。

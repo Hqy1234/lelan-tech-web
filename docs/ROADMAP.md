@@ -7,9 +7,9 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1E.3-A — Engineering Hardening + Guardian Visual System + Hero/Guardian/Profile Redesign
-- **下一阶段**：Phase 1E.3-B — Town Spatial Upgrade + AI Product Visualization + 2.5D Spatial Refinement
-- **说明**：Phase 1E.3-A 完成工程硬化（Guardian Demo P0 bypass 修复、年龄验证、导航修复、Adapter 验证强化）、全站基础 Graphic System + Spatial Depth、Hero 重构（两大系统 + 软件产品）、Guardian Homepage 重构（档案坐标平面）、Five Elements 连续档案带、Profile 重构（个人档案首页）、Demo 产品化、Header/Footer 分组修正、Technology 文案诚实化。Town 大改 + AI 大改 + Dify 留待 Phase 1E.3-B。
+- **当前阶段**：Phase 1E.3-B — Town Spatial Upgrade + AI Product Visualization + 2.5D Spatial Refinement (Visual V1)
+- **下一阶段**：等待 Visual V1 验收（用户 + ChatGPT + Codex）；Phase 1F (Dify / Adapter) gated by user confirmation.
+- **说明**：Phase 1E.3-B 完成：成果小镇升级为"东方数字城镇 / Spatial Product Interface"（8 plot 锁定坐标 + 道路网格 + 5 层空间 + Service Archive Drawer）；乐懒 AI 升级为真实文档软件工作台（AiWorkflowPreview L0–L4：INPUT → MODE → PROCESS → RESULT → 7 份 Word 成品）；Phase A lint warning 修复（0/0）；section transitions（Guardian → Town → AI）建立；背景系统新增 L3 Town Spatial + L4 AI Workspace；responsive flatten 在 ≤767 禁用 perspective，AI 在 768 不硬挤 3 列；production validation 全通过（lint / tsc / build / static export / hydration）。Phase 1E.3 Visual V1 基本完成；Phase 1F 等待用户验收。
 
 ---
 

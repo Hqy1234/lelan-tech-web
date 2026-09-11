@@ -41,7 +41,7 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="relative border-b border-rule bg-paper"
+      className="lelan-divider-coord-fade relative border-b border-rule bg-paper"
     >
       <Container as="div">
         {/* ── Section header ─────────────────────────────────────── */}

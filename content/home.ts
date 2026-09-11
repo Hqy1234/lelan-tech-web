@@ -57,16 +57,54 @@ export interface HomeGuardianSection extends HomeSectionBase {
 
 export interface HomeAiSection extends HomeSectionBase {
   kind: "ai";
-  /** 基于 lelan-shouhu 仓库审计确认的实际能力 */
+  /** 基于 lelan-shouhu 仓库 READ-ONLY 审计确认的实际能力 */
   positioning: string;
-  verifiedFeatures: ReadonlyArray<{
-    label: string;
-    detail: string;
+  /**
+   * Two main processing features.
+   * Verified names from lelan-shouhu/src/app/process/page.tsx:
+   *   - "AI 降重" (rewrite)        — 轻度 / 中度 / 深度
+   *   - "AIGC 分析与降 AIGC" (aigc)
+   */
+  features: ReadonlyArray<{
+    id: "rewrite" | "aigc";
+    name: string;
+    description: string;
   }>;
-  flowSteps: ReadonlyArray<{
-    label: string;
+  /**
+   * Three intensity levels verified from lelan-shouhu process page UI.
+   * (No invented names like "Ultra" / "Expert" / "GPT Research".)
+   */
+  intensities: ReadonlyArray<{
+    id: "light" | "medium" | "deep";
+    name: string;
     hint: string;
   }>;
+  /**
+   * Seven Word (.docx) outputs verified from
+   * lelan-shouhu/src/lib/output-options.ts. Stable IDs match repo.
+   * These are EXACTLY the outputs the standalone product can produce.
+   */
+  wordOutputs: ReadonlyArray<{
+    id:
+      | "light_rewrite_word"
+      | "medium_rewrite_word"
+      | "deep_rewrite_word"
+      | "aigc_report_word"
+      | "aigc_analysis_summary_word"
+      | "original_word_aigc_annotation"
+      | "deai_word";
+    name: string;
+    /** Only "rewrite" or "aigc" — for the stack grouping */
+    group: "rewrite" | "aigc";
+    /** Default-selected in the standalone product */
+    defaultSelected: boolean;
+  }>;
+  /** Soft limits from the standalone product */
+  limits: {
+    textCharRange: string;
+    fileFormat: string;
+    requiresLogin: boolean;
+  };
   statusNote: string;
 }
 
@@ -202,38 +240,74 @@ export const homeSections: ReadonlyArray<HomeSection> = [
     intro: "乐懒 AI 已作为独立软件产品提供体验。",
     positioning:
       "基于 DeepSeek 大模型，支持文本输入或 .docx 上传，提供 AI 降重、AIGC 分析与自然化改写，可生成多份 Word 成品，无需登录即可体验。",
-    verifiedFeatures: [
+    features: [
       {
-        label: "文本 / 文档输入",
-        detail: "支持直接粘贴文本或上传 .docx（≤ 10 MB）",
+        id: "rewrite",
+        name: "AI 降重",
+        description:
+          "基于选定强度对原文进行表达重构；轻度 / 中度 / 深度三档独立调模型。",
       },
       {
-        label: "三档降重强度",
-        detail: "轻度 · 中度 · 深度，独立调模型，互不串线",
-      },
-      {
-        label: "AIGC 分析",
-        detail: "结构化输出文本的 AI 生成特征",
-      },
-      {
-        label: "降 AIGC 自然化",
-        detail: "基于分析结果的改写，降低文本 AI 特征",
-      },
-      {
-        label: "多份 Word 成品",
-        detail: "降重 Word / AIGC 报告 / 摘要 / 批注版 / 原文标注版",
-      },
-      {
-        label: "无需登录",
-        detail: "直接体验，无需注册或手机验证",
+        id: "aigc",
+        name: "AIGC 分析与降 AIGC",
+        description:
+          "结构化输出 AI 文本特征分数与位置，并基于分析结果做自然化改写。",
       },
     ],
-    flowSteps: [
-      { label: "上传输入", hint: "文本粘贴 / .docx 上传" },
-      { label: "选择模式", hint: "降重强度 / 成品类型" },
-      { label: "AI 处理", hint: "DeepSeek 大模型" },
-      { label: "下载成品", hint: "Word 文件可下载" },
+    intensities: [
+      { id: "light", name: "轻度", hint: "尽量保持原文表达" },
+      { id: "medium", name: "中度", hint: "在保持原意基础上优化句式与词汇" },
+      { id: "deep", name: "深度", hint: "更大幅度的表达重构" },
     ],
+    wordOutputs: [
+      {
+        id: "light_rewrite_word",
+        name: "轻度降重后的Word",
+        group: "rewrite",
+        defaultSelected: false,
+      },
+      {
+        id: "medium_rewrite_word",
+        name: "中度降重后的Word",
+        group: "rewrite",
+        defaultSelected: true,
+      },
+      {
+        id: "deep_rewrite_word",
+        name: "深度降重后的Word",
+        group: "rewrite",
+        defaultSelected: false,
+      },
+      {
+        id: "aigc_report_word",
+        name: "AIGC检测报告-Word标红版",
+        group: "aigc",
+        defaultSelected: false,
+      },
+      {
+        id: "aigc_analysis_summary_word",
+        name: "AIGC特征分析摘要Word",
+        group: "aigc",
+        defaultSelected: false,
+      },
+      {
+        id: "original_word_aigc_annotation",
+        name: "原Word降AIGC批注版",
+        group: "aigc",
+        defaultSelected: false,
+      },
+      {
+        id: "deai_word",
+        name: "降AIGC后的Word",
+        group: "aigc",
+        defaultSelected: true,
+      },
+    ],
+    limits: {
+      textCharRange: "约 20,000 – 30,000 字 / 次",
+      fileFormat: ".docx（≤ 10 MB）",
+      requiresLogin: false,
+    },
     statusNote:
       "独立产品体验版已上线；与乐懒科技官网的账号和深度集成规划中。",
   },

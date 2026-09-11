@@ -25,6 +25,37 @@ export const AGENT_ROLE_LABELS: Record<TownShopAgentRole, string> = {
   persona: "服务角色",
 };
 
+/**
+ * Default selected shop for Town homepage section and hash fallback.
+ * Locked: `paper-teahouse` (01) is the showcase shop with real building
+ * and character assets.
+ */
+export const DEFAULT_SHOP_ID = "paper-teahouse" as const;
+
+/**
+ * Town plot position in the map's normalized coordinate system (0–100).
+ *
+ * Phase 1E.3-B — positions form a deliberate east-west axis of research flow:
+ *
+ *   west plot column (input / upstream)        east plot column (output / downstream)
+ *   ┌─────────┬─────────┬─────────┐           ┌─────────┬─────────┬─────────┐
+ *   │ 03 专利 │ 01 论文 │ 02 课题 │  ─ main road ─  │ 04 软著 │ 06 转化 │ 08 AI  │
+ *   │  专利   │  论文   │  课题   │                │  软著   │  转化   │  工具  │
+ *   ├─────────┼─────────┼─────────┤                ├─────────┼─────────┼─────────┤
+ *   │         │ 05 申报 │ 07 产学研               │         │         │         │
+ *   └─────────┴─────────┴─────────┘                └─────────┴─────────┴─────────┘
+ *
+ * Roads are: 1 main east-west axis + 2 cross branches (one mid, one south).
+ * Coordinate range is 0–100 (independent of viewport). MapStage renders in 100%
+ * of its container with preserveAspectRatio="none".
+ */
+export interface TownShopPlotPosition {
+  /** x in 0–100 (left → right) */
+  x: number;
+  /** y in 0–100 (top → bottom) */
+  y: number;
+}
+
 export interface TownShop {
   /** 锁定映射使用的语义 id */
   id:
@@ -55,9 +86,26 @@ export interface TownShop {
   /** 一句话补充（不夸大、无市场数据、无商业承诺） */
   shortDescription: string;
 
+  /** 服务维度定位（一句话，出现在 shop 详情里） */
+  dimension: string;
+
   /** 语义化的视觉资产 id（仅在 `assets.ts` 已注册时使用） */
   buildingAssetId?: VisualAssetId;
   characterAssetId?: VisualAssetId;
+
+  /**
+   * 当前是否已注册到 delivery 资产 registry。
+   * 只对有真实素材的 shop 使用真建筑渲染；其他 shop 在 MapStage 显示为
+   * "architectural plot placeholder"（未来建筑位）。
+   */
+  hasBuildingAsset: boolean;
+  hasCharacterAsset: boolean;
+
+  /**
+   * Plot 坐标（normalized 0–100）。必须与 TownMapStage 的路面网格对齐。
+   * Phase 1E.3-B 锁定位置，未来调整需要双轴同步。
+   */
+  plot: TownShopPlotPosition;
 
   /** 该店铺当前是否可被点击跳转到真实目的地 */
   availability: ShopAvailability;
@@ -73,8 +121,12 @@ export const townShops: ReadonlyArray<TownShop> = [
     plainLanguageService: "学术论文写作辅助",
     shortDescription:
       "围绕论文选题、文献组织、正文写作与回应评审意见提供支持。",
+    dimension: "Writing",
     buildingAssetId: "townPaperTeahouse",
     characterAssetId: "townWenqu",
+    hasBuildingAsset: true,
+    hasCharacterAsset: true,
+    plot: { x: 35, y: 28 },
     availability: "preview",
   },
   {
@@ -85,8 +137,12 @@ export const townShops: ReadonlyArray<TownShop> = [
     agentRole: "concept",
     plainLanguageService: "科研课题立项支持",
     shortDescription: "协助梳理研究问题、框架与立项材料。",
+    dimension: "Research",
     buildingAssetId: "townResearchShop",
     characterAssetId: "townLingshu",
+    hasBuildingAsset: true,
+    hasCharacterAsset: true,
+    plot: { x: 50, y: 28 },
     availability: "concept",
   },
   {
@@ -97,6 +153,10 @@ export const townShops: ReadonlyArray<TownShop> = [
     agentRole: "persona",
     plainLanguageService: "专利申请与撰写支持",
     shortDescription: "围绕专利交底、撰写与申请材料组织。",
+    dimension: "IP",
+    hasBuildingAsset: false,
+    hasCharacterAsset: false,
+    plot: { x: 20, y: 28 },
     availability: "concept",
   },
   {
@@ -107,6 +167,10 @@ export const townShops: ReadonlyArray<TownShop> = [
     agentRole: "persona",
     plainLanguageService: "软件著作权登记支持",
     shortDescription: "协助软件著作权登记材料的整理与撰写。",
+    dimension: "IP",
+    hasBuildingAsset: false,
+    hasCharacterAsset: false,
+    plot: { x: 65, y: 28 },
     availability: "concept",
   },
   {
@@ -117,6 +181,10 @@ export const townShops: ReadonlyArray<TownShop> = [
     agentRole: "persona",
     plainLanguageService: "科研项目与基金申报辅导",
     shortDescription: "协助基金 / 项目申报书的撰写与回应专家意见。",
+    dimension: "Funding",
+    hasBuildingAsset: false,
+    hasCharacterAsset: false,
+    plot: { x: 35, y: 62 },
     availability: "concept",
   },
   {
@@ -127,6 +195,10 @@ export const townShops: ReadonlyArray<TownShop> = [
     agentRole: "persona",
     plainLanguageService: "科研成果转化支持",
     shortDescription: "围绕成果评估、对接与落地的辅助支持。",
+    dimension: "Transformation",
+    hasBuildingAsset: false,
+    hasCharacterAsset: false,
+    plot: { x: 65, y: 62 },
     availability: "concept",
   },
   {
@@ -137,6 +209,10 @@ export const townShops: ReadonlyArray<TownShop> = [
     agentRole: "persona",
     plainLanguageService: "产学研资源对接支持",
     shortDescription: "协助高校、科研机构与产业方建立合作桥梁。",
+    dimension: "Transformation",
+    hasBuildingAsset: false,
+    hasCharacterAsset: false,
+    plot: { x: 50, y: 62 },
     availability: "concept",
   },
   {
@@ -147,6 +223,10 @@ export const townShops: ReadonlyArray<TownShop> = [
     agentRole: "persona",
     plainLanguageService: "科研与写作场景的 AI 工具集合",
     shortDescription: "围绕论文与课题常用场景整合 AI 辅助能力。",
+    dimension: "AI Tools",
+    hasBuildingAsset: false,
+    hasCharacterAsset: false,
+    plot: { x: 80, y: 28 },
     availability: "concept",
   },
 ] as const;

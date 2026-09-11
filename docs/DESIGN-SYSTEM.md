@@ -290,3 +290,136 @@ Phase 1E.3-A 在 `app/globals.css` 建立 6 元素全站 Visual Grammar：
 | Label | 14px | 标签 |
 | Archive ID | 13px | 档案编号 |
 | Micro | 12px | 注释（最低） |
+
+---
+
+## 9. Phase 1E.3-B · Town Spatial + AI Document Workspace + Section Transitions
+
+### 9.1 Town Spatial System（东方数字城镇）
+
+**Goal** — 让"成果小镇"第一眼像一个共同空间里的镇，而不是 8 个 SaaS cards。
+
+**5-Layer Spatial Composition** (`components/town/TownMapStage.tsx`)：
+
+| Layer | 含义 | 实现 |
+|---|---|---|
+| L0 | Background Terrain | CSS radial-gradient + faint architectural horizon (warm jade highlight) |
+| L1 | Ground Plane | `.lelan-town-ground` warm earth gradient + `.lelan-town-grid` SVG road grid |
+| L2 | Building / Plot | Absolutely-positioned HTML plot div, sized by shop.plot (normalized 0–100) |
+| L3 | Labels / Markers | Shop number + name + dimension badge inside each plot |
+| L4 | Selected Detail | `TownServiceDrawer` — service archive sheet on right column |
+
+**8 Shops** — coordinates locked in `content/town.ts`:
+- West → East axis (research flow): 03 → 01 → 02 → 04 → 06 → 08
+- North → South axis (research / funding / transformation)
+
+**Roads** (L1 SVG, 4 line types, all CSS color values):
+- 1 main east-west road at y=50
+- 1 main north-south road at x=50
+- 1 secondary lower east-west road at y=75 (dashed)
+- 8 short connector segments from each plot to the nearest road (dashed, 0.3px stroke)
+
+**Existing buildings** — only 2 delivery assets exist (`townPaperTeahouse`, `townResearchShop`).
+The map shows them as real building images. The remaining 6 plots render as **architectural
+placeholder** (dashed footprint + "未来建筑位" label). Never fake or duplicate real buildings.
+
+**Perspective** (Desktop ≥768):
+- Container: `perspective: 1200px; perspective-origin: 50% 30%`
+- Ground plane: `.lelan-town-ground` (no rotateX — depth comes from perspective only)
+- Plots stay upright (independent transform layer)
+- Hover / selected: translateY(-2px to -3px), 200ms ease, no bounce
+
+**Mobile ≤767** — all `perspective` disabled (`@media (min-width: 768px)` guard on
+`.lelan-perspective`). Layout becomes vertical 2D layered composition.
+
+### 9.2 Town Hash Sync + Keyboard
+
+- Selection state lives in `HomeTownClient` (Client Component, one island).
+- URL hash bidirectional:
+  - selection → `window.history.replaceState(null, "", "#shop-<id>")`
+  - hash → selection on `useEffect` + `hashchange` listener
+- Invalid hash → fallback to `DEFAULT_SHOP_ID` (`paper-teahouse`).
+- Keyboard support: native `<input type="radio">` group — Tab navigates, Arrow keys move selection.
+
+### 9.3 AI Document Workspace（真实文档软件工作台）
+
+**Goal** — 让"乐懒 AI"第一眼像一个已经存在的软件，而不是 AI 营销页。
+
+**5-Layer Spatial Composition** (`components/ai/AiWorkflowPreview.tsx`)：
+
+| Layer | 含义 | 实现 |
+|---|---|---|
+| L0 | Workspace Background | `.lelan-bg-l4-ai` warm tool surface |
+| L1 | Input Document | `DocumentPage` with `demo-paper.docx` caption + 4 sample lines |
+| L2 | Process Trace | Vertical timeline: input detection → feature selection → intensity → AI processing → output |
+| L3 | Result Document | `DocumentPage` showing AIGC analysis excerpt with one highlighted line |
+| L4 | Word Output Tokens | 7 file tokens in 2-row grid, grouped by `rewrite` / `aigc` |
+
+**Three-column desktop layout** (≥1024px, `lg:grid-cols-12`):
+- Column 1: `lg:col-span-4` — Input Document
+- Column 2: `lg:col-span-4` — Process Trace
+- Column 3: `lg:col-span-4` — Result Document
+
+**Tablet 768–1023**: 2 columns (`sm:grid-cols-2`). Spec: AI cannot 3-column at 768.
+**Mobile ≤640**: single column stacked.
+
+**Perspective** (AI): 0–1° tilt on document pages (negligible). Spatial depth comes from
+`overlap`, `offset`, `paper stack shadow`, `translateY(-2px)` hover on file tokens.
+
+### 9.4 AI Capability Source-of-Truth
+
+All verified names + outputs come from `content/home.ts` → `HomeAiSection.wordOutputs`,
+which mirrors the literal IDs from `lelan-shouhu/src/lib/output-options.ts`:
+
+| Output ID (repo) | Display Name |
+|---|---|
+| `light_rewrite_word` | 轻度降重后的Word |
+| `medium_rewrite_word` | 中度降重后的Word |
+| `deep_rewrite_word` | 深度降重后的Word |
+| `aigc_report_word` | AIGC检测报告-Word标红版 |
+| `aigc_analysis_summary_word` | AIGC特征分析摘要Word |
+| `original_word_aigc_annotation` | 原Word降AIGC批注版 |
+| `deai_word` | 降AIGC后的Word |
+
+**Forbidden in AI copy** — accuracy numbers, fake metrics, automatic submission claims,
+journal acceptance guarantees, AIGC detection evasion guarantees.
+
+### 9.5 Section Transitions（FLAT → DEPTH → STRONG DEPTH → DEPTH → FLAT）
+
+**Visual rhythm across homepage sections**:
+
+```
+Hero           (flat editorial — L0 base)
+  ↓
+Guardian       (medium depth — coordinate plane L1, GuardianSeal L3)
+  ↓ .lelan-divider-coord-fade (fade left → right)
+Town           (STRONG depth — perspective ground L1, plots L2–3, drawer L4)
+  ↓ paper baseline fade
+AI             (medium depth — document workspace L0–4)
+  ↓ .lelan-divider-paper-flat (flat hairline)
+Technology     (flat editorial)
+  ↓
+About          (flat editorial)
+```
+
+**Transition helpers** (in `globals.css`):
+- `.lelan-divider-coord-fade` — picks up Guardian's coordinate cross and fades into Town ground
+- `.lelan-divider-paper-flat` — AI → Technology flat hairline divider
+
+### 9.6 Background System (Phase 1E.3-B added)
+
+| Level | Section | Color |
+|---|---|---|
+| L0 | Base Editorial | `var(--color-paper)` warm beige |
+| L1 | Paper / Archive | `var(--color-paper-pure)` |
+| L2 | Guardian Coordinate | `.lelan-bg-coordinate` graph-paper |
+| L3 | **Town Spatial** (NEW) | `.lelan-bg-l3-town` warm jade + horizon highlight |
+| L4 | **AI Workspace** (NEW) | `.lelan-bg-l4-ai` clean warm document white |
+
+### 9.7 Future Asset Hooks (decoupled)
+
+- Town: when transparent building PNGs arrive, swap into the `PlotView` real-building
+  branch (`hasBuildingAsset === true`). No need to rewrite `TownMapStage` roads/plots.
+- AI: when real product screenshots arrive, swap into `DocumentPage` for `Result Document`
+  (L3). The 7 Word output tokens (L4) remain token-based.
+- Both hooks live as separate component branches — no layout rewrite required.
