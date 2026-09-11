@@ -1,33 +1,24 @@
 /**
  * LELAN TECHNOLOGY · Home · Guardian (乐懒守护) — Archive Coordinate
  *
- * Phase 1E.3-A — Editorial archive coordinate plane.
+ * Phase 1E.3-C-R1 — Four-layer spatial composition (R1 rework).
  *
- * Visual hierarchy:
- *   Layer 0: paper background field
- *   Layer 1: coordinate plane (light graph paper)
- *   Layer 2: archive sheet (the actual content)
- *   Layer 3: GuardianSeal (overlays archive edge)
- *   Layer 4: small annotations (archive id, micro caption)
+ * Visual hierarchy (now with obvious layer offsets + overlaps):
+ *   Layer 0: paper / coordinate field  (background)
+ *   Layer 1: archive sheet             (the actual content, sits in middle)
+ *   Layer 2: GuardianSeal overlay      (overlaps bottom-left of archive sheet)
+ *   Layer 3: LIVE Glass overlay        (overlaps right side, 22–28% width)
  *
- * Three-column relationship (desktop):
- *   - Left  : 8-stage lifecycle (Y axis)
- *   - Center: current coordinate + task chain (X axis)
- *   - Right : GuardianSeal + scene label
+ * Layer offsets are visible via translateZ + position offset — not just stacked.
+ * The seal hangs off the bottom-left edge; the glass panel covers the right
+ * column with archive content (lifecycle / task flow) visible through blur.
  *
- * Mobile: stack vertically.
+ * Demo state: 36F startup scenario showing 4 / 8 税务登记 current.
+ * MUST be labeled as Demo.
  *
- * Demo state (per D-PHASE2-015 / D-PHASE1E.3-A):
- *   The example uses a 36F startup scenario showing 4 / 8 税务登记 current.
- *   It MUST be labeled as Demo.
- *
- * Components:
- *   - GuardianArchive (client island) — lifecycle state
- *   - GuardianElements (server) — five-dimension archive band
- *   - GuardianSeal (server) — identity mark
- *
- * Server shell + small client island for state.
+ * 28岁仍是 "离 · 青少年 20–29" — preserved.
  */
+
 import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { StatusLabel } from "@/components/ui/StatusLabel";
@@ -100,9 +91,15 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
             </div>
           </div>
 
-          {/* ── Right: GuardianSeal as visual anchor ──────────── */}
+          {/* ── Right: section meta (Seal moved to overlay below) ─── */}
           <aside className="hidden md:col-span-4 md:flex md:items-start md:justify-end">
-            <GuardianSeal state="partial" size="lg" profile={null} caption="档案示例 · 兑 · 青年期" />
+            <div className="flex flex-col items-end gap-2 text-right">
+              <p className="lelan-archive-id">DEMO · STAGE 04 / 08</p>
+              <p className="font-serif text-sm text-ink">兑 · 青年期</p>
+              <p className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
+                4 / 8 税务登记 · 当前
+              </p>
+            </div>
           </aside>
         </div>
 
@@ -111,7 +108,8 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
           id="guardian-archive"
           className="lelan-perspective mt-10 scroll-mt-20"
         >
-          <div className="lelan-corner lelan-bg-coordinate relative rounded-sm border border-rule">
+          {/* L0: coordinate field — wider than archive sheet to show edges */}
+          <div className="lelan-corner lelan-bg-coordinate relative overflow-visible rounded-sm border border-rule px-6 py-10 sm:px-8 sm:py-12">
             {/* Coordinate corner marks */}
             <span aria-hidden className="absolute left-2 top-2 font-mono text-[0.6rem] uppercase tracking-wider text-muted">
               Y · 阶段
@@ -119,64 +117,153 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
             <span aria-hidden className="absolute right-2 top-2 font-mono text-[0.6rem] uppercase tracking-wider text-muted">
               X · 流程
             </span>
+            <span aria-hidden className="absolute bottom-2 left-2 font-mono text-[0.6rem] uppercase tracking-wider text-muted/70">
+              100 × 100
+            </span>
+            <span aria-hidden className="absolute bottom-2 right-2 font-mono text-[0.6rem] uppercase tracking-wider text-muted/70">
+              LELAN · 坐标
+            </span>
 
-            {/* Archive sheet — the actual content */}
-            <div className="lelan-depth-2 lelan-bg-l1 lelan-contact-shadow-2 relative mx-3 my-3 rounded-sm border border-rule">
-              <div className="flex items-center justify-between border-b border-rule bg-paper-pure px-5 py-3">
-                <div className="flex items-center gap-3">
-                  <span
-                    aria-hidden
-                    className="flex h-6 w-6 items-center justify-center rounded-sm border border-rule font-mono text-[0.6rem] text-muted"
-                  >
-                    符
-                  </span>
-                  <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
-                    乐懒守护符 · 人生坐标
+            {/* L1: archive sheet — the actual content
+                Sits with offset inside coordinate field so edges are visible */}
+            <div className="relative ml-2 mr-12 mt-4 mb-8 sm:ml-6 sm:mr-20 sm:mt-6 sm:mb-12">
+              <div
+                className="lelan-depth-2 lelan-bg-l1 lelan-contact-shadow-3 relative overflow-visible rounded-sm border border-rule"
+                style={{ minHeight: "440px" }}
+              >
+                {/* Sheet header */}
+                <div className="flex items-center justify-between border-b border-rule bg-paper-pure px-5 py-3">
+                  <div className="flex items-center gap-3">
+                    <span
+                      aria-hidden
+                      className="flex h-6 w-6 items-center justify-center rounded-sm border border-rule bg-paper font-mono text-[0.6rem] text-muted"
+                    >
+                      符
+                    </span>
+                    <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
+                      乐懒守护符 · 人生坐标
+                    </p>
+                  </div>
+                  <p className="font-mono text-[0.6rem] uppercase tracking-wider text-muted/70">
+                    Demo · 兑 · 青年期 · 4 / 8
                   </p>
                 </div>
-                <p className="font-mono text-[0.6rem] uppercase tracking-wider text-muted/70">
-                  Demo · 兑 · 青年期 · 4 / 8
-                </p>
+
+                {/* Sheet body — content visible through glass (lifecycle + tasks) */}
+                <div className="p-5 pr-[28%] sm:p-7 sm:pr-[28%]">
+                  <GuardianArchive />
+                </div>
+
+                {/* Edge highlight line — makes paper visible behind glass */}
+                <div
+                  aria-hidden
+                  className="archive-paper-edge"
+                  style={{
+                    top: "0",
+                    right: "26%",
+                    width: "1px",
+                    bottom: "0",
+                  }}
+                />
               </div>
 
-              {/* Phase 1E.3-C — Frosted Glass current-coordinate overlay */}
+              {/* L2: GuardianSeal — overlaps bottom-left of archive sheet */}
+              <div className="guardian-seal-overlay">
+                <GuardianSeal
+                  state="partial"
+                  size="lg"
+                  profile={null}
+                  caption="档案示例 · 兑 · 青年期"
+                />
+              </div>
+
+              {/* L3: LIVE Glass — overlaps right side of archive sheet (22–28%) */}
               <div
-                className="absolute right-5 top-16 z-10 hidden w-56 rounded-sm p-3 sm:block"
+                className="guardian-glass-overlay"
                 role="status"
                 aria-label="当前坐标状态"
               >
-                <div className="lelan-glass-soft rounded-sm p-3">
-                  <p className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
-                    当前坐标 · LIVE
-                  </p>
-                  <p className="mt-1 font-serif text-base text-ink">
-                    兑 · 青年期
-                  </p>
-                  <p className="text-[0.7rem] leading-relaxed text-muted">
-                    场景：创业 · 4 / 8 税务登记
-                  </p>
-                  <div className="mt-2 h-px w-full bg-rule" aria-hidden />
-                  <div className="mt-2 flex items-center gap-2">
+                <div className="lelan-glass-raised h-full rounded-sm p-3 sm:p-4">
+                  <div className="flex items-center gap-2 border-b border-rule/40 pb-2">
                     <span
                       aria-hidden
                       className="h-1.5 w-1.5 rounded-full bg-cinnabar"
                     />
-                    <span className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
-                      待办 5 项
-                    </span>
+                    <p className="font-mono text-[0.6rem] uppercase tracking-wider text-ink/80">
+                      当前坐标 · LIVE
+                    </p>
+                  </div>
+
+                  <div className="mt-3">
+                    <p className="font-mono text-[0.55rem] uppercase tracking-wider text-muted">
+                      STAGE
+                    </p>
+                    <p className="mt-0.5 font-serif text-lg text-ink">
+                      兑 · 青年期
+                    </p>
+                    <p className="text-[0.65rem] leading-relaxed text-muted">
+                      20–29 · 离 · 青少年
+                    </p>
+                  </div>
+
+                  <div className="mt-3 border-t border-rule/40 pt-2">
+                    <p className="font-mono text-[0.55rem] uppercase tracking-wider text-muted">
+                      SCENE
+                    </p>
+                    <p className="mt-0.5 font-serif text-sm text-ink/90">
+                      创业场景
+                    </p>
+                    <p className="text-[0.65rem] text-muted">
+                      4 / 8 税务登记
+                    </p>
+                  </div>
+
+                  <div className="mt-3 border-t border-rule/40 pt-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        aria-hidden
+                        className="h-1.5 w-1.5 rounded-full bg-cinnabar"
+                      />
+                      <span className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
+                        待办 5 项
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <span
+                        aria-hidden
+                        className="h-1.5 w-1.5 rounded-full bg-green"
+                      />
+                      <span className="font-mono text-[0.6rem] uppercase tracking-wider text-muted">
+                        完成 3 项
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 border-t border-rule/40 pt-2">
+                    <p className="font-mono text-[0.55rem] uppercase tracking-wider text-muted">
+                      PROGRESS
+                    </p>
+                    <div className="mt-1 h-1 overflow-hidden rounded-full bg-rule">
+                      <div
+                        className="h-full rounded-full bg-green"
+                        style={{ width: "37.5%" }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-
-              <div className="p-5 sm:p-7 sm:pr-64">
-                <GuardianArchive />
-              </div>
             </div>
+
+            {/* Coordinate corner ticks (purely decorative) */}
+            <div aria-hidden className="pointer-events-none absolute left-0 top-0 h-3 w-3 border-l border-t border-rule-strong" />
+            <div aria-hidden className="pointer-events-none absolute right-0 top-0 h-3 w-3 border-r border-t border-rule-strong" />
+            <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-3 w-3 border-b border-l border-rule-strong" />
+            <div aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-3 w-3 border-b border-r border-rule-strong" />
           </div>
         </div>
 
         {/* ── Five Elements archive band ─────────────────────────── */}
-        <div className="mt-10">
+        <div className="mt-16">
           <GuardianElements />
         </div>
 

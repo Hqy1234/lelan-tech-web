@@ -1,45 +1,20 @@
 /**
  * LELAN TECHNOLOGY · Town Map Stage
  *
- * Phase 1E.3-B — Spatial Product Interface.
+ * Phase 1E.3-C-R1 — STRONG DEPTH visual upgrades (R1 rework).
  *
- * Renders the eastern spatial view of the town using SVG + HTML:
+ * Changes in R1:
+ *   - Map container is taller (lelan-town-map-container — 68vh / 640px)
+ *   - Real building plots enlarged via larger PLOT_W (12% → 16%)
+ *   - Foreground eaves strengthened (lelan-town-fg-eave-* in globals)
+ *   - Future building slots read as architectural volumes, not dashed grid
  *
- *   Layer 0  BACKGROUND TERRAIN
- *     CSS-only distant architectural silhouette + warm horizon highlight
- *
- *   Layer 1  GROUND PLANE
- *     SVG ground rectangle with road grid (.lelan-town-grid)
- *     1 main east-west road + 1 north-south road + 1 secondary E-W road
- *
- *   Layer 2  BUILDING / PLOT VISUAL
- *     HTML absolutely-positioned plot elements:
- *       - 2 plots have real building image (论文茶寮, 课题小铺)
- *       - 6 plots show architectural placeholder (future building slot)
- *
- *   Layer 3  LABELS / MARKERS
- *     HTML shop number + name + dimension badges
- *     Selected plot shows stronger border + active node + small elevation
- *
- *   Layer 4  SELECTED DETAIL
- *     Below the map: "Town Service Archive Drawer"
- *     Contains shop info + agent identity + action area
- *
- * The plot coordinates are passed in from content/town.ts (normalized 0–100).
- * Buildings remain replaceable: only the image is keyed off
- * `buildingAssetId` in the plot rendering — swap asset, not the map.
- *
- * Desktop (≥641px):
- *   perspective: 1200px, ground rotateX(3deg), building images stay upright
- * Mobile (≤640px):
- *   All perspective/rotateX disabled. Layout becomes a 2-row stacked
- *   composition (mini map → service drawer → compact index).
- *
- * Accessibility:
- *   - The map is a presentation component. Selection is keyboard-driven
- *     by a real radio group in the parent (HomeTownClient).
- *   - Decorative SVG is aria-hidden / pointer-events-none.
- *   - Shop name + number are real HTML inside each plot.
+ * Layers (preserved):
+ *   Layer 0  BACKGROUND TERRAIN       — distant silhouette (CSS-only)
+ *   Layer 1  GROUND PLANE             — SVG road grid
+ *   Layer 2  BUILDING / PLOT VISUAL   — HTML plot elements
+ *   Layer 3  LABELS / MARKERS         — shop number + name + dim badges
+ *   Layer 4  SELECTED DETAIL          — service drawer (separate island)
  */
 
 import Image from "next/image";
@@ -52,11 +27,10 @@ import type { TownShop } from "@/content/town";
 
 /**
  * Compute the top-left % position of a plot from its normalized (0–100) coord.
- * Plot CSS width is `PLOT_W%`; left/top account for centering the plot
- * at the given coordinate.
+ * Plot CSS width is `PLOT_W%` (enlarged in R1 for visual anchoring).
  */
-const PLOT_W = 12; // plot width (% of map container)
-const PLOT_H = 18; // plot height (% of map container)
+const PLOT_W = 16; // plot width (% of map container) — was 12
+const PLOT_H = 22; // plot height (% of map container) — was 18
 const VIEW_W = 100;
 const VIEW_H = 100;
 
@@ -74,7 +48,7 @@ export function plotStyle(coord: { x: number; y: number }) {
 export const TOWN_VIEW = { width: VIEW_W, height: VIEW_H };
 
 /* ========================================================================
-   Plot rendering (real building vs placeholder)
+   Plot rendering (real building vs architectural volume)
    ======================================================================== */
 
 function resolveAsset(id: string | undefined) {
@@ -115,7 +89,7 @@ function PlotView({ shop, isSelected }: PlotViewProps) {
               src={building!.src}
               alt={building!.alt}
               fill
-              sizes="(max-width: 640px) 25vw, (max-width: 1024px) 18vw, 12vw"
+              sizes="(max-width: 640px) 30vw, (max-width: 1024px) 22vw, 16vw"
               className="object-cover"
             />
             {/* Subtle glass reflection at the top edge */}
@@ -125,7 +99,7 @@ function PlotView({ shop, isSelected }: PlotViewProps) {
             />
           </div>
         ) : (
-          // L2 placeholder: architectural frame, no fake image
+          // L2 placeholder: architectural volume (R1)
           <PlotPlaceholder shop={shop} />
         )}
 
@@ -159,18 +133,45 @@ function PlotView({ shop, isSelected }: PlotViewProps) {
   );
 }
 
+/**
+ * R1 — Future building slot now reads as an architectural volume.
+ *   - Solid paper base with subtle gradient
+ *   - Vertical accent line on the left = building edge / column
+ *   - Horizontal roofline band near top = cornice
+ *   - Strong contrast with dashed placeholder, looks like a real (paper)
+ *     mass waiting to be built.
+ */
 function PlotPlaceholder({ shop }: { shop: TownShop }) {
   return (
-    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 px-2 text-center">
-      <span className="font-mono text-[0.55rem] uppercase tracking-wider text-muted/70">
-        未来建筑位
-      </span>
-      <span className="font-serif text-[0.7rem] text-ink/80">
-        {shop.name}
-      </span>
-      <span className="font-mono text-[0.5rem] uppercase tracking-wider text-muted/60">
-        {shop.dimension}
-      </span>
+    <div className="absolute inset-0">
+      {/* Vertical column edge — left side */}
+      <div
+        aria-hidden
+        className="absolute left-2 top-2 bottom-2 w-px bg-rule-strong/35"
+      />
+      {/* Cornice band — top */}
+      <div
+        aria-hidden
+        className="absolute left-2 right-2 top-3 h-1 bg-rule-strong/30"
+      />
+      {/* Foundation line — bottom */}
+      <div
+        aria-hidden
+        className="absolute left-2 right-2 bottom-2 h-px bg-rule-strong/40"
+      />
+
+      {/* Centered content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-2 text-center">
+        <span className="font-mono text-[0.5rem] uppercase tracking-[0.2em] text-muted/60">
+          待建体量
+        </span>
+        <span className="font-serif text-[0.7rem] text-ink/85">
+          {shop.name}
+        </span>
+        <span className="font-mono text-[0.48rem] uppercase tracking-wider text-muted/55">
+          {shop.dimension}
+        </span>
+      </div>
     </div>
   );
 }
@@ -266,8 +267,7 @@ export function TownMapStage({
     >
       {/* L1 ground plane + L0 terrain (CSS-driven) */}
       <div
-        className="lelan-town-ground lelan-town-grid lelan-depth-1 relative h-full w-full overflow-hidden rounded-sm border border-rule"
-        style={{ minHeight: "min(60vh, 560px)" }}
+        className="lelan-town-ground lelan-town-grid lelan-depth-1 lelan-town-map-container relative h-full w-full overflow-visible rounded-sm border border-rule"
       >
         {/* L0: very subtle terrain horizon (CSS-only) */}
         <div
@@ -300,13 +300,10 @@ export function TownMapStage({
           />
         ))}
 
-        {/* Foreground occlusion: a few subtle eaves at the bottom corners
-            — purely CSS / pseudo-elements to add depth without images */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-t from-[rgba(141,124,96,0.10)] to-transparent"
-        />
-        {/* Phase 1E.3-C — corner eaves for 3-plane depth */}
+        {/* Foreground ground edge — paper ground line */}
+        <div aria-hidden className="lelan-town-ground-edge" />
+
+        {/* R1 — Foreground eaves (stronger, taller) */}
         <div aria-hidden className="lelan-town-fg-eave-left" />
         <div aria-hidden className="lelan-town-fg-eave-right" />
       </div>

@@ -876,37 +876,336 @@ summary::marker {
 }
 
 /* ============================================================
- * Phase 1E.3-C — Town foreground occlusion (3-plane depth)
- * Subtle CSS shapes at corners of town map to add
- * foreground / midground / background hierarchy.
+ * Phase 1E.3-C-R1 — Guardian 4-Layer Spatial Stack
+ *
+ * Layer 0: coordinate paper background
+ * Layer 1: archive sheet (the content)
+ * Layer 2: GuardianSeal — overlaps bottom-left of archive sheet
+ * Layer 3: LIVE Glass — overlaps right side of archive sheet (22–28%)
+ *
+ * Each layer is visibly separated via:
+ *   - Different z-translate depth
+ *   - Offset position (not centered)
+ *   - Shadow + border contrast
  * ============================================================ */
+
+/* Layer 2 — GuardianSeal overlay (bottom-left overlap) */
+.guardian-seal-overlay {
+  position: absolute;
+  bottom: -16px;
+  left: -12px;
+  z-index: 12;
+  transform: translateZ(calc(var(--depth-3-translate) * 1.2));
+}
+
+/* Layer 3 — LIVE Glass overlay (right side, 22–28% width) */
+.guardian-glass-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 26%;
+  min-width: 200px;
+  max-width: 280px;
+  height: 100%;
+  z-index: 11;
+  transform: translateZ(var(--depth-4-translate));
+}
+
+/* Archive content — must be behind glass, visible through blur */
+.guardian-archive-content {
+  position: relative;
+  padding-right: 26%;
+}
+
+/* ============================================================
+ * Phase 1E.3-C-R1 — Town STRONG DEPTH visual upgrades
+ *
+ * Goals:
+ *   - Map height increased for visual dominance
+ *   - Drawer overflows map boundary (~20% overlap)
+ *   - Stronger foreground eaves for 3-plane depth
+ *   - Future buildings = architectural volumes (not placeholders)
+ * ============================================================ */
+
+/* Town map container — taller for visual impact */
+.lelan-town-map-container {
+  min-height: min(68vh, 640px);
+}
+
+/* Town service drawer — overflows right/top of map */
+.lelan-town-drawer-float {
+  position: absolute;
+  right: -8%;
+  top: -5%;
+  width: 30%;
+  min-width: 240px;
+  max-width: 320px;
+  z-index: 20;
+  transform: translateZ(var(--depth-3-translate));
+  /* Soft contact shadow to ground the floating panel */
+  box-shadow:
+    0 2px 0 0 rgba(20, 17, 15, 0.06),
+    0 16px 36px -18px rgba(20, 17, 15, 0.14);
+}
+
+/* Town foreground eaves — stronger, more visible occlusion */
 .lelan-town-fg-eave-left,
 .lelan-town-fg-eave-right {
   position: absolute;
   bottom: 0;
-  width: 38%;
-  height: 14%;
+  width: 45%;
+  height: 18%;
   pointer-events: none;
-  z-index: 5;
+  z-index: 8;
 }
 .lelan-town-fg-eave-left {
   left: 0;
   background: linear-gradient(
     to top right,
-    rgba(60, 50, 38, 0.16) 0%,
-    rgba(60, 50, 38, 0.08) 40%,
-    transparent 75%
+    rgba(50, 42, 32, 0.22) 0%,
+    rgba(50, 42, 32, 0.12) 30%,
+    transparent 70%
   );
-  clip-path: polygon(0 100%, 0 60%, 18% 45%, 38% 55%, 55% 40%, 70% 65%, 85% 50%, 100% 75%, 100% 100%);
+  clip-path: polygon(
+    0 100%,
+    0 65%,
+    12% 50%,
+    28% 58%,
+    42% 42%,
+    58% 62%,
+    72% 48%,
+    86% 58%,
+    100% 68%,
+    100% 100%
+  );
 }
 .lelan-town-fg-eave-right {
   right: 0;
   background: linear-gradient(
     to top left,
-    rgba(60, 50, 38, 0.14) 0%,
-    rgba(60, 50, 38, 0.07) 40%,
-    transparent 75%
+    rgba(50, 42, 32, 0.18) 0%,
+    rgba(50, 42, 32, 0.10) 30%,
+    transparent 70%
   );
-  clip-path: polygon(0 75%, 15% 50%, 30% 65%, 45% 40%, 60% 55%, 75% 45%, 100% 60%, 100% 100%);
+  clip-path: polygon(
+    0 68%,
+    14% 58%,
+    28% 48%,
+    42% 62%,
+    58% 42%,
+    72% 58%,
+    86% 50%,
+    100% 65%,
+    100% 100%,
+    0 100%
+  );
+}
+
+/* Town ground bottom edge — paper ground line */
+.lelan-town-ground-edge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    to bottom,
+    rgba(141, 124, 96, 0.35) 0%,
+    rgba(141, 124, 96, 0.15) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 6;
+}
+
+/* Town future building — architectural volume (not dashed placeholder) */
+.lelan-plot-future {
+  background:
+    linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.75) 0%,
+      rgba(243, 238, 226, 0.55) 60%,
+      rgba(233, 224, 206, 0.80) 100%
+    );
+  border-style: solid;
+  border-color: rgba(141, 124, 96, 0.38);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Architectural volume hint — roof ridge line */
+.lelan-plot-future::before {
+  border-color: rgba(141, 124, 96, 0.60);
+  border-style: solid;
+}
+
+/* Building mass suggestion — horizontal band at mid-height */
+.lelan-plot-future::after {
+  content: "";
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: 35%;
+  height: 2px;
+  background: rgba(141, 124, 96, 0.25);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Town buildings — larger scale (anchor the visual) */
+.lelan-town-building-frame {
+  position: relative;
+  background: var(--color-paper-pure);
+  border: 1px solid var(--color-rule);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.7),
+    0 8px 24px -12px rgba(20, 17, 15, 0.22);
+}
+.lelan-town-building-frame::before {
+  content: "";
+  position: absolute;
+  inset: 5%;
+  border: 1px solid rgba(184, 175, 154, 0.35);
+  pointer-events: none;
+  z-index: 1;
+}
+.lelan-town-building-frame::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 6%;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(141, 124, 96, 0.40) 50%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================================
+ * Phase 1E.3-C-R1 — AI Process Glass DEPTH composition
+ *
+ * Goals:
+ *   - Process Glass (center) overlaps left + right papers
+ *   - Asymmetric heights (left shorter, right taller)
+ *   - Blur over real content behind
+ *   - Word tokens stagger overflow
+ * ============================================================ */
+
+/* AI workspace — full depth composition */
+.lelan-ai-composition {
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+/* AI left paper — back layer, shorter height */
+.ai-paper-left {
+  position: relative;
+  z-index: 1;
+  transform: translateZ(calc(var(--depth-1-translate) * 0.6));
+  margin-bottom: 2rem;
+}
+
+/* AI right paper — back layer, taller height */
+.ai-paper-right {
+  position: relative;
+  z-index: 1;
+  transform: translateZ(calc(var(--depth-1-translate) * 0.6));
+  margin-top: 1.5rem;
+}
+
+/* AI center Process Glass — front layer, overlaps both papers */
+.ai-glass-center {
+  position: relative;
+  z-index: 5;
+  transform: translateZ(var(--depth-3-translate));
+  /* Expand past paper edges to create overlap */
+  margin-left: -8%;
+  margin-right: -8%;
+}
+
+/* AI glass background — jade-tinted for archive feel */
+.ai-glass-bg {
+  background: rgba(243, 240, 232, 0.55);
+  border: 1px solid rgba(50, 75, 62, 0.16);
+  backdrop-filter: blur(16px) saturate(110%);
+  -webkit-backdrop-filter: blur(16px) saturate(110%);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.5) inset,
+    0 2px 4px 0 rgba(20, 17, 15, 0.04),
+    0 18px 40px -18px rgba(20, 17, 15, 0.12);
+}
+
+/* AI glass fallback */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .ai-glass-bg {
+    background: rgba(243, 240, 232, 0.88);
+  }
+}
+
+/* AI word token — staggered overflow stack */
+.ai-token-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.ai-token-item {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid var(--color-rule);
+  border-radius: 2px;
+  padding: 0.5rem;
+  box-shadow:
+    0 1px 0 0 rgba(20, 17, 15, 0.04),
+    0 4px 12px -8px rgba(20, 17, 15, 0.10);
+}
+
+/* Staggered overflow — each token shifts slightly */
+.ai-token-item:nth-child(3n+1) {
+  transform: translateY(0px);
+  z-index: 2;
+}
+.ai-token-item:nth-child(3n+2) {
+  transform: translateY(-4px) translateX(2px);
+  z-index: 3;
+}
+.ai-token-item:nth-child(3n) {
+  transform: translateY(-2px) translateX(-1px);
+  z-index: 1;
+}
+
+@media (min-width: 641px) {
+  .ai-token-item:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 1px 0 0 rgba(20, 17, 15, 0.04),
+      0 10px 20px -10px rgba(20, 17, 15, 0.14);
+    z-index: 10;
+  }
+}
+
+/* ============================================================
+ * Phase 1E.3-C-R1 — Visual depth indicators
+ * ============================================================ */
+
+/* Depth line — shows paper layer edges are misaligned */
+.depth-edge-marker {
+  position: absolute;
+  width: 1px;
+  background: rgba(155, 58, 47, 0.25);
+  pointer-events: none;
+}
+
+/* Archive sheet edge highlight — makes paper visible behind glass */
+.archive-paper-edge {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(20, 17, 15, 0.04);
 }
 

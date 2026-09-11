@@ -1,7 +1,13 @@
 /**
- * LELAN TECHNOLOGY · Town V1.5 (Phase 1E.3-B) Client Island
+ * LELAN TECHNOLOGY · Town V1.5 (Phase 1E.3-B + C-R1) Client Island
  *
- * Phase 1E.3-B — ONE small Client Component island for Town selection.
+ * Phase 1E.3-C-R1 — Drawer overflow visual upgrade.
+ *
+ * R1 visual change:
+ *   - Desktop Drawer position uses `.lelan-town-drawer-float`:
+ *     right: -8% (overflows ~20% past map container)
+ *     top:   -5% (slight vertical pull)
+ *   - All other state / accessibility / hash sync preserved from R0.
  *
  * Architecture:
  *   - Selection state lives here
@@ -10,13 +16,12 @@
  *   - Refresh: selected restored from hash
  *   - All 8 shops' content is passed from the server
  *
- * Visual composition (matches TownMapStage Layer 0–4):
- *   Left (≈20%, mobile: full width): compact service index (8 entries)
+ * Visual composition:
+ *   Left  (≈20%, mobile: full width): compact service index (8 entries)
  *   Center (≈55%): TownMapStage (the spatial map)
- *   Right (≈25%, mobile: full width): TownServiceDrawer
- *
- * No-JS fallback: index shows all shops; map defaults to paper-teahouse.
+ *   Right (Drawer floats 20% past map edge, mobile: full width below)
  */
+
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
@@ -83,7 +88,7 @@ export function HomeTownClient({ shops, statusNote }: HomeTownClientProps) {
   /* ── Render ─────────────────────────────────────────────────── */
 
   return (
-    <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-3 xl:gap-4">
+    <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-4 xl:gap-6">
       {/* ── Left: compact 8-service index (desktop only) ──────── */}
       <nav
         aria-label="小镇服务索引"
@@ -177,12 +182,15 @@ export function HomeTownClient({ shops, statusNote }: HomeTownClientProps) {
       </nav>
 
       {/* ── Center: TownMapStage + floating service panel ─────── */}
-      <div className="relative min-h-[420px] flex-1 min-w-0">
+      <div className="relative flex-1 min-w-0">
         <TownMapStage shops={shops} selectedId={selected.id} />
 
-        {/* Phase 1E.3-C — Desktop: Glass service panel floats over the map */}
-        <div className="pointer-events-none absolute inset-0 hidden lg:block" aria-hidden>
-          <div className="pointer-events-auto absolute right-2 top-6 z-20 w-64 xl:right-4 xl:w-72">
+        {/* Phase 1E.3-C-R1 — Drawer overflows ~20% past the map container */}
+        <div
+          className="pointer-events-none absolute inset-0 hidden lg:block"
+          aria-hidden
+        >
+          <div className="pointer-events-auto lelan-town-drawer-float">
             <TownServiceDrawer
               shop={selected}
               agentRoleLabel={agentRoleLabel}
@@ -190,7 +198,7 @@ export function HomeTownClient({ shops, statusNote }: HomeTownClientProps) {
           </div>
         </div>
 
-        {/* Phase 1E.3-C — Mobile/Tablet: drawer appears below the map */}
+        {/* Mobile/Tablet: drawer appears below the map (full width) */}
         <div className="mt-4 w-full lg:hidden">
           <TownServiceDrawer
             shop={selected}

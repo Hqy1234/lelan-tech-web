@@ -1,26 +1,27 @@
 /**
  * LELAN TECHNOLOGY · AI Workflow Preview
  *
- * Phase 1E.3-B — Software Product Proof.
+ * Phase 1E.3-C-R1 — Process Glass DEPTH composition (R1 rework).
  *
- * Renders the standalone product's UI as a static product preview,
- * independently implemented from lelan-shouhu (read-only reference).
+ * R1 visual changes:
+ *   - Process Glass (center) moved forward via negative margin and z-stack,
+ *     so it visibly overlaps both left + right Papers.
+ *   - Left paper is shorter, right paper is taller (asymmetric).
+ *   - Glass has its own jade-tinted background so blur over real content
+ *     becomes visible.
+ *   - Word outputs become a staggered, overflowing stack — each token
+ *     offsets slightly so the stack feels like a leaning tower rather
+ *     than a flat row.
  *
- * Layout (matches AiWorkflowPreview §42 spatial layers):
+ * Layout (layers):
  *   Layer 0  WORKSPACE BACKGROUND     (lelan-bg-l4-ai CSS)
- *   Layer 1  INPUT DOCUMENT           (left, paper stack)
- *   Layer 2  PROCESS TRACE            (center, vertical timeline)
- *   Layer 3  RESULT DOCUMENT          (right, paper stack)
- *   Layer 4  WORD OUTPUT TOKENS       (bottom, stacked file tokens)
+ *   Layer 1  INPUT DOCUMENT           (left, paper, shorter)
+ *   Layer 2  PROCESS TRACE            (center, Glass, z+2, overlaps)
+ *   Layer 3  RESULT DOCUMENT          (right, paper, taller)
+ *   Layer 4  WORD OUTPUT TOKENS       (bottom, staggered stack, front)
  *
- * All text / outputs / intensities come from the verified content model
- * (HomeAiSection.wordOutputs / intensities / features / limits).
- *
- * Components are static — no real interaction. Labels and tokens make
- * it clear this is a preview, not an interactive form.
- *
- * No: chat-bubble UI, AI orb, blue gradient, glassmorphism,
- *     fake terminal, fake metrics, fake accuracy numbers.
+ * All text / outputs / intensities come from the verified content model.
+ * No invented names or metrics.
  */
 
 import type { HomeAiSection } from "@/content/home";
@@ -85,7 +86,7 @@ function DocumentPage({ caption, meta, title, bodyLines, highlightLineAt }: Docu
   );
 }
 
-/* ── Process trace (center vertical timeline) ──────────────────────────── */
+/* ── Process trace (center Glass — overlaps papers) ────────────────────── */
 
 interface ProcessTraceProps {
   features: HomeAiSection["features"];
@@ -98,7 +99,7 @@ function ProcessTrace({ features, intensities, wordOutputs }: ProcessTraceProps)
   const aigcOutputs = wordOutputs.filter((o) => o.group === "aigc");
 
   return (
-    <div className="lelan-ai-page lelan-glass-soft relative h-full overflow-hidden p-3 sm:p-4">
+    <div className="ai-glass-bg relative h-full overflow-hidden rounded-sm p-3 sm:p-4">
       <p className="font-mono text-[0.55rem] uppercase tracking-wider text-ink/80">
         流程追踪 · PROCESS TRACE
       </p>
@@ -182,7 +183,7 @@ function TraceStep({ number, label, detail, active }: TraceStepProps) {
         "mt-3 flex items-start gap-3 rounded-sm border p-2.5",
         active
           ? "lelan-ai-pulse border-ink/30 bg-ink/[0.02]"
-          : "border-rule bg-paper-pure",
+          : "border-rule/40 bg-paper-pure/40",
       ].join(" ")}
       data-active={active ? "true" : "false"}
     >
@@ -205,7 +206,7 @@ function TraceStep({ number, label, detail, active }: TraceStepProps) {
   );
 }
 
-/* ── Word output tokens (bottom stack) ────────────────────────────────── */
+/* ── Word output tokens — staggered overflow stack ────────────────────── */
 
 interface WordOutputStackProps {
   outputs: HomeAiSection["wordOutputs"];
@@ -213,7 +214,7 @@ interface WordOutputStackProps {
 
 function WordOutputStack({ outputs }: WordOutputStackProps) {
   return (
-    <div className="mt-4">
+    <div className="mt-6">
       <div className="flex items-baseline gap-3">
         <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
           Word 成品 · OUTPUT TOKENS
@@ -224,12 +225,9 @@ function WordOutputStack({ outputs }: WordOutputStackProps) {
         </span>
       </div>
 
-      <ul
-        className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7"
-        role="list"
-      >
+      <ul className="ai-token-stack" role="list">
         {outputs.map((output) => (
-          <li key={output.id} className="lelan-ai-stack-item relative p-2">
+          <li key={output.id} className="ai-token-item">
             <div className="flex items-start gap-1.5">
               <span
                 aria-hidden
@@ -286,11 +284,9 @@ export function AiWorkflowPreview({ section }: AiWorkflowPreviewProps) {
       aria-label="乐懒 AI 产品工作台示意"
       className="lelan-perspective lelan-bg-l4-ai relative rounded-sm border border-rule"
     >
-      {/* Layer 0 workspace background handled by class above */}
-
-      <div className="px-4 py-5 sm:px-6 sm:py-7">
+      <div className="lelan-ai-composition px-4 py-6 sm:px-6 sm:py-8">
         {/* Workspace title bar */}
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-rule pb-3">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-2 border-b border-rule pb-3">
           <div className="flex items-center gap-3">
             <span
               aria-hidden
@@ -307,28 +303,63 @@ export function AiWorkflowPreview({ section }: AiWorkflowPreviewProps) {
           </p>
         </div>
 
-        {/* Phase 1E.3-C — Paper + Glass + Paper spatial composition
-            Desktop: Input (back) — Process (glass front) — Result (back) — Outputs (front tokens)
-            Each layer gets slight translateZ / overlap. */}
-        <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-12">
-          {/* Layer 1 — Input Document (back) */}
-          <div className="lg:col-span-4 lg:lelan-depth-1">
-            <DocumentLayerCaption label="01 输入" hint="INPUT DOCUMENT" />
-            <div className="mt-2 h-[200px] sm:h-[220px]">
-              <DocumentPage
-                caption="demo-paper.docx"
-                meta="24 KB · 4 段"
-                title="输入示例 · demo-paper.docx"
-                bodyLines={inputBody}
-              />
+        {/* R1 — Glass overlaps Papers. Asymmetric heights.
+            Grid: 12 cols, Glass spans 5 in center and offsets via negative margin. */}
+        <div className="relative">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:gap-0">
+            {/* Layer 1 — Input Document (back, shorter) */}
+            <div className="ai-paper-left lg:col-span-4 lg:pr-3">
+              <DocumentLayerCaption label="01 输入" hint="INPUT DOCUMENT" />
+              <div className="mt-2 h-[200px] sm:h-[200px]">
+                <DocumentPage
+                  caption="demo-paper.docx"
+                  meta="24 KB · 4 段"
+                  title="输入示例 · demo-paper.docx"
+                  bodyLines={inputBody}
+                />
+              </div>
+              <p className="mt-1 font-mono text-[0.5rem] uppercase tracking-wider text-muted/60">
+                {section.limits.fileFormat} · {section.limits.textCharRange}
+              </p>
             </div>
-            <p className="mt-1 font-mono text-[0.5rem] uppercase tracking-wider text-muted/60">
-              {section.limits.fileFormat} · {section.limits.textCharRange}
-            </p>
+
+            {/* Spacer for desktop — center column for Glass */}
+            <div className="hidden lg:col-span-1 lg:block" aria-hidden />
+
+            {/* Layer 3 — Result Document (back, taller) */}
+            <div className="ai-paper-right lg:col-span-4 lg:pl-3">
+              <DocumentLayerCaption label="03 结果" hint="RESULT DOCUMENT" />
+              <div className="mt-2 h-[200px] sm:h-[240px]">
+                <DocumentPage
+                  caption="AIGC分析摘要Word"
+                  meta="标记 1 处疑似 AI 段落"
+                  title="结果示例 · 摘要节选"
+                  bodyLines={resultBody}
+                  highlightLineAt={1}
+                />
+              </div>
+              <p className="mt-1 font-mono text-[0.5rem] uppercase tracking-wider text-muted/60">
+                {section.limits.requiresLogin
+                  ? "需要登录"
+                  : "无需登录即可体验"}
+              </p>
+            </div>
           </div>
 
-          {/* Layer 2 — Process Trace (glass front, z+1) */}
-          <div className="lg:col-span-4 lg:lelan-depth-3">
+          {/* Layer 2 — Process Glass (front, overlaps both) */}
+          <div className="ai-glass-center lg:absolute lg:left-1/4 lg:right-1/4 lg:top-4 lg:bottom-4 hidden lg:block">
+            <DocumentLayerCaption label="02 流程" hint="MODE + PROCESS" />
+            <div className="mt-2 h-full">
+              <ProcessTrace
+                features={section.features}
+                intensities={section.intensities}
+                wordOutputs={section.wordOutputs}
+              />
+            </div>
+          </div>
+
+          {/* Mobile: Process Trace appears below Papers (not overlapping) */}
+          <div className="mt-3 lg:hidden">
             <DocumentLayerCaption label="02 流程" hint="MODE + PROCESS" />
             <div className="mt-2 h-[200px] sm:h-[220px]">
               <ProcessTrace
@@ -338,28 +369,9 @@ export function AiWorkflowPreview({ section }: AiWorkflowPreviewProps) {
               />
             </div>
           </div>
-
-          {/* Layer 3 — Result Document (back) */}
-          <div className="lg:col-span-4 lg:lelan-depth-1">
-            <DocumentLayerCaption label="03 结果" hint="RESULT DOCUMENT" />
-            <div className="mt-2 h-[200px] sm:h-[220px]">
-              <DocumentPage
-                caption="AIGC分析摘要Word"
-                meta="标记 1 处疑似 AI 段落"
-                title="结果示例 · 摘要节选"
-                bodyLines={resultBody}
-                highlightLineAt={1}
-              />
-            </div>
-            <p className="mt-1 font-mono text-[0.5rem] uppercase tracking-wider text-muted/60">
-              {section.limits.requiresLogin
-                ? "需要登录"
-                : "无需登录即可体验"}
-            </p>
-          </div>
         </div>
 
-        {/* Layer 4 — Word Outputs (front tokens) */}
+        {/* Layer 4 — Word Outputs (staggered overflow) */}
         <div className="lelan-depth-2">
           <WordOutputStack outputs={section.wordOutputs} />
         </div>
