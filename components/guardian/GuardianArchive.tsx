@@ -30,7 +30,11 @@
 
 import Image from "next/image";
 import { useState, useCallback } from "react";
-import { guardianStages, DEFAULT_STAGE_ID } from "@/content/guardian";
+import {
+  getGuardianStageDisplayName,
+  guardianStages,
+  DEFAULT_STAGE_ID,
+} from "@/content/guardian";
 import { visualAssets, type VisualAsset } from "@/content/assets";
 import { GuardianLifecycle } from "./GuardianLifecycle";
 import { GuardianTaskFlow } from "./GuardianTaskFlow";
@@ -72,7 +76,7 @@ export function GuardianArchive() {
               <Image
                 key={activeStage.id}
                 src={stageAsset.src}
-                alt={`${activeStage.trigram} · ${activeStage.name}（${activeStage.ageRange}）阶段视觉`}
+                alt={`${getGuardianStageDisplayName(activeStage.id)}（${activeStage.ageRange}）阶段视觉`}
                 fill
                 priority={activeStage.id === DEFAULT_STAGE_ID}
                 sizes="(max-width: 1023px) 100vw, 50vw"
@@ -88,7 +92,8 @@ export function GuardianArchive() {
           <div className="lelan-stage-subject-caption mt-2 flex items-center justify-between gap-3 rounded-sm px-3 py-1.5">
             <div className="min-w-0">
               <p className="font-serif text-base text-ink">
-                {activeStage.trigram} · {activeStage.name}
+                {/* Full life-stage display ⇒ canonical displayName. */}
+                {getGuardianStageDisplayName(activeStage.id)}
               </p>
               <p className="mt-0.5 font-mono text-[0.6rem] text-muted">
                 {activeStage.ageRange}
@@ -99,7 +104,7 @@ export function GuardianArchive() {
               size="sm"
               trigram={activeStage.trigram}
               stageLabel={activeStage.name}
-              ariaLabel={`乐懒守护符 · ${activeStage.trigram} · ${activeStage.name}`}
+              ariaLabel={`乐懒守护符 · ${getGuardianStageDisplayName(activeStage.id)}`}
             />
           </div>
         </div>

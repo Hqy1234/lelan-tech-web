@@ -1608,9 +1608,9 @@
 
   同一 `stage_id` 无论来自 **demo persona / generated profile / step form /
   Dify request / profile 渲染**，最终 canonical displayName **一致**。
-- **D-PHASE1F.1-004** — 同步修正 persona 数据里的短名，使
-  `guardianStages[].name` 与 persona `stage.name` 不再互相矛盾
-  （`li-adolescent` 由「青少年期」→「青少年」）。
+- **D-PHASE1F.1-004** — persona 数据的短名与 `guardianStages[].name` 保持一致
+  （两者都是 UI **短标签**，非 canonical）。
+  见 **D-PHASE1F.1-021**：短名已恢复为「青少年期」，canonical 仍为「离 · 青少年」。
 
 ### 兼容别名
 
@@ -1695,3 +1695,40 @@
   `app-xxxxxxxx` 形式的 Dify key（唯一匹配是 `.env.example` 里的占位说明
   `# 形如 app-xxxxxxxxxxxxxxxx`，不是密钥）；已跟踪的 `.env` 类文件**仅有**
   `.env.example`；构建产物中无 key 模式。
+
+---
+
+## D-PHASE1F.1.1 · 短名与 canonical 名解耦（追加于 2026-09-12）
+
+> 极小修正轮，**不重构**。未动 Dify caller id、Adapter 架构、CORS、Town、
+> `lelan-shouhu`、`/profile` 布局。
+
+- **D-PHASE1F.1.1-001** — **`name` 与 `displayName` 是相互独立的值**，
+  `displayName` **不是** `${trigram} · ${name}` 的自动拼接结果 ——
+  代码中不存在此约定。
+  - `name` = **UI 短标签**（形如「青少年期」「青年期」）
+  - `displayName` = **Guardian canonical 业务展示名**（形如「离 · 青少年」）
+
+  8 个 stage 中 **7 个**恰好满足 `displayName === trigram · name`，
+  `li-adolescent` 是**唯一**两者不等的：
+  `name = "青少年期"` · `displayName = "离 · 青少年"`。
+  这条差异本身就是该约定不成立的证明。
+- **D-PHASE1F.1-002** — 恢复 `li-adolescent` 短名 `青少年期`
+  （撤销 D-PHASE1F.1-004 引入的 `青少年`），canonical 仍为 `离 · 青少年`。
+- **D-PHASE1F.1-003** — **完整人生阶段展示一律走 canonical**：
+  `/profile` 阶段行、`GuardianArchive` 阶段名 + 图片 alt + 守护符 ariaLabel、
+  `GuardianLifecycle` 阶段按钮 aria-label、`GuardianDemoForm` 建议阶段卡、
+  `HomeGuardian` 当前阶段 —— 全部改为 `getGuardianStageDisplayName(stageId)`，
+  不再自行拼接 `trigram · name`。
+- **D-PHASE1F.1-004** — **短标签继续使用 `name`**：Seal 内的标签、
+  `/guardian/demo` 阶段选择列表（配 `trigram` 与 `ageRange`）、
+  人生坐标列表、`stageLabel` prop。此类场景本就自行渲染卦名，用短名避免重复。
+- **D-PHASE1F.1-005** — **Dify 仍发送 `displayName`**，绝不以短名代替
+  `stage_name`。实测线上 payload `stage.name` 为 `离 · 青少年` / `兑 · 青年期`。
+- **D-PHASE1F.1-006** — 兼容别名不变且已复测：`青少年期` 与 `离 · 青少年期`
+  均 normalize 为 `离 · 青少年`；跨阶段别名（`青年期` 对 `li-adolescent`）
+  与凭空名字仍**拒绝**。服务端 `normalizeStageName` 6/6、客户端
+  `normalizeGuardianStageName` 9/9 通过。
+- **D-PHASE1F.1-007** — 顺带清理：客户端 alias 表中原有的
+  `` `${short}期` `` 分支在短名改回后成为死代码（会拼出「青少年期期」），已移除；
+  改回直接比对 `stage.name` 本身，语义更准。

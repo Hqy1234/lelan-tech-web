@@ -25,6 +25,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
+  getGuardianStageDisplayName,
   guardianStages,
   DEFAULT_STAGE_ID,
   type GuardianStage,
@@ -60,7 +61,7 @@ function StageNode({
       type="button"
       onClick={() => onSelect(stage.id)}
       aria-pressed={isSelected}
-      aria-label={`${stage.trigram} · ${stage.name}（${stage.ageRange}）`}
+      aria-label={`${getGuardianStageDisplayName(stage.id)}（${stage.ageRange}）`}
       className={[
         "group relative flex shrink-0 flex-col items-center gap-1 rounded-sm px-2 py-2 transition-colors",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-cinnabar focus-visible:outline-offset-2",

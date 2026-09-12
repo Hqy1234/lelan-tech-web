@@ -27,7 +27,12 @@
 import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { StatusLabel } from "@/components/ui/StatusLabel";
-import { guardianMethodSteps, guardianStages, DEFAULT_STAGE_ID } from "@/content/guardian";
+import {
+  getGuardianStageDisplayName,
+  guardianMethodSteps,
+  guardianStages,
+  DEFAULT_STAGE_ID,
+} from "@/content/guardian";
 import { GuardianArchive } from "@/components/guardian/GuardianArchive";
 import { GuardianElements } from "@/components/guardian/GuardianElements";
 import type { HomeGuardianSection } from "@/content/home";
@@ -120,7 +125,8 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
               </div>
 
               <p className="mt-2 font-serif text-lg leading-tight text-ink">
-                {defaultStage.trigram} · {defaultStage.name}
+                {/* Full life-stage display ⇒ canonical displayName. */}
+                {getGuardianStageDisplayName(defaultStage.id)}
               </p>
               <p className="mt-0.5 font-mono text-[0.6rem] text-muted">
                 {defaultStage.ageRange}

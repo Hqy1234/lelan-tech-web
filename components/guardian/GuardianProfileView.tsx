@@ -27,6 +27,7 @@
 "use client";
 
 import {
+  getGuardianStageDisplayName,
   guardianStages,
   type GuardianProfile,
   type GuardianProfileTask,
@@ -176,7 +177,12 @@ export function GuardianProfileView({ profile }: { profile: GuardianProfile }) {
                 {profile.identity.age} 岁 {profile.identity.genderLabel}
               </h1>
               <p className="mt-2 font-serif text-base text-muted">
-                {profile.stage.trigram} · {profile.stage.name}
+                {/*
+                  Full life-stage display ⇒ CANONICAL displayName ("离 · 青少年"),
+                  resolved from the stage id. The stored profile carries only the
+                  short UI label, which must never be shown as the full stage.
+                */}
+                {getGuardianStageDisplayName(profile.stage.id)}
                 <span className="ml-2 font-mono text-xs text-muted/80">
                   {profile.stage.ageRange}
                 </span>

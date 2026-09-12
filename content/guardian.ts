@@ -65,15 +65,24 @@ export interface GuardianStage {
   order: "01" | "02" | "03" | "04" | "05" | "06" | "07" | "08";
   /** Trigram name in Chinese */
   trigram: string;
-  /** Short stage name in Chinese, WITHOUT the trigram (e.g. "青年期"). */
+  /**
+   * UI SHORT LABEL — no trigram, may end in "期" (e.g. "青少年期", "青年期").
+   *
+   * For surfaces that show the stage compactly or already render the trigram
+   * separately (the seal draws the glyph on its own; the demo form shows the
+   * trigram beside it).
+   *
+   * ⚠ `name` and `displayName` are INDEPENDENT values. `displayName` is NOT
+   * derived as `${trigram} · ${name}` — for `li-adolescent` the short label is
+   * "青少年期" while the canonical display name is "离 · 青少年".
+   */
   name: string;
   /**
    * CANONICAL business display name — "卦名 · 阶段名" (e.g. "兑 · 青年期").
    *
    * The single authoritative wording for the stage. This is what the Dify
-   * request carries as `stage_name`, and what any full-stage-name context
-   * renders. `name` remains only for surfaces that draw the trigram separately
-   * (the seal renders the glyph on its own).
+   * request carries as `stage_name`, and what a COMPLETE life-stage display
+   * renders. Never substitute the short `name` for this value.
    */
   displayName: string;
   /** Age range string (display only — not medical/actuarial data) */
@@ -136,7 +145,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     id: "li-adolescent",
     order: "03",
     trigram: "离",
-    name: "青少年",
+    name: "青少年期",
     displayName: "离 · 青少年",
     ageRange: "20–29",
     shortCode: "LI",
@@ -475,7 +484,7 @@ export const DEMO_PROFILES: ReadonlyMap<string, GuardianProfile> = new Map([
       stage: {
         id: "li-adolescent",
         trigram: "离",
-        name: "青少年",
+        name: "青少年期",
         ageRange: "20–29",
         theme: "从学习阶段进入职业与独立生活阶段",
         assetId: "guardianStage03",
@@ -1124,17 +1133,21 @@ export function normalizeGuardianStageName(
   stageName: string
 ): string | null {
   const trimmed = stageName.trim();
-  const canonical = findStageById(stageId)?.displayName;
+  const stage = findStageById(stageId);
+  const canonical = stage?.displayName;
 
   // Already canonical for this id.
   if (canonical && trimmed === canonical) return canonical;
-  // Short name of this same stage (with or without the trigram prefix).
-  if (canonical) {
-    const short = getGuardianStageShortName(stageId);
-    if (trimmed === short) return canonical;
-    if (trimmed === `${findStageById(stageId)?.trigram} · ${short}`) return canonical;
-    // "青少年" is canonical for li-adolescent but "青少年期" is a legacy alias.
-    if (trimmed === `${short}期`) return canonical;
+  /**
+   * The stage's own short UI label, with or without its trigram prefix.
+   *
+   * This is what a persona/generated profile carries. Note it is NOT a naming
+   * variant of the canonical value — `li-adolescent` is short "青少年期" but
+   * canonical "离 · 青少年".
+   */
+  if (canonical && stage) {
+    if (trimmed === stage.name) return canonical;
+    if (trimmed === `${stage.trigram} · ${stage.name}`) return canonical;
   }
   // Legacy alias table (also covers cross-checking that the alias really maps
   // to THIS id, so "青年期" can never be accepted for li-adolescent).

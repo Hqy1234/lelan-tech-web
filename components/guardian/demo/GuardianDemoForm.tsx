@@ -36,6 +36,7 @@ import Link from "next/link";
 import {
   GUARDIAN_SCENARIOS,
   DIMENSION_TAGS,
+  getGuardianStageDisplayName,
   guardianStages,
   type GuardianStageId,
   type GuardianScenarioId,
@@ -308,7 +309,8 @@ function StepStageConfirm({
       {/* Suggested stage card */}
       <div className="rounded-sm border border-green/30 bg-green/5 p-4">
         <p className="font-serif text-base text-green">
-          {stage.trigram} · {stage.name}
+          {/* Full life-stage display ⇒ canonical displayName. */}
+          {getGuardianStageDisplayName(stage.id)}
         </p>
         <p className="mt-1 font-mono text-[0.65rem] text-muted">
           {stage.ageRange} · {stage.sceneLabel}
