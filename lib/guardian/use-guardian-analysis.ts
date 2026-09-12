@@ -28,6 +28,7 @@ import type {
 import {
   buildAnalyzePayload,
   demoInputFromProfile,
+  getDifyUserId,
   isAnalysisEnabled,
   requestGuardianAnalysis,
   type GuardianAnalysisError,
@@ -120,8 +121,9 @@ export function useGuardianAnalysis(
 
       const payload = buildAnalyzePayload(
         input,
-        profile.stage.name,
-        profile.scenario?.name ?? ""
+        profile.scenario?.name ?? "",
+        // Stable, non-sensitive per-profile caller id for Dify.
+        getDifyUserId(profile)
       );
       // Progress comes from the profile being displayed, not from the AI layer.
       payload.progressCompleted = completed;
@@ -141,9 +143,12 @@ export function useGuardianAnalysis(
         setState({ status: "error", analysis: null, error: result.error });
       }
     },
-    // `profile.stage.name` / `profile.scenario?.name` are derived from the same
-    // input the signature covers, so they add no extra churn here.
-    [enabled, input, completed, total, profile.stage.name, profile.scenario?.name]
+    // `profile` is a stable state object in the parent; it carries the scenario
+    // name and the opaque id used for the Dify caller id. The stage name is
+    // intentionally NOT a dependency: it is resolved canonically from the stage
+    // id inside buildAnalyzePayload, so a divergent persona label cannot affect
+    // the request.
+    [enabled, input, completed, total, profile]
   );
 
   /** Auto-run once per distinct signature. */

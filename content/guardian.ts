@@ -65,8 +65,17 @@ export interface GuardianStage {
   order: "01" | "02" | "03" | "04" | "05" | "06" | "07" | "08";
   /** Trigram name in Chinese */
   trigram: string;
-  /** Stage name in Chinese */
+  /** Short stage name in Chinese, WITHOUT the trigram (e.g. "青年期"). */
   name: string;
+  /**
+   * CANONICAL business display name — "卦名 · 阶段名" (e.g. "兑 · 青年期").
+   *
+   * The single authoritative wording for the stage. This is what the Dify
+   * request carries as `stage_name`, and what any full-stage-name context
+   * renders. `name` remains only for surfaces that draw the trigram separately
+   * (the seal renders the glyph on its own).
+   */
+  displayName: string;
   /** Age range string (display only — not medical/actuarial data) */
   ageRange: string;
   /** Short stage code for deterministic archiveRef (e.g. DUI / LI / ZHEN) */
@@ -90,6 +99,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     order: "01",
     trigram: "震",
     name: "婴儿期",
+    displayName: "震 · 婴儿期",
     ageRange: "0–9",
     shortCode: "ZHEN",
     stageAssetId: "guardianStage01",
@@ -108,6 +118,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     order: "02",
     trigram: "巽",
     name: "少儿期",
+    displayName: "巽 · 少儿期",
     ageRange: "10–19",
     shortCode: "XUN",
     stageAssetId: "guardianStage02",
@@ -125,11 +136,12 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     id: "li-adolescent",
     order: "03",
     trigram: "离",
-    name: "青少年期",
+    name: "青少年",
+    displayName: "离 · 青少年",
     ageRange: "20–29",
     shortCode: "LI",
     stageAssetId: "guardianStage03",
-    sceneLabel: "青少年期 · 求学探索",
+    sceneLabel: "青少年 · 求学探索",
     demoDoneCount: 0,
     exampleTasks: [
       { label: "学业规划", done: false },
@@ -144,6 +156,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     order: "04",
     trigram: "兑",
     name: "青年期",
+    displayName: "兑 · 青年期",
     ageRange: "30–39",
     shortCode: "DUI",
     stageAssetId: "guardianStage04",
@@ -165,6 +178,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     order: "05",
     trigram: "乾",
     name: "壮年期",
+    displayName: "乾 · 壮年期",
     ageRange: "40–49",
     shortCode: "QIAN",
     stageAssetId: "guardianStage05",
@@ -183,6 +197,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     order: "06",
     trigram: "坎",
     name: "中年期",
+    displayName: "坎 · 中年期",
     ageRange: "50–59",
     shortCode: "KAN",
     stageAssetId: "guardianStage06",
@@ -201,6 +216,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     order: "07",
     trigram: "艮",
     name: "中老年期",
+    displayName: "艮 · 中老年期",
     ageRange: "60–69",
     shortCode: "GEN",
     stageAssetId: "guardianStage07",
@@ -219,6 +235,7 @@ export const guardianStages: ReadonlyArray<GuardianStage> = [
     order: "08",
     trigram: "坤",
     name: "老年期",
+    displayName: "坤 · 老年期",
     ageRange: "70+",
     shortCode: "KUN",
     stageAssetId: "guardianStage08",
@@ -458,7 +475,7 @@ export const DEMO_PROFILES: ReadonlyMap<string, GuardianProfile> = new Map([
       stage: {
         id: "li-adolescent",
         trigram: "离",
-        name: "青少年期",
+        name: "青少年",
         ageRange: "20–29",
         theme: "从学习阶段进入职业与独立生活阶段",
         assetId: "guardianStage03",
@@ -1040,4 +1057,89 @@ export function findStageById(
   id: GuardianStageId | string
 ): GuardianStage | undefined {
   return guardianStages.find((s) => s.id === id);
+}
+
+/* ========================================================================
+   Canonical stage naming
+   ------------------------------------------------------------------------
+   ONE mapping, ONE source of truth: `guardianStages[].displayName`.
+
+   A stage is identified by its stable `id`. Its canonical business display
+   name is "卦名 · 阶段名" — e.g. "离 · 青少年", "兑 · 青年期".
+   Every consumer (profile rendering, step form, Dify request) resolves the
+   display name through here, so the same id can never yield two wordings.
+
+   Historical spellings WITHOUT the canonical suffix (e.g. "青少年期") are
+   accepted as INPUT ALIASES only. They are normalized to the canonical value
+   before anything downstream sees them; they are never used for display.
+   ======================================================================== */
+
+/** Canonical display name for a stage id: "卦名 · 阶段名". */
+export function getGuardianStageDisplayName(stageId: string): string {
+  const stage = findStageById(stageId);
+  if (stage) return stage.displayName;
+  // Unknown id: fall back to the raw id so callers always get a string and the
+  // failure is visible rather than silently rendering an unrelated stage.
+  return stageId;
+}
+
+/** Short stage name without the trigram (e.g. "青年期"), for seal-style UIs. */
+export function getGuardianStageShortName(stageId: string): string {
+  return findStageById(stageId)?.name ?? stageId;
+}
+
+/**
+ * Legacy → canonical stage-name aliases.
+ *
+ * Keys are historical / shortened spellings that may still arrive from an older
+ * client or a stale cached profile. Values are the canonical display names.
+ * Compatibility only — do not add new entries for naming variants of taste.
+ */
+export const GUARDIAN_STAGE_NAME_ALIASES: Readonly<Record<string, string>> = {
+  "离 · 青少年期": "离 · 青少年",
+  青少年期: "离 · 青少年",
+  "兑 · 青年期": "兑 · 青年期",
+  青年期: "兑 · 青年期",
+  "震 · 婴儿期": "震 · 婴儿期",
+  婴儿期: "震 · 婴儿期",
+  "巽 · 少儿期": "巽 · 少儿期",
+  少儿期: "巽 · 少儿期",
+  "乾 · 壮年期": "乾 · 壮年期",
+  壮年期: "乾 · 壮年期",
+  "坎 · 中年期": "坎 · 中年期",
+  中年期: "坎 · 中年期",
+  "艮 · 中老年期": "艮 · 中老年期",
+  中老年期: "艮 · 中老年期",
+  "坤 · 老年期": "坤 · 老年期",
+  老年期: "坤 · 老年期",
+};
+
+/**
+ * Normalize any accepted stage-name spelling to the canonical display name.
+ * Returns null when the input is not a recognized stage name for that id —
+ * callers should treat that as invalid rather than guessing.
+ */
+export function normalizeGuardianStageName(
+  stageId: string,
+  stageName: string
+): string | null {
+  const trimmed = stageName.trim();
+  const canonical = findStageById(stageId)?.displayName;
+
+  // Already canonical for this id.
+  if (canonical && trimmed === canonical) return canonical;
+  // Short name of this same stage (with or without the trigram prefix).
+  if (canonical) {
+    const short = getGuardianStageShortName(stageId);
+    if (trimmed === short) return canonical;
+    if (trimmed === `${findStageById(stageId)?.trigram} · ${short}`) return canonical;
+    // "青少年" is canonical for li-adolescent but "青少年期" is a legacy alias.
+    if (trimmed === `${short}期`) return canonical;
+  }
+  // Legacy alias table (also covers cross-checking that the alias really maps
+  // to THIS id, so "青年期" can never be accepted for li-adolescent).
+  const mapped = GUARDIAN_STAGE_NAME_ALIASES[trimmed];
+  if (mapped && mapped === canonical) return mapped;
+
+  return null;
 }

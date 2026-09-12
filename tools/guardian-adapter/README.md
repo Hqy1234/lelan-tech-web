@@ -78,10 +78,84 @@ upstream text, no `Authorization`, no key.
 | `DIFY_API_KEY` | yes | — | **secret**, server-side only |
 | `DIFY_API_BASE_URL` | yes | `https://api.dify.ai/v1` | |
 | `PORT` | no | `8787` | |
-| `ALLOWED_ORIGINS` | recommended | *(any)* | comma-separated site origins |
+| `ALLOWED_ORIGINS` | **yes in production** | *(none)* | comma-separated site origins |
 | `DIFY_TIMEOUT_MS` | no | `40000` | **total** budget across attempts |
 
 Copy `.env.example` to `.env` and fill in the key. `.env*` is gitignored.
+
+### `ALLOWED_ORIGINS` is mandatory in production
+
+When `NODE_ENV=production` and `ALLOWED_ORIGINS` is missing or empty, the service
+**refuses to start** (exit 1) with a configuration error containing no secrets.
+There is no safe default: allowing any origin — or echoing whatever `Origin`
+arrives — would let any website drive this service with our Dify credential.
+
+```bash
+ALLOWED_ORIGINS=https://www.example.com,https://example.com
+```
+
+In development the variable may be omitted; an omitted list simply grants no
+browser origin (server-to-server calls and `/health` still work).
+
+`Access-Control-Allow-Origin` is emitted **only** for an allow-listed origin.
+There is no `*` wildcard and no blind echo. The granted surface is minimal:
+methods `POST, GET, OPTIONS` (GET is `/health` only) and the single header
+`Content-Type`.
+
+### Timeout budget
+
+| layer | value | notes |
+|---|---|---|
+| server total budget (`DIFY_TIMEOUT_MS`) | **40 s** | shared across attempts, not per attempt |
+| retry | **2 attempts max** | only when the workflow succeeds with empty text |
+| worst case | **40 s** | bounded by the shared budget |
+| client timeout (site) | **50 s** | deliberately > server budget |
+
+The client timeout must stay above the server budget so the Adapter's structured
+timeout error wins the race instead of the browser aborting first.
+
+> **Workflow runs longer than ~20 s are a Dify-side optimization issue.** The
+> published workflow measured 5.2 s–22.4 s per run. Raising the client timeout
+> further would hide that rather than fix it.
+
+---
+
+## Dify caller id
+
+`user` is derived per profile by the website (`getDifyUserId`) as
+`guardian-${internalId}` — e.g. `guardian-demo-m28`, `guardian-demo-f36`. Dify
+groups runs by `user`, so one shared constant would collapse every visitor into a
+single identity.
+
+The id must match `^[a-z0-9_-]{1,64}$` and contain at least one letter. That
+pattern structurally cannot carry PII: no names (no CJK), no email (no `@`), no
+phone or national id (no all-digit strings). Anything failing the check is
+replaced by the constant `guardian-web-demo` rather than forwarded — and the
+service re-validates it on arrival, so a compromised client cannot bypass this.
+
+---
+
+## Canonical stage names
+
+The workflow receives the canonical business display name **"卦名 · 阶段名"**:
+
+| stage id | canonical `stage_name` |
+|---|---|
+| `zhen-infant` | 震 · 婴儿期 |
+| `xun-child` | 巽 · 少儿期 |
+| `li-adolescent` | **离 · 青少年** |
+| `dui-young-adult` | 兑 · 青年期 |
+| `qian-adult` | 乾 · 壮年期 |
+| `kan-middle-age` | 坎 · 中年期 |
+| `gen-later-life` | 艮 · 中老年期 |
+| `kun-elder` | 坤 · 老年期 |
+
+Note `li-adolescent` is **离 · 青少年**, not "青少年期".
+
+Legacy spellings (`青少年期`, `青年期`, …) are accepted as **input aliases only**
+and are normalized to the canonical value before reaching Dify. Aliases are scoped
+to exactly one stage id, so `青年期` is rejected for `li-adolescent`. The source of
+truth is `content/guardian.ts` → `guardianStages[].displayName`.
 
 ---
 

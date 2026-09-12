@@ -40,34 +40,69 @@ const SCENARIO_IDS = new Set([
 
 const GENDERS = new Set(["male", "female"]);
 
+/** Fallback Dify caller id when the client sends no usable per-profile id. */
+const DIFY_USER_FALLBACK = "guardian-web-demo";
+
 /**
- * Stage display names, keyed by stage id.
+ * CANONICAL stage names, keyed by stage id.
  *
- * IMPORTANT — the website's canonical `guardianStages[].name` does NOT include
- * the trigram. The authoritative values (`content/guardian.ts`) are:
+ * The business display name is "卦名 · 阶段名". These are the values the
+ * workflow must receive, and they mirror
+ * `content/guardian.ts` → `guardianStages[].displayName`.
  *
- *   zhen-infant "婴儿期" · xun-child "少儿期" · li-adolescent "青少年期"
- *   dui-young-adult "青年期" · qian-adult "壮年期" · kan-middle-age "中年期"
- *   gen-later-life "中老年期" · kun-elder "老年期"
+ *   zhen-infant 震 · 婴儿期 0–9      xun-child 巽 · 少儿期 10–19
+ *   li-adolescent 离 · 青少年 20–29  dui-young-adult 兑 · 青年期 30–39
+ *   qian-adult 乾 · 壮年期 40–49     kan-middle-age 坎 · 中年期 50–59
+ *   gen-later-life 艮 · 中老年期 60–69  kun-elder 坤 · 老年期 70+
  *
- * The integration brief supplies trigram-prefixed wording instead
- * ("离 · 青少年", "兑 · 青年期"). An earlier version of this table wrongly
- * assumed the prefixed form was canonical, which rejected every persona profile.
- *
- * Both spellings are accepted so neither the website nor the agreed test
- * contract breaks; anything else is rejected, which keeps stage authority on the
- * website's side (the adapter never invents a stage name).
+ * NOTE: `li-adolescent` is "离 · 青少年" — NOT "青少年期". An earlier revision
+ * of this file treated the website's short `name` as authoritative, which was a
+ * business error and produced the wrong wording in the Dify request.
  */
-const STAGE_NAME_VARIANTS = {
-  "zhen-infant": ["婴儿期", "震 · 婴儿期"],
-  "xun-child": ["少儿期", "巽 · 少儿期"],
-  "li-adolescent": ["青少年期", "离 · 青少年期", "离 · 青少年"],
-  "dui-young-adult": ["青年期", "兑 · 青年期"],
-  "qian-adult": ["壮年期", "乾 · 壮年期"],
-  "kan-middle-age": ["中年期", "坎 · 中年期"],
-  "gen-later-life": ["中老年期", "艮 · 中老年期"],
-  "kun-elder": ["老年期", "坤 · 老年期"],
+const STAGE_CANONICAL_NAMES = {
+  "zhen-infant": "震 · 婴儿期",
+  "xun-child": "巽 · 少儿期",
+  "li-adolescent": "离 · 青少年",
+  "dui-young-adult": "兑 · 青年期",
+  "qian-adult": "乾 · 壮年期",
+  "kan-middle-age": "坎 · 中年期",
+  "gen-later-life": "艮 · 中老年期",
+  "kun-elder": "坤 · 老年期",
 };
+
+/**
+ * COMPATIBILITY INPUT ALIASES ONLY — never used for display or forwarded to Dify.
+ *
+ * Legacy / shortened spellings that may still arrive from an older client or a
+ * stale cached profile. Each alias is scoped to exactly ONE stage id, so
+ * "青年期" can never be accepted for `li-adolescent`.
+ */
+const STAGE_INPUT_ALIASES = {
+  // legacy short names (website `name` before canonicalization)
+  "zhen-infant": ["婴儿期"],
+  "xun-child": ["少儿期"],
+  "li-adolescent": ["青少年期", "离 · 青少年期"],
+  "dui-young-adult": ["青年期"],
+  "qian-adult": ["壮年期"],
+  "kan-middle-age": ["中年期"],
+  "gen-later-life": ["中老年期"],
+  "kun-elder": ["老年期"],
+};
+
+/**
+ * Resolve any accepted spelling to the CANONICAL name for that id.
+ * @returns the canonical string, or null when the input is not recognized
+ *          for this id (including cross-stage aliases).
+ */
+function normalizeStageName(stageId, stageName) {
+  const canonical = STAGE_CANONICAL_NAMES[stageId];
+  if (!canonical) return null;
+  const trimmed = String(stageName).trim();
+  if (trimmed === canonical) return canonical;
+  const aliases = STAGE_INPUT_ALIASES[stageId] || [];
+  if (aliases.includes(trimmed)) return canonical;
+  return null;
+}
 
 /** Dimension tag allow-list — the 18 stable IDs. */
 const TAG_IDS_BY_DIMENSION = {
@@ -180,15 +215,20 @@ function buildDifyInputs(payload) {
     ? ""
     : asString(identity.city, "identity.city", LIMITS.MAX_CITY_LEN);
 
-  /* stage — must be a known internal id, and the name must match it */
+  /* stage — must be a known internal id, and the name must agree with it */
   const stageId = asString(stage.id, "stage.id", 32);
   if (!STAGE_IDS.has(stageId)) bad("unknown stage id");
-  const stageName = asString(stage.name, "stage.name", LIMITS.MAX_STAGE_NAME_LEN);
-  const allowedStageNames = STAGE_NAME_VARIANTS[stageId] || [];
-  if (!allowedStageNames.includes(stageName)) {
-    // The id/name pair must agree, so the AI layer can never be told a stage
-    // name that contradicts the website's own lifecycle data.
-    bad(`stage.name does not match stage.id (got ${JSON.stringify(stageName)}, id ${stageId})`);
+  const rawStageName = asString(stage.name, "stage.name", LIMITS.MAX_STAGE_NAME_LEN);
+  /**
+   * Accept legacy spellings, but ALWAYS forward the canonical value to Dify.
+   * An unrecognized or cross-stage name is rejected: the id is authoritative, so
+   * the AI layer can never be told a stage name contradicting the lifecycle data.
+   */
+  const stageName = normalizeStageName(stageId, rawStageName);
+  if (!stageName) {
+    bad(
+      `stage.name does not match stage.id (got ${JSON.stringify(rawStageName)}, id ${stageId})`
+    );
   }
 
   /* scenario — must be a known internal id */
@@ -249,10 +289,29 @@ function buildDifyInputs(payload) {
   };
 
 
+  /**
+   * Dify caller id.
+   *
+   * The website derives a stable, non-sensitive id from its own opaque profile
+   * id (e.g. "guardian-demo-f36"). A single shared constant would group every
+   * visitor into one Dify identity, so the per-profile value is preferred.
+   *
+   * The pattern is deliberately strict — lowercase alphanumerics, dash and
+   * underscore only, with at least one letter — which structurally cannot carry
+   * PII (no names, no "@", no all-digit phone / national id). Anything that does
+   * not match falls back to the constant instead of being forwarded upstream.
+   */
+  const rawUser = typeof payload.user === "string" ? payload.user.trim() : "";
+  const user =
+    /^[a-z0-9_-]{1,64}$/.test(rawUser) && /[a-z]/.test(rawUser)
+      ? rawUser
+      : DIFY_USER_FALLBACK;
+
   /* Redacted echo for logs: no city, no free text, counts only. */
   const safe = {
     stage_id: stageId,
     scenario_id: scenarioId,
+    stage_name: stageName,
     age,
     gender,
     completed_count: completedTaskIds.length,
@@ -263,15 +322,19 @@ function buildDifyInputs(payload) {
       foodTags.length +
       housingTags.length,
     progress: `${progressCompleted}/${progressTotal}`,
+    user,
   };
 
-  return { inputs, safe };
+  return { inputs, safe, user };
 }
 
 module.exports = {
   buildDifyInputs,
+  normalizeStageName,
   LIMITS,
   STAGE_IDS,
   SCENARIO_IDS,
-  STAGE_NAME_VARIANTS,
+  STAGE_CANONICAL_NAMES,
+  STAGE_INPUT_ALIASES,
+  DIFY_USER_FALLBACK,
 };

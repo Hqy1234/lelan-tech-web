@@ -19,8 +19,15 @@
 
 const { AdapterError, ERROR_CODES } = require("./errors");
 
-/** Stable internal caller id for Dify analytics. Contains no PII. */
-const DIFY_USER = "lelan-guardian-web-demo";
+/**
+ * Fallback caller id when the request carries no usable per-profile id.
+ *
+ * Historically every request used this single constant, which collapsed all
+ * visitors into one Dify identity. The caller id is now supplied per request
+ * (see validate.js → buildDifyInputs), derived from the website's opaque
+ * profile id. This constant remains only as a safe last resort.
+ */
+const DIFY_USER_FALLBACK = "guardian-web-demo";
 
 /**
  * Build the Dify `outputs` extractor input.
@@ -107,6 +114,7 @@ async function attemptWorkflow({
   apiBaseUrl,
   timeoutMs,
   inputs,
+  user,
   testCase,
   fetchImpl,
 }) {
@@ -154,7 +162,7 @@ async function attemptWorkflow({
       body: JSON.stringify({
         inputs,
         response_mode: "blocking",
-        user: DIFY_USER,
+        user: user || DIFY_USER_FALLBACK,
       }),
       signal: controller.signal,
     });
@@ -204,4 +212,4 @@ async function attemptWorkflow({
   return readOutputs(body);
 }
 
-module.exports = { runAndNormalize, DIFY_USER };
+module.exports = { runAndNormalize, DIFY_USER_FALLBACK };

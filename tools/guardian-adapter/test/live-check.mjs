@@ -16,6 +16,7 @@ const personaA = {
   },
   progressCompleted: 2,
   progressTotal: 5,
+  user: "guardian-demo-m28",
 };
 
 const personaB = {
@@ -32,6 +33,7 @@ const personaB = {
   },
   progressCompleted: 4,
   progressTotal: 8,
+  user: "guardian-demo-f36",
 };
 
 async function run(label, payload) {

@@ -58,6 +58,15 @@ loadDotEnv(path.join(__dirname, ".env"));
 
 /* ── Config ─────────────────────────────────────────────────────────────── */
 
+/**
+ * Runtime environment.
+ *
+ * `NODE_ENV` is set to "production" by most hosts; it may also be set
+ * explicitly. Anything else is treated as development, where a missing origin
+ * allow-list is tolerated for local work.
+ */
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 const PORT = Number(process.env.PORT || 8787);
 const DIFY_API_KEY = process.env.DIFY_API_KEY || "";
 const DIFY_API_BASE_URL =
@@ -67,6 +76,33 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+
+/**
+ * FAIL FAST in production when the origin allow-list is missing.
+ *
+ * Without an allow-list there is no safe default: allowing any origin (or echoing
+ * whatever Origin arrives) would let any site drive this service with our Dify
+ * credential. Refusing to start is the only honest option.
+ *
+ * The message names the variable and the consequence — it contains no secret.
+ */
+if (IS_PRODUCTION && ALLOWED_ORIGINS.length === 0) {
+  console.error(
+    [
+      "CONFIG ERROR: ALLOWED_ORIGINS is required in production.",
+      "",
+      "This service proxies Dify with a server-side API key. Without an origin",
+      "allow-list it would accept requests from any website.",
+      "",
+      "Set ALLOWED_ORIGINS to a comma-separated list of the site origins that",
+      "may call it, for example:",
+      "  ALLOWED_ORIGINS=https://www.example.com,https://example.com",
+      "",
+      "Refusing to start.",
+    ].join("\n")
+  );
+  process.exit(1);
+}
 
 const MAX_BODY_BYTES = 32 * 1024;
 
@@ -78,21 +114,26 @@ function requestId() {
 }
 
 /**
- * CORS. Only origins explicitly listed are echoed back; if none are configured
- * we allow the request without credentials (the endpoint holds no session).
+ * CORS.
+ *
+ * The Access-Control-Allow-Origin header is emitted ONLY for an origin present
+ * in the allow-list. There is no wildcard and no blind echo of the incoming
+ * Origin — an unlisted origin simply receives no CORS grant, so the browser
+ * blocks the response.
+ *
+ * Allowed surface is intentionally minimal:
+ *   methods: POST, GET, OPTIONS   (GET is /health only)
+ *   headers: Content-Type         (the only header the client sets)
  */
 function applyCors(req, res) {
   const origin = req.headers.origin;
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
-  } else if (origin && ALLOWED_ORIGINS.length === 0) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Max-Age", "600");
   }
-  res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Max-Age", "600");
 }
 
 function sendJSON(res, status, payload) {
@@ -159,9 +200,9 @@ async function handleAnalyze(req, res, id) {
     );
   }
 
-  let inputs, safe;
+  let inputs, safe, user;
   try {
-    ({ inputs, safe } = buildDifyInputs(payload));
+    ({ inputs, safe, user } = buildDifyInputs(payload));
   } catch (err) {
     return finish(res, id, started, err, null);
   }
@@ -179,6 +220,8 @@ async function handleAnalyze(req, res, id) {
       /** One bounded retry when the workflow returns empty text. */
       retryOnEmpty: true,
       inputs,
+      /** Stable non-sensitive caller id (validated in buildDifyInputs). */
+      user,
       /** Test-only; travels as a header and never enters `inputs`. */
       testCase:
         typeof payload.__testCase === "string" ? payload.__testCase : undefined,
@@ -221,18 +264,51 @@ function finish(res, id, started, err, safe) {
 
 /* ── Server ─────────────────────────────────────────────────────────────── */
 
+/**
+ * True when the caller's Origin is permitted.
+ *
+ * A request with NO Origin header (curl, server-to-server, health checks) is
+ * allowed through: the CORS allow-list exists to stop *other websites* from
+ * driving this service with our Dify credential, and a browser always sends
+ * Origin on the cross-origin fetch this service exists for.
+ */
+function isOriginAllowed(req) {
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  return ALLOWED_ORIGINS.includes(origin);
+}
+
 const server = http.createServer(async (req, res) => {
   const id = requestId();
+
+  // Decide the CORS grant BEFORE anything else. A disallowed origin receives no
+  // Access-Control-* headers at all, so the browser blocks the response.
   applyCors(req, res);
 
+  const url = (req.url || "").split("?")[0];
+
   if (req.method === "OPTIONS") {
+    // Preflight is only meaningful for an allowed origin and a real route.
+    const knownRoute = url === "/guardian/analyze" || url === "/health";
+    if (!knownRoute || !isOriginAllowed(req)) {
+      res.writeHead(403).end();
+      return;
+    }
     res.writeHead(204).end();
     return;
   }
 
-  const url = (req.url || "").split("?")[0];
-
-  if (req.method === "GET" && url === "/health") {
+  if (!isOriginAllowed(req)) {
+    // No CORS headers were set, so a browser cannot read this body; a non-browser
+    // caller is simply refused. Same safe error shape as everywhere else.
+    log({ id, route: url, outcome: "error", code: "ORIGIN_NOT_ALLOWED", status: 403 });
+    return sendJSON(res, 403, {
+      error: {
+        code: "ANALYSIS_UNAVAILABLE",
+        message: "暂时无法生成智能分析，请稍后重试。",
+      },
+    });
+  }  if (req.method === "GET" && url === "/health") {
     return sendJSON(res, 200, {
       ok: true,
       difyConfigured: Boolean(DIFY_API_KEY && DIFY_API_BASE_URL),
@@ -253,8 +329,14 @@ server.listen(PORT, "0.0.0.0", () => {
   log({
     event: "listening",
     port: PORT,
+    nodeEnv: IS_PRODUCTION ? "production" : "development",
     difyConfigured: Boolean(DIFY_API_KEY && DIFY_API_BASE_URL),
-    allowedOrigins: ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS : "(any)",
+    /**
+     * In production this is guaranteed non-empty (we exit above otherwise).
+     * In development an empty list means no browser origin is granted, so the
+     * value is reported as such rather than as "any".
+     */
+    allowedOrigins: ALLOWED_ORIGINS,
     timeoutMs: DIFY_TIMEOUT_MS,
   });
 });

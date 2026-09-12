@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Guardian Analysis Adapter · test suite
  *
  * Phase 1F.
@@ -210,6 +210,7 @@ function personaA(case_) {
     },
     progressCompleted: 2,
     progressTotal: 5,
+    user: "guardian-demo-m28",
     __testCase: case_ || "ok",
   };
 }
@@ -238,6 +239,7 @@ function personaB(case_) {
     },
     progressCompleted: 4,
     progressTotal: 8,
+    user: "guardian-demo-f36",
     __testCase: case_ || "ok",
   };
 }
@@ -321,10 +323,32 @@ function waitForServer(port, tries = 60) {
       "Persona A leaked NO Dify field names",
       !JSON.stringify(a.body).match(/summary2|attention2_items|dimension_notes2|disclaimer2/)
     );
+    /* Persona A must reach Dify with the CANONICAL stage wording. */
+    check(
+      'Persona A stage_name === "离 · 青少年"',
+      seen[0]?.body?.inputs?.stage_name === "离 · 青少年",
+      String(seen[0]?.body?.inputs?.stage_name)
+    );
+    check(
+      "Persona A sent its own non-PII caller id",
+      seen[0]?.body?.user === "guardian-demo-m28",
+      String(seen[0]?.body?.user)
+    );
 
     const b = await post(personaB());
     check("Persona B returns 200", b.status === 200, String(b.status));
     check("Persona B has analysis", !!b.body?.analysis);
+    const bReq = seen[1] || {};
+    check(
+      "Persona B stage_name IS the canonical \"兑 · 青年期\"",
+      bReq.body?.inputs?.stage_name === "兑 · 青年期",
+      String(bReq.body?.inputs?.stage_name)
+    );
+    check(
+      "Persona B sent its own non-PII caller id",
+      bReq.body?.user === "guardian-demo-f36",
+      String(bReq.body?.user)
+    );
 
     /* ── Dify request contract ──────────────────────────────────────────── */
     console.log("\n3. Dify request shape");
@@ -333,7 +357,12 @@ function waitForServer(port, tries = 60) {
     check("called /v1/workflows/run", firstReq.path === "/v1/workflows/run", String(firstReq.path));
     check("sent Bearer auth", /^Bearer app-test-key-not-real$/.test(firstReq.auth || ""));
     check("response_mode=blocking", firstReq.body?.response_mode === "blocking");
-    check("user is stable non-PII id", firstReq.body?.user === "lelan-guardian-web-demo");
+    check(
+      "user is a per-profile stable non-PII id (not a global constant)",
+      firstReq.body?.user === "guardian-demo-m28" &&
+        firstReq.body?.user !== "lelan-guardian-web-demo",
+      String(firstReq.body?.user)
+    );
     const inp = firstReq.body?.inputs || {};
     check("age is a NUMBER", typeof inp.age === "number");
     check("progress_completed is a NUMBER", typeof inp.progress_completed === "number");
@@ -354,6 +383,58 @@ function waitForServer(port, tries = 60) {
         JSON.stringify(["general-t1", "general-t2"])
     );
     check("no test marker inside Dify inputs", inp.__case === undefined && inp.__testCase === undefined);
+
+    /* ── 3b. Legacy stage-name aliases normalize to canonical ──────────── */
+    console.log("\n3b. Legacy alias normalization");
+    const legacyLi = await post({
+      ...personaA(),
+      stage: { id: "li-adolescent", name: "青少年期" },
+    });
+    check("legacy \"青少年期\" is accepted", legacyLi.status === 200, String(legacyLi.status));
+    check(
+      "legacy \"青少年期\" normalized to \"离 · 青少年\" on the wire",
+      seen[seen.length - 1]?.body?.inputs?.stage_name === "离 · 青少年",
+      String(seen[seen.length - 1]?.body?.inputs?.stage_name)
+    );
+
+    const legacyDui = await post({
+      ...personaB(),
+      stage: { id: "dui-young-adult", name: "青年期" },
+    });
+    check("legacy \"青年期\" is accepted", legacyDui.status === 200, String(legacyDui.status));
+    check(
+      "legacy \"青年期\" normalized to \"兑 · 青年期\" on the wire",
+      seen[seen.length - 1]?.body?.inputs?.stage_name === "兑 · 青年期",
+      String(seen[seen.length - 1]?.body?.inputs?.stage_name)
+    );
+
+    // A cross-stage alias must NOT be accepted: the id is authoritative.
+    const crossed = await post({
+      ...personaA(),
+      stage: { id: "li-adolescent", name: "青年期" },
+    });
+    check(
+      "cross-stage alias (青年期 for li-adolescent) is REJECTED",
+      crossed.status === 400,
+      String(crossed.status)
+    );
+
+    const unknownName = await post({
+      ...personaA(),
+      stage: { id: "li-adolescent", name: "成年早期" },
+    });
+    check("invented stage name is REJECTED", unknownName.status === 400, String(unknownName.status));
+
+    // Caller id hygiene: anything PII-shaped falls back to the constant.
+    const piiUser = await post({
+      ...personaA(),
+      user: "张三 13800138000",
+    });
+    check(
+      "PII-shaped caller id is NOT forwarded",
+      seen[seen.length - 1]?.body?.user === "guardian-web-demo",
+      String(seen[seen.length - 1]?.body?.user)
+    );
 
     /* ── 4-5. Validation ────────────────────────────────────────────────── */
     console.log("\n4. Validation");

@@ -1,4 +1,4 @@
-﻿# LELAN TECHNOLOGY · Project Source of Truth
+# LELAN TECHNOLOGY · Project Source of Truth
 
 > 单文件说明：项目身份、业务边界、公开路由、术语对照。
 > 一切与"乐懒科技 / LELAN TECHNOLOGY"官网相关的工作，以本文件为准。
@@ -238,9 +238,37 @@ Adapter 服务（服务端 · 机密）：
 DIFY_API_KEY=          # 真实 Key 只存在于 Adapter 部署环境
 DIFY_API_BASE_URL=https://api.dify.ai/v1
 PORT=8787
-ALLOWED_ORIGINS=
-DIFY_TIMEOUT_MS=40000
+ALLOWED_ORIGINS=       # ⚠ 生产环境必填，缺失则拒绝启动
+DIFY_TIMEOUT_MS=40000  # 跨尝试共享的总预算
 ```
+
+**`ALLOWED_ORIGINS` 在生产环境是强制项**：`NODE_ENV=production` 且该项缺失或为空时，
+Adapter **拒绝启动**（exit 1）。没有安全默认值 —— 允许任意来源或回显任意 Origin
+等于让任何网站用我们的 Dify 凭据驱动该服务。
+`Access-Control-Allow-Origin` **只**对白名单内的 Origin 返回，**无 `*` 通配**；
+允许面收窄为 `POST, GET, OPTIONS`（GET 仅 `/health`）与 `Content-Type` 一个头。
+
+**超时预算（记录，勿随意调整）**：server 总预算 40 s（跨尝试共享）·
+retry 最多 2 次尝试 · 最坏 40 s · 客户端 50 s（必须 > server 预算）。
+Workflow 单次 >20 s 属于 **Dify 侧 optimization issue**，不应靠放大客户端超时掩盖。
+
+**Dify caller id**：由官网按档案的不透明内部 id 生成
+`guardian-${internalId}`（如 `guardian-demo-f36`），不再让所有请求共用同一常量。
+该 id 必须匹配 `^[a-z0-9_-]{1,48}$` 且含至少一个字母 ——
+结构上无法承载姓名 / 邮箱 / 手机号 / 身份证号；不合规时回退到
+`guardian-web-demo`，服务端会再校验一次。
+
+**Canonical 阶段命名**：阶段唯一标识是 `stage.id`，业务展示名（canonical）是
+**「卦名 · 阶段名」**，来源为 `guardianStages[].displayName`：
+
+```
+震 · 婴儿期 · 巽 · 少儿期 · 离 · 青少年 · 兑 · 青年期
+乾 · 壮年期 · 坎 · 中年期 · 艮 · 中老年期 · 坤 · 老年期
+```
+
+注意 `li-adolescent` 是 **「离 · 青少年」**（不是「青少年期」）。
+历史拼写（如「青少年期」「青年期」）只作为 **input alias** 被接受，
+内部一律 normalize 成 canonical 后才发给 Dify；UI 显示全名时同样使用 canonical 值。
 
 官网（静态站 · 公开；这是**地址**不是密钥）：
 

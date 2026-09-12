@@ -1572,3 +1572,126 @@
   `/`、`/login`、`/guardian/demo` 完全不受影响。
 - **D-PHASE1F-031** — 构建产物中**无** API Key、**无** `api.dify.ai` 引用；
   静态导出 8 页构建成功，未因本功能破坏。
+
+---
+
+## D-PHASE1F.1 · Guardian Dify Integration Hardening（追加于 2026-09-12）
+
+> 上线前加固轮。**不是重构**：未改 blocking 架构、未改 `/profile`、
+> 未动 Town、未动 `lelan-shouhu`。
+
+### Canonical 阶段命名（业务事实修正）
+
+- **D-PHASE1F.1-001** — **修正 Phase 1F 的业务事实错误**：
+  网站内简化的 `guardianStages[].name` **不是**最高业务事实来源。
+  Guardian **canonical display name 是「卦名 · 阶段名」**：
+  ```
+  震 · 婴儿期 0–9    巽 · 少儿期 10–19   离 · 青少年 20–29   兑 · 青年期 30–39
+  乾 · 壮年期 40–49   坎 · 中年期 50–59    艮 · 中老年期 60–69  坤 · 老年期 70+
+  ```
+  特别注意 `li-adolescent` 的业务名是 **「离 · 青少年」**，**不是**「青少年期」
+  （也不是「青年期」/「成年早期」）。
+- **D-PHASE1F.1-002** — **不创建第三套重复数据**。`guardianStages` 本就是唯一的
+  stage 表（每个条目已含 `id` / `trigram` / `name`），因此**扩展它而不是另建表**：
+  新增 **`displayName`** 字段承载 canonical 值，并保留 `name` 作为**不含卦名**的
+  短名（供 Seal 等自行渲染卦名的场景使用）。
+  经审计，此前存在 **3 处**命名表述：① `guardianStages[].name`（短名）
+  ② demo persona 的 `stage.name`（另一份短名，且与 ① 不一致）
+  ③ `guardianStages[].trigram` 与 ① 在渲染处拼成完整名。
+  现统一为**一处** `displayName` 作为唯一 canonical 表述。
+- **D-PHASE1F.1-003** — 新增最小 canonical mapper（与 `findStageById` 同处）：
+  - `getGuardianStageDisplayName(stageId)` → canonical「卦名 · 阶段名」
+  - `getGuardianStageShortName(stageId)` → 不含卦名的短名
+  - `normalizeGuardianStageName(stageId, stageName)` → alias → canonical（无法识别返回
+    `null`）
+  - `GUARDIAN_STAGE_NAME_ALIASES` → 兼容映射表
+
+  同一 `stage_id` 无论来自 **demo persona / generated profile / step form /
+  Dify request / profile 渲染**，最终 canonical displayName **一致**。
+- **D-PHASE1F.1-004** — 同步修正 persona 数据里的短名，使
+  `guardianStages[].name` 与 persona `stage.name` 不再互相矛盾
+  （`li-adolescent` 由「青少年期」→「青少年」）。
+
+### 兼容别名
+
+- **D-PHASE1F.1-005** — 继续接受历史拼写：
+  `青少年期`、`离 · 青少年期`、`离 · 青少年`、`青年期`、`兑 · 青年期` …
+  但这些**只是 input alias**，内部一律 normalize 成 canonical：
+  `li-adolescent` → `离 · 青少年`；`dui-young-adult` → `兑 · 青年期`。
+  **Dify 收到的是 canonical 值；UI 显示阶段全名时也用 canonical 值。**
+- **D-PHASE1F.1-006** — **别名按 stage id 限定作用域**：`青年期` 对
+  `dui-young-adult` 合法，对 `li-adolescent` **一律拒绝**（400）。
+  `stage.id` 是权威，别名不可能把一个阶段的名字安到另一个阶段上。
+  凭空拼写的名字（如「成年早期」）同样拒绝。
+
+### CORS / 来源加固
+
+- **D-PHASE1F.1-007** — **生产环境 `ALLOWED_ORIGINS` 强制**：
+  `NODE_ENV=production` 且 `ALLOWED_ORIGINS` 缺失或为空时，
+  Adapter **启动失败**（exit 1）并输出**不含任何 secret** 的配置错误说明。
+  理由：无 allow-list 就没有安全默认值 —— 允许任意来源或回显任意 Origin
+  等于让任何网站用我们的 Dify 凭据驱动该服务。拒绝启动是唯一诚实的选项。
+  开发环境（非 production）仍允许不配置，便于本地调试。
+- **D-PHASE1F.1-008** — **不再回显任意 Origin、不再有 `*` 通配**。
+  `Access-Control-Allow-Origin` **只**对 allow-list 内的 Origin 返回；
+  非白名单来源**不获得任何** `Access-Control-*` 头（浏览器因此拦下响应），
+  并在服务端直接以 403 + 安全错误形状拒绝。
+- **D-PHASE1F.1-009** — 允许面收窄到最小：
+  methods **仅** `POST, GET, OPTIONS`（GET 仅 `/health`）；
+  headers **仅** `Content-Type`；`Max-Age` 600。
+  `OPTIONS` 仅对**已登记路由 + 白名单 Origin** 返回 204，其余 403。
+  无 Origin 头的请求（curl / 服务间调用 / 健康检查）放行 —— CORS 的作用是阻止
+  **其他网站**，而浏览器必然携带 Origin。
+
+### Dify caller id
+
+- **D-PHASE1F.1-010** — **不再让所有请求永久共用**一个常量 user。
+  新增 `getDifyUserId(profile)`：以网站自身的不透明内部 id 生成
+  `guardian-${internalId}`（如 `guardian-demo-m28` / `guardian-demo-f36`）。
+  Dify 以 `user` 分组 run，共用常量会把所有访客合并成同一个身份。
+- **D-PHASE1F.1-011** — **PII 防护是结构性的**：内部 id 必须匹配
+  `^[a-z0-9_-]{1,48}$` 且至少含一个字母，否则回退到常量 `guardian-web-demo`。
+  该模式在结构上无法承载姓名（无中日韩字符）、邮箱（无 `@`）、
+  手机号或身份证号（无全数字串）。服务端同样再校验一次，双重防护。
+- **D-PHASE1F.1-012** — `getDifyUserId` 已抽成独立函数，为将来账号系统预留：
+  届时内部 id 换成账号的不透明 id 即可，回退分支自然不再触发。
+
+### 超时与预算（记录，不改架构）
+
+- **D-PHASE1F.1-013** — 保留 server-side timeout / retry 设计不变。当前预算：
+  - **server 总预算** `DIFY_TIMEOUT_MS` = **40000 ms**（**跨尝试共享**，非每次）
+  - **retry 预算** = 最多 **2 次尝试**（仅当「成功但输出为空」时重试一次），
+    共享同一 40 s 预算 ⇒ **最坏 40 s**
+  - **client 超时** = **50000 ms**（必须 **>** server 总预算，
+    这样 Adapter 的结构化超时错误先返回，而不是被浏览器 abort 成通用网络错误）
+  - **本阶段未提高 client 超时**。
+- **D-PHASE1F.1-014** — 已在 docs 标记：**Workflow 单次运行 > 20 s 属于
+  Dify 侧的 optimization issue**，不应通过继续放大客户端超时来掩盖。
+  实测该 Workflow 单次耗时 5.2 s–22.4 s。
+
+### 验证
+
+- **D-PHASE1F.1-015** — Adapter 离线测试 **67/67 通过**（较 Phase 1F 的 56 项新增
+  11 项），新增覆盖：Persona A `stage_name === "离 · 青少年"`、
+  Persona B `stage_name === "兑 · 青年期"`、两者各自携带 per-profile caller id、
+  legacy `青少年期` → `离 · 青少年`、legacy `青年期` → `兑 · 青年期`、
+  **跨阶段别名被拒**、**凭空阶段名被拒**、**PII 形状 caller id 不被转发**。
+- **D-PHASE1F.1-016** — **CORS / 启动加固专项 14/14 通过**：白名单 Origin 精确回显、
+  methods/headers 最小化、非白名单 preflight 403 且**无** ACAO、
+  非白名单 POST 403 且**无** ACAO、无 Origin 放行、**无 `*` 通配**、
+  启动日志无 secret、未登记路由 404；并以隔离副本实测
+  **production 缺 ALLOWED_ORIGINS 时启动失败（exit 1）**。
+- **D-PHASE1F.1-017** — **真实 Dify 联调通过**：Persona A 与 Persona B 均 200，
+  且 Adapter 日志确认线上请求携带的 `stage_name` 分别为
+  **`离 · 青少年`** 与 **`兑 · 青年期`**（canonical）。
+- **D-PHASE1F.1-018** — 浏览器端实测：`/profile` 收到并展示
+  「兑 · 青年期」；实测浏览器发出的 payload 为
+  `stage.name = "兑 · 青年期"` 且 `user = "guardian-demo-f36"`；
+  档案主体完好、**1** 次请求、**0** 次直连 `api.dify.ai`、无 Key、无 Dify 字段泄漏、
+  无风险语言、0 console error。
+- **D-PHASE1F.1-019** — `demo-m28` 与 `demo-f36` 的档案页阶段渲染分别为
+  「离 · 青少年」与「兑 · 青年期」，**未出现卦名重复**。
+- **D-PHASE1F.1-020** — 安全检索：`git grep` 全仓库**不存在**真实
+  `app-xxxxxxxx` 形式的 Dify key（唯一匹配是 `.env.example` 里的占位说明
+  `# 形如 app-xxxxxxxxxxxxxxxx`，不是密钥）；已跟踪的 `.env` 类文件**仅有**
+  `.env.example`；构建产物中无 key 模式。

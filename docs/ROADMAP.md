@@ -7,23 +7,29 @@
 
 ## 当前进度
 
-- **当前阶段**：Phase 1F — Guardian 智能分析接入 Dify（已完成）
-- **下一阶段**：Adapter 生产部署 + 正式域名 / Origin 配置 + 长稳与真实设备验证（**尚未开始**）
-- **说明**：Phase 1F 完成。已把已发布的 Dify Workflow 接入 Guardian 分析层。
-  **未改动部署架构**（官网仍为 `output: "export"` 静态导出）、
-  **未重写 `/profile`**、**未重构无关代码**、**未修改 `lelan-shouhu`**。
-  因静态导出下 Route Handler 在生产不存在，采用**独立部署的 server-side Adapter**
-  （`tools/guardian-adapter/`，Node 20+，**零运行时依赖**）：
-  `Browser → Adapter → Dify → normalize → GuardianAnalysisResult → UI`。
-  浏览器**不直连** `api.dify.ai`，**不接触** API Key；
-  Adapter URL 是构建时内联的公开地址，为空时功能关闭且官网完全回退。
-  Dify 仅为 analysis / explanation layer；`age` / `stage` / `scenario` / `tasks` /
-  `progress` 仍由网站确定性逻辑负责，不被覆盖。
-  Adapter 离线测试 **56/56 通过**；**真实 Dify 联调通过**（Persona A / B 均 200）；
-  浏览器端 `/profile` loading → success，档案主体完好，**0 console error**，
-  全页仅 **1 次**请求（防重复生效），构建产物无 Key、无 `api.dify.ai`。
-  **实测可靠性问题**：Workflow 单次运行 5.2s–22.4s，且出现过
-  `status=succeeded` 但 `summary2` 为空 —— 已用「共享总预算 + 单次有界重试」应对。
+- **当前阶段**：Phase 1F.1 — Guardian Dify Integration Hardening（已完成）
+- **下一阶段**：Adapter 生产部署（必配 `ALLOWED_ORIGINS`）+ 正式域名接入 + 长稳与真实设备验证（**尚未开始**）
+- **说明**：Phase 1F.1 为上线前加固轮，**不是重构**：未改 blocking 架构、
+  未改 `/profile`、未动 Town、未动 `lelan-shouhu`。
+  修正了 Phase 1F 的一处**业务事实错误**：网站内简化的 `guardianStages[].name`
+  **不是**最高业务事实来源。Guardian canonical display name 是**「卦名 · 阶段名」**，
+  已在 `guardianStages` 上扩展 `displayName` 作为**唯一** canonical 来源
+  （未新建第三套数据），并提供 `getGuardianStageDisplayName()` 等最小 mapper，
+  使同一 `stage_id` 无论来自 persona / generated profile / step form / Dify request /
+  UI 渲染，结果一致。`li-adolescent` → **「离 · 青少年」**、
+  `dui-young-adult` → **「兑 · 青年期」**。
+  历史拼写（`青少年期` / `青年期` 等）仅作 **input alias**，内部 normalize 成
+  canonical 后才发给 Dify；别名按 stage id 限定作用域，跨阶段别名一律拒绝。
+  **CORS 加固**：`ALLOWED_ORIGINS` 在生产环境**强制**，缺失则拒绝启动（exit 1）；
+  不再回显任意 Origin、不再有 `*` 通配；允许面收窄为
+  `POST, GET, OPTIONS`（GET 仅 `/health`）+ `Content-Type`。
+  **Dify caller id**：新增 `getDifyUserId(profile)`，按档案不透明内部 id 生成
+  `guardian-${internalId}`，不再让所有请求共用同一常量；PII 防护是结构性的。
+  Adapter 离线测试 **67/67 通过**，CORS/启动专项 **14/14 通过**；
+  **真实 Dify 联调通过**，线上请求 `stage_name` 实测为 `离 · 青少年` 与 `兑 · 青年期`。
+  **实测可靠性问题（未变）**：Workflow 单次运行 **5.2s–22.4s**，且出现过
+  `status=succeeded` 但 `summary2` 为空 —— 保留「共享总预算 + 单次有界重试」应对。
+  **Workflow >20s 属 Dify 侧 optimization issue**，不应靠放大客户端超时掩盖。
 
 ---
 

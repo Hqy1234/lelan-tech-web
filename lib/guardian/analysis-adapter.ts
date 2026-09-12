@@ -21,6 +21,7 @@
 
 import {
   GUARDIAN_SCENARIOS,
+  getGuardianStageDisplayName,
   guardianStages,
   type GuardianAnalysisResult,
   type GuardianDemoInput,
@@ -64,6 +65,43 @@ export interface GuardianAnalyzePayload {
   dimensionTags: GuardianDimensionTagGroups;
   progressCompleted: number;
   progressTotal: number;
+  /**
+   * Stable, NON-SENSITIVE internal caller id forwarded to Dify as `user`.
+   * Derived from the profile's own opaque id — see getDifyUserId().
+   */
+  user: string;
+}
+
+/* ── Dify caller id ─────────────────────────────────────────────────────── */
+
+/**
+ * Fallback caller id for a profile without a usable internal id.
+ * Retained for forward compatibility: once a real account system exists the
+ * profile id becomes the account's opaque id and this branch stops being hit.
+ */
+const DIFY_USER_FALLBACK = "guardian-web-demo";
+
+/**
+ * Build the stable, non-sensitive `user` value for a Dify request.
+ *
+ * Dify groups runs by `user`, so a single shared constant would collapse every
+ * visitor into one identity. The profile's own opaque id is the right seed: it
+ * is generated internally ("demo-m28" / "demo-f36", and later a real account id)
+ * and carries no PII.
+ *
+ * ⚠ MUST NEVER contain a name, phone number, national id, email or any other
+ * real sensitive identifier. The id is checked against a strict pattern and
+ * anything unexpected falls back to the constant rather than being forwarded.
+ */
+export function getDifyUserId(profile: Pick<GuardianProfile, "id">): string {
+  const id = typeof profile?.id === "string" ? profile.id.trim() : "";
+  /**
+   * Lowercase alphanumerics, dash and underscore only, and at least one letter.
+   * This structurally cannot carry PII: no CJK characters (names), no "@"
+   * (email), and no all-digit string (phone / national id).
+   */
+  const safe = /^[a-z0-9_-]{1,48}$/.test(id) && /[a-z]/.test(id) ? id : "";
+  return safe ? `guardian-${safe}` : DIFY_USER_FALLBACK;
 }
 
 /* ── Safe messages (never surface upstream detail) ──────────────────────── */
@@ -212,13 +250,14 @@ export function demoInputFromProfile(
  * scenario, tasks and progress all come from the website's own logic.
  *
  * @param input    the frozen GuardianDemoInput contract
- * @param stageName display name, e.g. "离 · 青少年" (preserved verbatim)
- * @param scenarioName display name, e.g. "综合生活场景"
+ * @param scenarioName display name resolved from GUARDIAN_SCENARIOS
+ *   (the stage name is NOT passed in — it is resolved from the stage id via
+ *   getGuardianStageDisplayName, so callers cannot supply a divergent wording)
  */
 export function buildAnalyzePayload(
   input: GuardianDemoInput,
-  stageName: string,
-  scenarioName: string
+  scenarioName: string,
+  user: string = DIFY_USER_FALLBACK
 ): GuardianAnalyzePayload {
   /** Split the flat tag list into the five dimension groups Dify expects. */
   const groups: GuardianDimensionTagGroups = {
@@ -263,13 +302,12 @@ export function buildAnalyzePayload(
   /**
    * Always send the CANONICAL stage and scenario display names.
    *
-   * The stored profile may carry a persona's short label ("青年期",
-   * "创业场景"); the workflow expects the website's canonical wording
-   * ("兑 · 青年期", "创业"). Resolving here — rather than trusting the caller —
-   * means the AI layer can never be told a stage name that contradicts the
-   * site's own lifecycle data, and keeps the adapter's id/name check passing.
+   * The stored profile may carry a persona's short label ("青年期") or a legacy
+   * spelling ("青少年期"); the canonical wording lives in
+   * `guardianStages[].displayName` ("卦名 · 阶段名"). Resolving through that one
+   * mapper — rather than trusting the caller or this module — means the AI layer
+   * can never be told a stage name that contradicts the site's lifecycle data.
    */
-  const canonicalStage = guardianStages.find((s) => s.id === input.stage.id);
   const canonicalScenario = GUARDIAN_SCENARIOS.find(
     (s) => s.id === input.scenario.id
   );
@@ -282,7 +320,7 @@ export function buildAnalyzePayload(
     },
     stage: {
       id: input.stage.id,
-      name: canonicalStage?.name ?? stageName,
+      name: getGuardianStageDisplayName(input.stage.id),
     },
     scenario: {
       id: input.scenario.id,
@@ -292,6 +330,7 @@ export function buildAnalyzePayload(
     dimensionTags: groups,
     progressCompleted: input.completedTaskIds.length,
     progressTotal: 0, // filled by the caller, which knows the scenario task list
+    user,
   };
 }
 
