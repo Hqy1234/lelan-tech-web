@@ -28,6 +28,7 @@
 import { Container } from "@/components/layout/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { StatusLabel } from "@/components/ui/StatusLabel";
+import { SpineTransition } from "@/components/home/SpineTransition";
 import type { HomeAiSection } from "@/content/home";
 import { AiWorkflowPreview } from "@/components/ai/AiWorkflowPreview";
 
@@ -40,9 +41,9 @@ export function HomeAi({ section }: HomeAiProps) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="lelan-section-field lelan-section-field-ai border-b border-rule"
+      className="lelan-section lelan-section-ai relative"
     >
-      <Container as="div">
+      <Container as="div" className="lelan-chapter">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
           <SectionHeading
@@ -50,10 +51,15 @@ export function HomeAi({ section }: HomeAiProps) {
             number={section.number}
             title={section.title}
             intro={section.intro}
-            systemLabel="独立软件产品"
+            systemLabel="PRODUCT LAYER · SOFTWARE"
           />
           <StatusLabel tone="preview" label="体验版可用" />
         </div>
+
+        {/* Phase 1G-R3.1 — Town → AI bridge is owned by Town's bottom
+            strip ("08 · AI TOOLS ——"). The previous "承接 08 · AI TOOLS"
+            duplicate above the chapter header was removed in the
+            restraint audit — too much text, same information. */}
 
         {/* Positioning sentence */}
         <p className="mt-6 max-w-3xl text-base leading-relaxed text-ink/85 sm:text-lg">
@@ -80,6 +86,16 @@ export function HomeAi({ section }: HomeAiProps) {
           注：乐懒 AI 为独立部署产品，体验入口由独立部署地址提供，
           与乐懒科技官网账号深度集成规划中。
         </p>
+
+        {/* Phase 1G-R3 — AI → Engineering bridge.
+            After the product evidence, the engineering principles are
+            the explanation. Subtle hairline + mono label. */}
+        <div className="mt-8">
+          <SpineTransition
+            from="03 · PRODUCT EVIDENCE"
+            to="04 · ENGINEERING"
+          />
+        </div>
       </Container>
     </section>
   );

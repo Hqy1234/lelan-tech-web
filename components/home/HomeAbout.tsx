@@ -18,9 +18,9 @@ export function HomeAbout({ section }: HomeAboutProps) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="border-b border-rule bg-paper-pure"
+      className="lelan-section lelan-section-about relative"
     >
-      <Container density="tight" as="div">
+      <Container density="tight" as="div" className="lelan-chapter--quiet">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
           <div className="md:col-span-4">
             <SectionHeading
@@ -28,6 +28,7 @@ export function HomeAbout({ section }: HomeAboutProps) {
               number={section.number}
               title={section.title}
               intro={section.intro}
+              systemLabel="ABOUT · BRAND"
             />
           </div>
 

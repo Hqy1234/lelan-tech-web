@@ -21,15 +21,15 @@ export function HomeTechnology({ section }: HomeTechnologyProps) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="border-b border-rule bg-paper"
+      className="lelan-section lelan-section-engineering relative"
     >
-      <Container density="tight" as="div">
+      <Container density="tight" as="div" className="lelan-chapter--quiet">
         <SectionHeading
           id={`${section.id}-title`}
           number={section.number}
           title={section.title}
           intro={section.intro}
-          systemLabel="Engineering"
+          systemLabel="ENGINEERING · PRINCIPLES"
         />
 
         {/* Open typographic layout — meaningful term is <dt>, number is decorative */}

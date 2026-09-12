@@ -18,6 +18,12 @@
   --color-paper: #f6f3ec;       /* warm white / paper */
   --color-paper-pure: #ffffff;  /* higher-contrast paper */
   --color-paper-soft: #efeae0;  /* L0 background variant */
+  /**
+   * Town V2 section field — a 5–8% deeper paper in the same muted green-grey
+   * hue. Used ONLY as the Town section's background plane, so the white
+   * foreground desk has something to sit against. Not a page-level surface.
+   */
+  --color-town-field: #e6e2d7;
   --color-ink: #14110f;         /* near-black editorial ink */
   --color-ink-soft: #2b2622;    /* slightly lighter ink for secondary text */
   --color-muted: #5b554d;       /* secondary text / captions */
@@ -32,8 +38,21 @@
   --color-jade: #c4cfc1;        /* 淡玉，五行元素背景 */
 
   /* tiny cinnabar / ochre accent (印章感，克制使用) */
-  --color-cinnabar: #9b3a2f;
-  --color-ochre: #b88746;
+  /* Town V2 — ground gradient tokens (for theming) */
+  --town-ground-top:    #efe7d4;
+  --town-ground-mid:   #e9e0c8;
+  --town-ground-warm:  #e1d6ba;
+  --town-ground-bottom:#d8cbab;
+
+  /* AI section — warm paper variant */
+  --surface-ai: #f3eee2;
+
+  /* Image mount defaults (light) */
+  --image-mount-bg:    var(--color-paper-pure);
+  --image-mount-border:var(--color-rule);
+
+  /* CTA text default (light) */
+  --cta-fg: var(--color-paper-pure);
 
   /* type */
   --font-sans:
@@ -157,11 +176,177 @@
   --focus-offset: 2px;
 }
 
+/* ============================================================
+ * Phase 1F.3 — Dark Theme Token Overrides
+ *
+ * data-theme="dark" is set by lib/theme/useTheme.ts (client).
+ * The pre-paint script in layout.tsx <head> reads localStorage
+ * before first paint to avoid FOUC.
+ *
+ * All dark values maintain LELAN brand identity:
+ *   - deep ink-grey base (not pure black)
+ *   - black-green for spatial surfaces
+ *   - warm ivory for foreground text (not cold white)
+ *   - muted jade for rules/accents
+ *   - cinnabar kept as accent (slightly brighter for dark-bg contrast)
+ * ============================================================ */
+:root[data-theme="dark"] {
+  /* Background & surfaces */
+  --color-paper:      #0E141A;  /* deep ink — warm near-black */
+  --color-paper-pure: #161E25;  /* raised surface */
+  --color-paper-soft: #111820;  /* section variant */
+  --color-town-field: #0D1610;  /* spatial field — black-green */
+
+  /* Foreground & text */
+  --color-ink:        #F2EBDC;  /* warm ivory — not cold white */
+  --color-ink-soft:   #E6DCC5;  /* secondary text */
+  --color-muted:      #A6A096;  /* captions */
+  --color-muted-soft: #7A756B;  /* tertiary */
+
+  /* Borders */
+  --color-rule:       #2A3540;  /* hairline */
+  --color-rule-strong:#3D4A55;  /* coordinate lines */
+
+  /* Brand colors */
+  --color-green:      #3F6650;  /* primary action (deeper on dark bg) */
+  --color-green-dark: #4F7A60;  /* primary strong */
+  --color-green-soft: #8FA89A;  /* subtle green */
+  --color-jade:       #3D5A4A;  /* jade accent */
+
+  /* Accents */
+  --color-cinnabar:   #C44E40;  /* brighter for dark-bg contrast (was #9b3a2f) */
+  --color-ochre:      #D4A263;  /* warm amber accent */
+
+  /* Glass surfaces — dark base tint (alpha preserved from light values) */
+  --glass-bg:         rgba(28, 36, 42, 0.65);
+  --glass-bg-soft:    rgba(28, 36, 42, 0.55);
+  --glass-bg-raised:  rgba(28, 36, 42, 0.78);
+  --glass-bg-darktext:rgba(28, 36, 42, 0.88);
+  /* Glass border: jade-tint inverted — lighter on dark */
+  --glass-border:      rgba(196, 207, 193, 0.18);
+  --glass-border-strong:rgba(196, 207, 193, 0.30);
+
+  /* Image mount — warm dark paper (not pure black, not transparent) */
+  --image-mount-bg:    #1A2128;
+  --image-mount-border:#3D4A55;
+
+  /* CTA text — ivory on primary button */
+  --cta-fg:           #F2EBDC;
+}
+
+/* ============================================================
+ * Semantic depth: in dark mode, shadows become subtle glows
+ * The brand green becomes the "lift" color.
+ * ============================================================ */
+:root[data-theme="dark"] {
+  --depth-1-shadow: 0 1px 0 0 rgba(196, 207, 193, 0.06);
+  --depth-2-shadow: 0 1px 0 0 rgba(196, 207, 193, 0.06),
+    0 6px 14px -8px rgba(0, 0, 0, 0.40);
+  --depth-3-shadow: 0 1px 0 0 rgba(196, 207, 193, 0.08),
+    0 10px 24px -12px rgba(0, 0, 0, 0.50);
+  --depth-4-shadow: 0 1px 0 0 rgba(196, 207, 193, 0.10),
+    0 16px 32px -16px rgba(0, 0, 0, 0.60);
+}
+
+/* ============================================================
+ * Section-specific dark backgrounds
+ * Each section gets a distinct dark tone to preserve page rhythm.
+ * These are used by adding a class like `data-section="guardian"` to
+ * the section root and targeting via attribute selectors below.
+ * ============================================================ */
+
+/* Guardian: deeper navy — stays recognizable as the "Guardian island" */
+:root[data-theme="dark"] {
+  --section-guardian-bg: #0B1623;
+  /* Guardian coordinate gradients — more vivid on dark bg */
+  --section-guardian-glow1: rgba(196, 207, 193, 0.18);
+  --section-guardian-glow2: rgba(196, 175, 148, 0.25);
+}
+
+/* AI: charcoal — warm dark paper workspace */
+:root[data-theme="dark"] {
+  --section-ai-bg: #13171D;
+  --section-ai-paper: #1C222A;
+}
+
+/* Hero: in dark mode, the gradient ::before needs to cool down.
+ * The warm peach/cream tones become invisible/garish on deep ink.
+ * We replace the entire gradient with a subtle warm glow. */
+:root[data-theme="dark"] {
+  /* Technology: cool dark neutral */
+  --section-technology-bg: #0D1117;
+}
+
+/* Hero dark gradient — warm glow on deep ink */
+:root[data-theme="dark"] {
+  --hero-dark-glow1: rgba(196, 207, 193, 0.08);
+  --hero-dark-glow2: rgba(148, 160, 136, 0.05);
+}
+
+/* About: quiet ink */
+:root[data-theme="dark"] {
+  --section-guardian-glow1: rgba(196, 207, 193, 0.12);
+  --section-guardian-glow2: rgba(148, 160, 140, 0.18);
+  --guardian-glow1: rgba(196, 207, 193, 0.12);
+  --guardian-glow2: rgba(148, 160, 140, 0.18);
+  --town-glow1: rgba(61, 90, 74, 0.20);
+  --town-glow2: rgba(61, 90, 74, 0.15);
+  --town-glow3: rgba(61, 90, 74, 0.12);
+  --ai-glow1: rgba(255, 255, 255, 0.06);
+  --ai-glow2: rgba(61, 90, 74, 0.12);
+}
+
+/* ============================================================
+ * Dark theme: section background hierarchy
+ * Goal — page rhythm survives the dark inversion.
+ *   Hero      → deep ink            (--color-paper)
+ *   Guardian  → navy archive island (slightly cooler / bluer ink)
+ *   Town      → spatial field       (black-green)
+ *   AI        → warm charcoal       (slightly warmer ink)
+ *   Technology→ cool dark neutral   (subtle cool shift)
+ *   About     → raised surface      (paper-pure, lighter)
+ *   Footer    → deepest closing tone
+ * ============================================================ */
+:root[data-theme="dark"] {
+  /* Phase 1G-R3 — section backgrounds are no longer full rectangles.
+     The page-spine ambient (defined below) + per-section radial
+     atmospheric accent provide the depth. These selectors now
+     resolve to transparent so legacy class references still work. */
+  .lelan-section-field-guardian,
+  .lelan-section-field-town,
+  section#technology,
+  .lelan-section-field-ai,
+  section#about {
+    background-color: transparent;
+  }
+
+  /* Footer keeps its darker closing tone — it is the page's quiet
+     conclusion, not part of the narrative flow. */
+  footer {
+    background-color: #080C12;
+  }
+}
+
+/* ============================================================
+ * Dark theme: Town V2 spatial field upgrades
+ * The field gradient strokes need to be readable on dark bg.
+ * ============================================================ */
+:root[data-theme="dark"] {
+  --town-field-label-color: rgba(196, 207, 193, 0.08);
+  --town-grid-minor: rgba(61, 90, 74, 0.25);
+  --town-grid-major: rgba(61, 90, 74, 0.40);
+  --town-ground-top:   #0D1610;
+  --town-ground-mid:   #111E14;
+  --town-ground-warm:  #161E17;
+  --town-ground-bottom:#1A2419;
+}
+
 @theme inline {
-  /* expose to Tailwind utilities */
+  /* ── Original palette tokens (preserved for backward compatibility) ── */
   --color-paper: var(--color-paper);
   --color-paper-pure: var(--color-paper-pure);
   --color-paper-soft: var(--color-paper-soft);
+  --color-town-field: var(--color-town-field);
   --color-ink: var(--color-ink);
   --color-ink-soft: var(--color-ink-soft);
   --color-muted: var(--color-muted);
@@ -177,6 +362,54 @@
   --color-cinnabar: var(--color-cinnabar);
   --color-ochre: var(--color-ochre);
 
+  /* ── Semantic tokens (Phase 1F.3) ── */
+  /* Backgrounds */
+  --background: var(--color-paper);
+  --background-soft: var(--color-paper-soft);
+
+  /* Surfaces */
+  --surface: var(--color-paper-pure);
+  --surface-raised: var(--color-paper-pure);
+
+  /* Foreground */
+  --foreground: var(--color-ink);
+  --foreground-strong: var(--color-ink-soft);
+  --foreground-muted: var(--color-muted);
+  --foreground-subtle: var(--color-muted-soft);
+
+  /* Borders */
+  --border: var(--color-rule);
+  --border-strong: var(--color-rule-strong);
+
+  /* Brand / Primary */
+  --primary: var(--color-green);
+  --primary-strong: var(--color-green-dark);
+  --primary-soft: var(--color-green-soft);
+
+  /* Accents */
+  --accent: var(--color-cinnabar);
+  --accent-jade: var(--color-jade);
+  --accent-ochre: var(--color-ochre);
+
+  /* Glass */
+  --glass: var(--glass-bg);
+  --glass-soft: var(--glass-bg-soft);
+  --glass-raised: var(--glass-bg-raised);
+  --glass-border: var(--glass-border);
+  --glass-border-strong: var(--glass-border-strong);
+
+  /* Semantic Spatial */
+  --spatial-field: var(--color-town-field);
+  --ai-surface: var(--surface-ai);
+
+  /* Image mounts */
+  --image-mount-bg: var(--color-paper-pure);
+  --image-mount-border: var(--color-rule);
+
+  /* CTA */
+  --cta-fg: var(--color-paper-pure);
+
+  /* Fonts */
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
   --font-mono: var(--font-mono);
@@ -191,6 +424,19 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Smooth theme transitions — only for color/background/border.
+     Disabled when prefers-reduced-motion is active. */
+  transition:
+    background-color 200ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    transition: none !important;
+  }
 }
 
 ::selection {
@@ -402,6 +648,39 @@ summary::marker {
   background-position: -1px -1px;
 }
 
+/* Phase 1G-R3 — Localized coordinate canvas.
+   The grid is now contained to its own object, with a soft edge fade.
+   It reads as the archive's coordinate field, NOT a full-section
+   wallpaper. */
+.lelan-bg-coordinate-localized {
+  background-color: var(--color-paper-pure);
+  background-image:
+    linear-gradient(to right, rgba(184, 175, 154, 0.22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(184, 175, 154, 0.22) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 92% 88% at 50% 50%,
+      rgba(0, 0, 0, 1) 35%,
+      rgba(0, 0, 0, 0.4) 75%,
+      transparent 100%
+    );
+          mask-image:
+    radial-gradient(
+      ellipse 92% 88% at 50% 50%,
+      rgba(0, 0, 0, 1) 35%,
+      rgba(0, 0, 0, 0.4) 75%,
+      transparent 100%
+    );
+}
+:root[data-theme="dark"] .lelan-bg-coordinate-localized {
+  background-color: transparent;
+  background-image:
+    linear-gradient(to right, rgba(143, 168, 154, 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(143, 168, 154, 0.14) 1px, transparent 1px);
+}
+
 /* ============================================================
  * Phase 1E.3-B — Town Spatial Background (L3)
  * Lightly warm jade / paper earth. NOT grass-green game map.
@@ -437,15 +716,15 @@ summary::marker {
 /* Town ground plane — warm earth / paper base with very faint
    architectural horizon. Used as the "ground" beneath town plots. */
 .lelan-town-ground {
-  background-color: #efe7d4;
+  background-color: var(--town-ground-top);
   background-image:
     /* very faint horizon line at 38% from top */
     linear-gradient(
       to bottom,
-      #efe7d4 0%,
-      #e9e0c8 36%,
-      #e1d6ba 38%,
-      #d8cbab 100%
+      var(--town-ground-top) 0%,
+      var(--town-ground-mid) 36%,
+      var(--town-ground-warm) 38%,
+      var(--town-ground-bottom) 100%
     );
 }
 
@@ -488,7 +767,7 @@ summary::marker {
  * ============================================================ */
 
 .lelan-bg-l4-ai {
-  background-color: #f3eee2;
+  background-color: var(--surface-ai);
   background-image:
     /* warm subtle top vignette */
     radial-gradient(
@@ -500,7 +779,7 @@ summary::marker {
 
 /* AI paper stack surface — used as the "workspace" plane */
 .lelan-ai-paper {
-  background-color: #ffffff;
+  background-color: var(--surface);
 }
 
 /* ============================================================
@@ -607,7 +886,7 @@ summary::marker {
    surface, the result document surface, and the process trace surface. */
 .lelan-ai-page {
   position: relative;
-  background-color: #ffffff;
+  background-color: var(--surface);
   border: 1px solid var(--color-rule);
   box-shadow: 0 1px 0 0 rgba(20, 17, 15, 0.04),
     0 8px 18px -10px rgba(20, 17, 15, 0.10);
@@ -617,7 +896,7 @@ summary::marker {
 /* Stacked paper — slightly offset, used for output tokens */
 .lelan-ai-stack-item {
   position: relative;
-  background-color: #ffffff;
+  background-color: var(--surface);
   border: 1px solid var(--color-rule);
   border-radius: 2px;
   box-shadow: 0 1px 0 0 rgba(20, 17, 15, 0.04),
@@ -750,12 +1029,12 @@ summary::marker {
   background:
     radial-gradient(
       900px 280px at 20% 30%,
-      rgba(196, 207, 193, 0.28),
+      var(--guardian-glow1, rgba(196, 207, 193, 0.28)),
       transparent 70%
     ),
     radial-gradient(
       700px 220px at 80% 70%,
-      rgba(232, 222, 200, 0.45),
+      var(--guardian-glow2, rgba(232, 222, 200, 0.45)),
       transparent 70%
     );
 }
@@ -765,19 +1044,264 @@ summary::marker {
   background:
     radial-gradient(
       1100px 360px at 50% 0%,
-      rgba(196, 207, 193, 0.32),
+      var(--town-glow1, rgba(196, 207, 193, 0.32)),
       transparent 65%
     ),
     radial-gradient(
       800px 260px at 15% 80%,
-      rgba(232, 222, 200, 0.40),
+      var(--town-glow2, rgba(232, 222, 200, 0.40)),
       transparent 70%
     ),
     radial-gradient(
       900px 240px at 85% 85%,
-      rgba(216, 203, 171, 0.30),
+      var(--town-glow3, rgba(216, 203, 171, 0.30)),
       transparent 70%
     );
+}
+
+/* ==========================================================================
+   TOWN V2 — "成果档案台 / Research Output Desk"
+   --------------------------------------------------------------------------
+   The former 3D sand-table is no longer the homepage presentation. Town is now
+   a three-layer working surface:
+
+     Z0  warm editorial page          (the section's own paper field)
+     Z1  Town spatial field           (.lelan-town-field-*)  ← this block
+     Z2  foreground workspace         (.lelan-town-desk)    ← the work surface
+
+   Depth is built from LIGHTNESS, LAYERING, BOUNDARIES, OVERLAP and SCALE —
+   never from box-shadow. No gradients-as-glow, no neon, no glass, no HUD.
+
+   The 3D implementation (TownGlobe / R3F / three) is intentionally still in the
+   codebase; it is simply no longer mounted on the homepage.
+   ========================================================================== */
+
+/* ── Z1 · Town spatial field ─────────────────────────────────────────────── */
+
+/**
+ * Background depth.
+ *
+ * `paper-soft` alone sat too close to the page value, so the field did not
+ * separate from the section and the white desk had little to sit against. The
+ * field is now slightly DEEPER than the page (muted green-grey / 宣纸灰 family)
+ * while the foreground paper stays exactly as light as before — the contrast
+ * between the two is what creates the depth.
+ *
+ * No glow, no gradient, no shadow: this is a VALUE shift only.
+ */
+.lelan-town-field {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 2px;
+  background-color: var(--color-town-field);
+}
+
+/**
+ * V2 archive panel surface.
+ *
+ * One step lighter than the field but a step darker than the pure-paper desk, so
+ * the three columns sit at three distinct values:
+ *   field (deepest)  <  archive  <  workspace desk / document sheet (lightest)
+ * That ordering is what makes the centre read as the foreground subject.
+ */
+.lelan-town-archive {
+  background: var(--color-paper);
+  border: 1px solid var(--color-rule-strong);
+}
+
+/**
+ * Fine grid + coordinate rules.
+ *
+ * A 32px module in low-contrast jade reads as drafting paper, not as a game
+ * map: the lines are barely above the paper value and never carry colour.
+ * Every fifth line is promoted to a slightly stronger rule so the field has a
+ * measurable coordinate rhythm instead of an even texture.
+ */
+.lelan-town-grid-field {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    /* minor module */
+    linear-gradient(
+      to right,
+      var(--town-grid-minor, rgba(111, 130, 117, 0.10)) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(
+      to bottom,
+      var(--town-grid-minor, rgba(111, 130, 117, 0.10)) 0 1px,
+      transparent 1px 100%
+    ),
+    /* major module — every 4th line */
+    linear-gradient(
+      to right,
+      var(--town-grid-major, rgba(111, 130, 117, 0.16)) 0 1px,
+      transparent 1px 100%
+    ),
+    linear-gradient(
+      to bottom,
+      var(--town-grid-major, rgba(111, 130, 117, 0.16)) 0 1px,
+      transparent 1px 100%
+    );
+  background-size:
+    32px 32px,
+    32px 32px,
+    128px 128px,
+    128px 128px;
+}
+
+/**
+ * Archive registration marks.
+ *
+ * Small L-shaped corner ticks, as used on registration / paste-up sheets. They
+ * are drawn with border segments rather than an image so they inherit the rule
+ * colour and stay crisp at every DPR.
+ */
+.lelan-town-regmark {
+  position: absolute;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+.lelan-town-regmark::before,
+.lelan-town-regmark::after {
+  content: "";
+  position: absolute;
+  background: var(--color-rule-strong);
+  opacity: 0.55;
+}
+/* horizontal arm */
+.lelan-town-regmark::before {
+  width: 14px;
+  height: 1px;
+}
+/* vertical arm */
+.lelan-town-regmark::after {
+  width: 1px;
+  height: 14px;
+}
+
+.lelan-town-regmark-tl {
+  top: 10px;
+  left: 10px;
+}
+.lelan-town-regmark-tr {
+  top: 10px;
+  right: 10px;
+}
+.lelan-town-regmark-bl {
+  bottom: 10px;
+  left: 10px;
+}
+.lelan-town-regmark-br {
+  bottom: 10px;
+  right: 10px;
+}
+
+/**
+ * Very large, very low-opacity field label.
+ *
+ * Purely typographic depth — it establishes that the surface is a registered
+ * place (a "map sheet"), without becoming a decorative graphic. Sits below the
+ * workspace and must never reduce text contrast of real content.
+ */
+.lelan-town-field-type {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-mono), monospace;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 0.82;
+  color: var(--town-field-label-color, rgba(47, 74, 58, 0.055));
+  white-space: nowrap;
+}
+
+/* Vertical coordinate rule running the height of the field */
+.lelan-town-axis {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--color-rule-strong);
+  opacity: 0.35;
+}
+
+/* ── Z2 · Foreground workspace / desk ────────────────────────────────────── */
+
+/**
+ * The desk surface. Raised out of the field by VALUE and BOUNDARY — a lighter
+ * paper, a crisp rule, and a registration corner — not by a shadow.
+ */
+.lelan-town-desk {
+  position: relative;
+  z-index: 2;
+  background: var(--color-paper-pure);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: 2px;
+}
+
+/**
+ * The document sheet INSIDE the desk.
+ *
+ * One step lighter still than the desk would be invisible, so the sheet is
+ * distinguished by its own hairline edge plus a left coordinate gutter — the
+ * way a loose page sits on a bench.
+ */
+.lelan-town-sheet {
+  position: relative;
+  background: var(--color-paper-pure);
+  border: 1px solid var(--color-rule);
+  border-radius: 2px;
+}
+
+/* Left gutter of coordinate ticks, as on a ruled document */
+.lelan-town-sheet-gutter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1.75rem;
+  border-right: 1px solid var(--color-rule);
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-rule) 0 1px,
+    transparent 1px 100%
+  );
+  background-size: 100% 1.5rem;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ── Motion · service switch ─────────────────────────────────────────────── */
+
+/**
+ * Deliberately minimal: opacity + a 6px rise, 180ms. No 3D, no scale bounce,
+ * no glow. `key` on the workspace restarts this on every selection change.
+ */
+@keyframes lelan-town-workspace-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lelan-town-workspace-enter {
+  animation: lelan-town-workspace-in 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lelan-town-workspace-enter {
+    animation: none;
+  }
 }
 
 /* AI rear plane — warm document workspace glow */
@@ -785,12 +1309,12 @@ summary::marker {
   background:
     radial-gradient(
       1000px 240px at 50% 0%,
-      rgba(255, 255, 255, 0.55),
+      var(--ai-glow1, rgba(255, 255, 255, 0.55)),
       transparent 65%
     ),
     radial-gradient(
       700px 200px at 50% 100%,
-      rgba(196, 207, 193, 0.22),
+      var(--ai-glow2, rgba(196, 207, 193, 0.22)),
       transparent 70%
     );
 }
@@ -1199,5 +1723,939 @@ summary::marker {
 .lelan-globe-stage canvas {
   display: block;
   outline: none;
+}
+
+/* ============================================================
+ * Phase 1G — Town V3 "Archive Service Space"
+ * ----------------------------------------------------------------
+ * Town V3 visual identity: LELAN ARCHIVE ARC (乐懒档案弧).
+ * Three layers:
+ *   Z0  Town V3 spatial field   (paper / deep ink)
+ *   Z1  Archive Arc             (one enormous SVG ellipse, partial)
+ *   Z2  Service Portal          (single glass surface)
+ *   Z3  Service Navigator       (01–08 numeric row)
+ *
+ * Hard rules followed here:
+ *   - No images. No canvas. No WebGL. SVG only.
+ *   - The arc is a partial ellipse, not a circle.
+ *   - 80–90% of the field is clean — no full-screen grid.
+ *   - Only ONE glass surface in Town: the Service Portal.
+ *   - Light & Dark share the same composition.
+ *   - prefers-reduced-motion: no translations, no scales.
+ * ============================================================ */
+
+/* --- Z0 · Town V3 spatial field tokens ----------------------- */
+/* Light mode: warm paper-grey-green, deeper than the page so
+   the white-ish Portal has something to sit against. */
+:root {
+  --town-v3-field:        #e8e2d2;
+  --town-v3-field-2:      #ddd5c0;
+  --town-v3-arc-soft:     #a9a98a;       /* grey-jade rim in light */
+  --town-v3-arc-strong:   #4f5d4a;       /* deeper jade rim */
+  --town-v3-portal-bg:    rgba(255, 253, 246, 0.86);
+  --town-v3-portal-border:rgba(50, 75, 62, 0.20);
+  --town-v3-portal-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.7) inset,
+                           0 22px 48px -24px rgba(20, 17, 15, 0.22),
+                           0 2px 6px -2px rgba(20, 17, 15, 0.06);
+  --town-v3-glow:         radial-gradient(
+                             900px 320px at 18% 30%,
+                             rgba(196, 207, 193, 0.35),
+                             transparent 65%
+                           ),
+                           radial-gradient(
+                             700px 280px at 82% 70%,
+                             rgba(232, 222, 200, 0.30),
+                             transparent 65%
+                           );
+}
+
+/* Dark mode: deep ink / black-green with muted jade rim. */
+:root[data-theme="dark"] {
+  --town-v3-field:        #0C1612;
+  --town-v3-field-2:      #0A1410;
+  --town-v3-arc-soft:     #3d5a4a;        /* muted jade rim */
+  --town-v3-arc-strong:   #b7c8b9;        /* warm ivory-grey highlight */
+  --town-v3-portal-bg:    rgba(28, 36, 42, 0.82);
+  --town-v3-portal-border:rgba(196, 207, 193, 0.22);
+  --town-v3-portal-shadow: 0 1px 0 0 rgba(196, 207, 193, 0.08) inset,
+                           0 24px 50px -22px rgba(0, 0, 0, 0.65),
+                           0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  --town-v3-glow:         radial-gradient(
+                             900px 320px at 18% 30%,
+                             rgba(63, 102, 80, 0.22),
+                             transparent 65%
+                           ),
+                           radial-gradient(
+                             700px 280px at 82% 70%,
+                             rgba(196, 175, 148, 0.18),
+                             transparent 65%
+                           );
+}
+
+/* --- Z0 · Field background --------------------------------- */
+.bg-town-v3-field {
+  background-color: var(--town-v3-field);
+}
+.town-v3-field {
+  background:
+    var(--town-v3-glow),
+    linear-gradient(
+      180deg,
+      var(--town-v3-field) 0%,
+      var(--town-v3-field-2) 100%
+    );
+}
+
+/* --- Z1 · Archive Arc --------------------------------------- */
+.town-v3-arc-layer {
+  /* The arc layer is decorative; we keep it inside the rounded
+     container so the SVG never bleeds past the section border. */
+}
+.town-v3-arc-glow {
+  /* A very subtle radial "breath" sitting behind the arc, in both
+     modes. Keeps the field alive without ever becoming a halo. */
+  background: radial-gradient(
+    closest-side,
+    var(--town-v3-arc-soft) 0%,
+    transparent 70%
+  );
+  opacity: 0.18;
+  filter: blur(40px);
+}
+.town-v3-arc-svg {
+  color: var(--town-v3-arc-strong);
+}
+/* The two rim strokes use the same gradient mask; the colour
+   comes from `currentColor` on .town-v3-arc-svg, so theme swap is
+   automatic. Stroke widths stay tiny to keep the line restrained. */
+.town-v3-arc-rim-outer {
+  stroke-width: 3.2;
+  filter: drop-shadow(0 0 1.5px var(--town-v3-arc-soft));
+}
+.town-v3-arc-rim-inner {
+  stroke-width: 1.4;
+  opacity: 0.7;
+}
+.town-v3-arc-equator {
+  opacity: 0.35;
+}
+/* The whole SVG group shifts ~12px based on --shop-shift, set inline
+   from TownArchiveArc. The shift is barely visible — it's just
+   enough to suggest a different "position" on the arc per shop. */
+.town-v3-arc-shift {
+  transform: translate(var(--shop-shift, 0px), 0);
+  transition: transform 240ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .town-v3-arc-shift {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* --- Coordinate micro-marks -------------------------------- */
+.town-v3-arc-node {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--town-v3-arc-strong);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--town-v3-arc-soft) 35%, transparent);
+  opacity: 0.7;
+}
+.town-v3-arc-id {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted-soft);
+  opacity: 0.55;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.town-v3-arc-id-1 {
+  top: 12%;
+  left: 6%;
+}
+.town-v3-arc-id-2 {
+  bottom: 14%;
+  right: 6%;
+  writing-mode: vertical-rl;
+}
+
+/* --- Z2 · Service Portal ----------------------------------- */
+.town-v3-portal {
+  /* Host layout — no own padding; the surface carries it. */
+}
+.town-v3-portal-surface {
+  background-color: var(--town-v3-portal-bg);
+  border-color: var(--town-v3-portal-border);
+  box-shadow: var(--town-v3-portal-shadow);
+  /* Restrained blur only on the surface, not the host. */
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+}
+/* Soft inner rim — a single hairline that makes the portal read
+   as a surface "sitting" against the arc behind. */
+.town-v3-portal-rim {
+  /* Inset 1px gives the surface a soft outer breath without
+     introducing a second border. */
+  box-shadow:
+    0 0 0 1px var(--town-v3-portal-border),
+    0 1px 0 0 rgba(255, 255, 255, 0.04) inset;
+}
+:root[data-theme="dark"] .town-v3-portal-rim {
+  box-shadow:
+    0 0 0 1px var(--town-v3-portal-border),
+    0 1px 0 0 rgba(196, 207, 193, 0.05) inset;
+}
+
+/* Capability chip — flat, paper-on-paper, never a card. */
+.town-v3-portal-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  line-height: 1;
+  color: var(--color-ink-soft);
+  background: color-mix(in oklab, var(--town-v3-portal-bg) 70%, transparent);
+}
+.town-v3-portal-chip-tag {
+  font-weight: 600;
+  color: var(--color-green);
+  letter-spacing: 0.04em;
+}
+:root[data-theme="dark"] .town-v3-portal-chip-tag {
+  color: var(--color-jade);
+}
+.town-v3-portal-chip-detail {
+  color: var(--color-muted);
+}
+
+/* CTA — the only CTA in Town V3. */
+.town-v3-portal-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  font-family: var(--font-serif);
+  font-size: 0.9rem;
+  line-height: 1;
+  color: var(--cta-fg);
+  background: var(--color-green);
+  border: 1px solid var(--color-green-dark);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+.town-v3-portal-cta:hover {
+  background: var(--color-green-dark);
+}
+.town-v3-portal-cta:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+.town-v3-portal-cta:active {
+  transform: translateY(1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .town-v3-portal-cta { transition: none; }
+  .town-v3-portal-cta:active { transform: none; }
+}
+.town-v3-portal-cta-arrow {
+  display: inline-block;
+  transition: transform 160ms ease;
+}
+.town-v3-portal-cta:hover .town-v3-portal-cta-arrow {
+  transform: translateX(2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .town-v3-portal-cta-arrow { transition: none; }
+}
+
+/* --- Z3 · Service Navigator -------------------------------- */
+.town-v3-navigator {
+  border-top: 1px solid var(--color-rule);
+  padding-top: 0.75rem;
+}
+.town-v3-navigator-label {
+  margin-bottom: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted-soft);
+}
+.town-v3-navigator-list {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.town-v3-navigator-list::-webkit-scrollbar { display: none; }
+.town-v3-navigator-item {
+  flex: 0 0 auto;
+}
+.town-v3-navigator-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.town-v3-navigator-btn .town-v3-navigator-name {
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: max-width 200ms ease, opacity 160ms ease, transform 200ms ease;
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  color: var(--color-ink);
+}
+.town-v3-navigator-btn:hover .town-v3-navigator-name,
+.town-v3-navigator-btn:focus-visible .town-v3-navigator-name {
+  max-width: 12rem;
+  opacity: 1;
+  transform: translateX(0);
+}
+.town-v3-navigator-btn.is-selected {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-green);
+  font-weight: 600;
+}
+.town-v3-navigator-btn.is-selected .town-v3-navigator-name {
+  max-width: 12rem;
+  opacity: 1;
+  transform: translateX(0);
+}
+.town-v3-navigator-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .town-v3-navigator-btn,
+  .town-v3-navigator-btn .town-v3-navigator-name {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* The bottom rule under the navigator row, with a small marker
+   indicating the current selection position. */
+.town-v3-navigator-rule {
+  position: relative;
+  height: 1px;
+  margin-top: 0.5rem;
+  background: var(--color-rule);
+}
+.town-v3-navigator-rule-marker {
+  position: absolute;
+  top: -2px;
+  width: 0.5rem;
+  height: 5px;
+  background: var(--color-green);
+  transition: left 220ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .town-v3-navigator-rule-marker { transition: none; }
+}
+
+/* --- Header / typography bits ------------------------------ */
+.town-v3-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-muted-soft);
+}
+.town-v3-title {
+  margin-top: 0.25rem;
+}
+.town-v3-current {
+  text-align: right;
+  white-space: nowrap;
+}
+.town-v3-current-tag {
+  display: inline-block;
+  border: 1px solid var(--color-rule);
+  padding: 0.1rem 0.35rem;
+  border-radius: 2px;
+}
+
+/* --- Mobile / tablet composition --------------------------- */
+@media (max-width: 1023.98px) {
+  .town-v3-arc-svg {
+    /* On smaller screens we crop the arc earlier so the right
+       side stays visible while the curve remains "off-screen". */
+    transform: translateX(-8%);
+  }
+  .town-v3-arc-id-2 {
+    /* Vertical-rl metadata is hard to scan on phones; drop it. */
+    display: none;
+  }
+}
+@media (max-width: 767.98px) {
+  .town-v3-arc-svg {
+    transform: translateX(-16%) translateY(8%);
+  }
+  .town-v3-arc-id-1 {
+    /* Keep the field clean on mobile. */
+    opacity: 0.35;
+    font-size: 0.45rem;
+  }
+  .town-v3-portal-surface {
+    padding: 1rem !important;
+  }
+}
+
+/* ============================================================
+ * Phase 1G-R3 — LELAN EDITORIAL SPINE (Continuous Brand Narrative)
+ *
+ * The homepage used to read as 6 independent section tiles stacked
+ * vertically, each with its own background block, border-bottom, and
+ * independent title position. R3 unifies them into ONE continuous page.
+ *
+ * Three pieces:
+ *   1. .lelan-page-spine     — wraps <main>; provides shared alignment
+ *                              baseline + ambient atmospheric fields.
+ *                              Section backgrounds emerge FROM the page,
+ *                              they do not start as solid rectangles.
+ *   2. --spine-x / --spine-y — alignment tokens every chapter header
+ *                              uses. All section number labels live on
+ *                              the same horizontal column.
+ *   3. .lelan-chapter-*      — shared chapter header grammar:
+ *                              NUMBER · TYPE → Title → Intro → Actions
+ *                              Used by Guardian / Town / AI / Engineering
+ *                              / About. Hero keeps its OWN typography
+ *                              because it is the only true opening.
+ * ============================================================ */
+
+:root {
+  /* The horizontal column where every chapter number lives.
+     Synced with Container max-width (1200px) + lg padding (40px). */
+  --spine-x: 1.25rem;
+  /* The baseline y where every chapter title starts. */
+  --spine-y: 0;
+  /* Spine visual line (decorative; not always drawn). */
+  --spine-line: rgba(20, 17, 15, 0.06);
+  /* Chapter number font size on desktop / mobile. */
+  --chapter-number-size-desktop: 0.85rem;
+  --chapter-number-size-mobile: 0.7rem;
+
+  /* Shared section vertical rhythm. Different sections use different
+     tokens, but they all derive from these four. */
+  --rhythm-opening: 7rem;        /* Hero */
+  --rhythm-chapter: 5.5rem;      /* Guardian / AI / Engineering / About */
+  --rhythm-spatial: 6.5rem;      /* Town — extra breathing */
+  --rhythm-transition: 3.5rem;   /* gap before / after transition sections */
+}
+
+/* ── Page-level ambient layer ──────────────────────────────────
+   This is the BASE for the entire <main>. Every section sits on
+   top of it. Individual sections add their own radial accent on
+   top of this ambient field — they no longer paint full-bleed
+   solid rectangles. */
+.lelan-page-spine {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip; /* never let the ambient field cause horizontal scroll */
+}
+
+/* WIDE atmospheric base — same temperature as the section page.
+   Everything below this lives on this paper/ink foundation. */
+.lelan-page-spine::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(
+      1200px 600px at 18% 14%,
+      rgba(196, 207, 193, 0.18),
+      transparent 65%
+    ),
+    radial-gradient(
+      1000px 500px at 82% 36%,
+      rgba(232, 222, 200, 0.22),
+      transparent 65%
+    ),
+    radial-gradient(
+      900px 480px at 50% 62%,
+      rgba(196, 175, 148, 0.16),
+      transparent 65%
+    ),
+    radial-gradient(
+      1100px 540px at 22% 88%,
+      rgba(143, 168, 154, 0.14),
+      transparent 65%
+    );
+  pointer-events: none;
+}
+
+/* Faint vertical spine hairline — only visible as a hint. */
+.lelan-page-spine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--spine-x);
+  width: 1px;
+  background: var(--spine-line);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* The spine hairline fades on small screens — we keep number
+   alignment via the chapter header padding, not via a visible line. */
+@media (max-width: 1023.98px) {
+  .lelan-page-spine::after {
+    display: none;
+  }
+  .lelan-page-spine::before {
+    /* Mobile: tone down the radial field intensity so it doesn't
+       create banding on small screens. */
+    opacity: 0.55;
+  }
+  .lelan-chapter-meta {
+    /* Mobile: chapter meta row keeps horizontal alignment with the
+       title via shared container padding. Numbers stay in the
+       same column as the title because both live inside the
+       page Container. */
+    flex-wrap: wrap;
+    row-gap: 0.25rem;
+  }
+  .lelan-chapter-rule {
+    /* On mobile, drop the rule to keep the row short and readable. */
+    display: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  --spine-line: rgba(196, 207, 193, 0.06);
+}
+
+:root[data-theme="dark"] .lelan-page-spine::before {
+  background:
+    radial-gradient(
+      1300px 600px at 18% 12%,
+      rgba(63, 102, 80, 0.10),
+      transparent 60%
+    ),
+    radial-gradient(
+      1100px 520px at 88% 30%,
+      rgba(196, 175, 148, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 460px at 45% 58%,
+      rgba(196, 207, 193, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      1200px 520px at 15% 86%,
+      rgba(63, 102, 80, 0.08),
+      transparent 60%
+    );
+}
+
+/* ── Section base — RELATIVE position, NO border-bottom ────────
+   Each section sits on the page-spine ambient field. Sections
+   can still draw an in-content divider if they need one, but the
+   universal border-b is removed. */
+.lelan-section {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Each section gets ONE ::before slot for an optional accent
+   field (Guardian navy glow, Town jade halo, AI paper plane).
+   The accent is *centered* on the section's content, not a
+   full-section rectangle. */
+.lelan-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ── Shared chapter header grammar ──────────────────────────────
+   Every chapter (Guardian / Town / AI / Engineering / About)
+   starts with the same metadata row:
+
+     NN    SYSTEM TYPE
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Title
+     Intro
+
+   This gives the user a single visual rhythm they can rely on.
+   Hero is excluded because it IS the opening. */
+.lelan-chapter {
+  padding-top: var(--rhythm-chapter);
+  padding-bottom: var(--rhythm-chapter);
+}
+.lelan-chapter--spatial {
+  padding-top: var(--rhythm-spatial);
+  padding-bottom: var(--rhythm-spatial);
+}
+.lelan-chapter--opening {
+  padding-top: var(--rhythm-opening);
+  padding-bottom: var(--rhythm-chapter);
+}
+.lelan-chapter--quiet {
+  padding-top: var(--rhythm-chapter);
+  padding-bottom: var(--rhythm-chapter);
+}
+
+@media (max-width: 1023.98px) {
+  .lelan-chapter,
+  .lelan-chapter--spatial,
+  .lelan-chapter--opening,
+  .lelan-chapter--quiet {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+}
+
+/* Chapter metadata row — the one place every section's identity
+   metadata starts on the same horizontal column. */
+.lelan-chapter-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--chapter-number-size-mobile);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-muted-soft);
+  margin-bottom: 1.25rem;
+}
+@media (min-width: 768px) {
+  .lelan-chapter-meta {
+    font-size: var(--chapter-number-size-desktop);
+  }
+}
+
+.lelan-chapter-number {
+  font-weight: 600;
+  color: var(--color-ink);
+  letter-spacing: 0.18em;
+}
+
+.lelan-chapter-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--color-rule);
+  margin: 0 0.25rem;
+  align-self: center;
+}
+
+.lelan-chapter-type {
+  color: var(--color-muted);
+}
+
+/* Chapter title — slightly smaller than Hero H1, larger than
+   body. Uses the same editorial serif as the rest of the site. */
+.lelan-chapter-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.625rem, 3.2vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.005em;
+  color: var(--color-ink);
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+}
+
+.lelan-chapter-intro {
+  font-size: clamp(1rem, 1.4vw, 1.125rem);
+  line-height: 1.7;
+  color: var(--color-ink);
+  max-width: 60ch;
+  margin-bottom: 2rem;
+}
+
+/* The bridging metadata that appears at the bottom of one section
+   and points to the next. Used for Guardian → Town, Town → AI. */
+.lelan-spine-bridge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted-soft);
+}
+.lelan-spine-bridge::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--color-rule-strong);
+}
+.lelan-spine-bridge-arrow {
+  color: var(--color-muted);
+}
+
+/* ── SpineTransition ──────────────────────────────────────────
+   A subtle horizontal hairline + mono label that bridges two
+   chapters. Lives between sections to suggest continuity of
+   the coordinate system. */
+.lelan-spine-transition {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.25rem 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-muted-soft);
+}
+.lelan-spine-transition-line {
+  display: inline-block;
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--color-rule) 20%,
+    var(--color-rule) 80%,
+    transparent 100%
+  );
+  max-width: 120px;
+}
+.lelan-spine-transition-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  white-space: nowrap;
+}
+.lelan-spine-transition-arrow {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+}
+@media (max-width: 767.98px) {
+  .lelan-spine-transition-line {
+    max-width: 60px;
+  }
+}
+
+/* ── Guardian atmospheric accent (was: full navy rectangle) ─── */
+.lelan-section-guardian::before {
+  background:
+    radial-gradient(
+      1100px 540px at 50% 40%,
+      rgba(196, 207, 193, 0.22),
+      transparent 65%
+    ),
+    radial-gradient(
+      700px 320px at 18% 80%,
+      rgba(184, 175, 154, 0.16),
+      transparent 70%
+    ),
+    radial-gradient(
+      600px 280px at 85% 18%,
+      rgba(196, 175, 148, 0.10),
+      transparent 70%
+    );
+  background-color: transparent;
+}
+:root[data-theme="dark"] .lelan-section-guardian::before {
+  background:
+    radial-gradient(
+      1200px 620px at 50% 35%,
+      rgba(196, 207, 193, 0.10),
+      transparent 65%
+    ),
+    radial-gradient(
+      900px 420px at 15% 70%,
+      rgba(63, 102, 80, 0.10),
+      transparent 65%
+    ),
+    radial-gradient(
+      700px 360px at 88% 20%,
+      rgba(196, 175, 148, 0.06),
+      transparent 70%
+    );
+}
+
+/* ── Town atmospheric accent (was: full green rectangle) ────── */
+.lelan-section-town::before {
+  background:
+    radial-gradient(
+      1200px 580px at 50% 50%,
+      rgba(143, 168, 154, 0.14),
+      transparent 65%
+    ),
+    radial-gradient(
+      800px 360px at 85% 80%,
+      rgba(196, 175, 148, 0.10),
+      transparent 70%
+    );
+}
+:root[data-theme="dark"] .lelan-section-town::before {
+  background:
+    radial-gradient(
+      1300px 620px at 50% 50%,
+      rgba(63, 102, 80, 0.14),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 420px at 88% 80%,
+      rgba(196, 175, 148, 0.06),
+      transparent 65%
+    );
+}
+
+/* ── AI atmospheric accent (was: full charcoal rectangle) ───── */
+.lelan-section-ai::before {
+  background:
+    radial-gradient(
+      1100px 480px at 50% 30%,
+      rgba(255, 253, 246, 0.32),
+      transparent 65%
+    ),
+    radial-gradient(
+      700px 300px at 30% 80%,
+      rgba(232, 222, 200, 0.18),
+      transparent 70%
+    );
+}
+:root[data-theme="dark"] .lelan-section-ai::before {
+  background:
+    radial-gradient(
+      1200px 540px at 50% 30%,
+      rgba(255, 253, 246, 0.05),
+      transparent 65%
+    ),
+    radial-gradient(
+      800px 360px at 30% 80%,
+      rgba(196, 175, 148, 0.04),
+      transparent 70%
+    );
+}
+
+/* ── Hero opening field ────────────────────────────────────── */
+.lelan-section-hero::before {
+  background:
+    radial-gradient(
+      1200px 600px at 12% 30%,
+      rgba(232, 222, 200, 0.20),
+      transparent 65%
+    ),
+    radial-gradient(
+      1000px 500px at 80% 10%,
+      rgba(196, 207, 193, 0.14),
+      transparent 65%
+    );
+}
+:root[data-theme="dark"] .lelan-section-hero::before {
+  background:
+    radial-gradient(
+      1300px 600px at 12% 30%,
+      rgba(196, 175, 148, 0.10),
+      transparent 65%
+    ),
+    radial-gradient(
+      1100px 540px at 80% 10%,
+      rgba(196, 207, 193, 0.06),
+      transparent 65%
+    );
+}
+
+/* ── Engineering atmospheric accent (compact, restrained) ─ */
+.lelan-section-engineering::before {
+  background:
+    radial-gradient(
+      900px 380px at 20% 30%,
+      rgba(232, 222, 200, 0.14),
+      transparent 65%
+    ),
+    radial-gradient(
+      700px 280px at 80% 70%,
+      rgba(196, 207, 193, 0.10),
+      transparent 70%
+    );
+}
+:root[data-theme="dark"] .lelan-section-engineering::before {
+  background:
+    radial-gradient(
+      1000px 400px at 20% 30%,
+      rgba(196, 175, 148, 0.06),
+      transparent 65%
+    ),
+    radial-gradient(
+      800px 320px at 80% 70%,
+      rgba(196, 207, 193, 0.05),
+      transparent 70%
+    );
+}
+
+/* ── About atmospheric accent (quiet closing) ──────────────── */
+.lelan-section-about::before {
+  background:
+    radial-gradient(
+      900px 360px at 30% 40%,
+      rgba(232, 222, 200, 0.18),
+      transparent 65%
+    );
+}
+:root[data-theme="dark"] .lelan-section-about::before {
+  background:
+    radial-gradient(
+      1000px 380px at 30% 40%,
+      rgba(196, 175, 148, 0.06),
+      transparent 65%
+    );
+}
+
+/* ── Footer atmospheric accent (closing breath) ─────────────── */
+.lelan-section-footer::before {
+  background:
+    radial-gradient(
+      900px 200px at 50% 100%,
+      rgba(20, 17, 15, 0.08),
+      transparent 70%
+    );
+}
+:root[data-theme="dark"] .lelan-section-footer::before {
+  background:
+    radial-gradient(
+      1000px 220px at 50% 100%,
+      rgba(196, 175, 148, 0.04),
+      transparent 70%
+    );
+}
+
+/* The old `lelan-section-field-guardian` / `-town` / `-ai` rule
+   that painted the full section background is now superseded by
+   the atmospheric radial above. Keep the class names for any
+   component that still references them but make them invisible —
+   the page-spine ambient + section atmospheric accent now owns
+   the field. */
+.lelan-section-field-guardian,
+.lelan-section-field-town,
+.lelan-section-field-ai {
+  background-color: transparent;
 }
 

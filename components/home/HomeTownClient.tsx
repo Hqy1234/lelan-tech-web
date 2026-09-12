@@ -1,32 +1,29 @@
 /**
- * LELAN TECHNOLOGY · Town V1.5 Client Island
+ * LELAN TECHNOLOGY · Town Client Island
  *
- * Phase 1E.4-B — now hosts the interactive Town Globe over the 2D fallback.
+ * Phase 1G — Town V3 "Archive Service Space" (乐懒成果服务空间).
  *
- * ⚠ STATE ARCHITECTURE IS FROZEN. This file is the single owner of Town
- * selection state, and both renderers read from it:
+ * ── What changed in Town V3 ──────────────────────────────────────────────
+ * Town is no longer a working desk. It is an abstract digital archive space
+ * built around a single visual identity — the LELAN ARCHIVE ARC — with a
+ * single foreground Service Portal and a restrained 01–08 navigator.
  *
- *     HomeTownClient        owns `selectedId` + URL hash + aria-live
- *     TownGlobe             WebGL renderer  ─┐
- *     TownMapStage          2D renderer     ─┴─ both: { shops, selectedId, onSelect }
- *     TownServiceDrawer     HTML detail panel
+ * The previous three-column research-output desk (Town V2) is preserved
+ * intact at `components/town/v2/*` and is no longer mounted here. The 3D
+ * spherical sand-table (TownGlobe / TownGlobeScene / TownTerrain /
+ * TownMapStage / capability / globe / TownBuildingVisual / TownTerrainDressing)
+ * is also still in the codebase as a preserved prototype. Nothing on the
+ * homepage imports any of them, so three.js drops out of the homepage
+ * bundle automatically.
  *
- * `TownGlobe` and `TownMapStage` hold NO selection state of their own.
- * They are swappable views over one source of truth. Do not duplicate state.
- *
- * Phase 1E.4-B changes:
- *   - `TownGlobe` is rendered as the primary desktop (≥1024px) renderer, with
- *     `TownMapStage` underneath as the always-present fallback / loading state.
- *   - Hash now accepts numeric aliases (`#shop-01` … `#shop-08`) in addition to
- *     the original slug form (`#shop-paper-teahouse`). The slug stays the
- *     canonical value written back to the URL so existing deep links keep
- *     working unchanged.
- *   - An `aria-live="polite"` status announces the selection for screen
- *     readers, since the canvas itself is aria-hidden.
- *
- * Layout (desktop ≥1024): [ index ~16% ] [ globe ~62% ] [ drawer ~22%, slight
- * overlap over the globe edge — contained, never overflowing the page ].
- * Tablet / mobile: index strip, then renderer, then drawer — normal flow.
+ * ── What did NOT change ──────────────────────────────────────────────────
+ * ⚠ SELECTION STATE ARCHITECTURE IS UNCHANGED AND STILL FROZEN.
+ * This file remains the single owner of:
+ *   - `selectedId`
+ *   - URL hash ↔ state bidirectional sync
+ *   - radio-group keyboard model (←/→/Home/End +1/−1, 1..8 direct)
+ *   - aria-live announcement
+ * Removing V2's desk does not — and must not — alter any of that.
  */
 
 "use client";
@@ -34,14 +31,9 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   type TownShop,
-  AGENT_ROLE_LABELS,
   DEFAULT_SHOP_ID,
 } from "@/content/town";
-import {
-  TownMapStage,
-  TownServiceDrawer,
-} from "@/components/town/TownMapStage";
-import { TownGlobe } from "@/components/town/TownGlobe";
+import { TownV3Presentation } from "@/components/town/v3/TownV3Presentation";
 
 const RADIO_NAME = "town-shop-select";
 
@@ -105,152 +97,84 @@ export function HomeTownClient({ shops, statusNote }: HomeTownClientProps) {
     }
   }, []);
 
-  /* ── Derived selected shop + agent role label ─────────────── */
+  /* ── Keyboard navigation (radio-group model, frozen) ─────────── */
+  /**
+   * Move selection by ±1 within the shop list, wrapping is OFF — the
+   * brief asks for a numeric 01–08 row, so the ends are real ends.
+   * "1"–"8" jump directly. Home/End jump to first/last. ←/→ step.
+   * The handler is attached to the Town root (not per-button) so focus
+   * can live anywhere inside the section.
+   */
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const currentIndex = shops.findIndex((s) => s.id === selectedId);
+      if (currentIndex < 0) return;
+      let nextIndex = currentIndex;
+      let consumed = true;
+      switch (e.key) {
+        case "ArrowRight":
+        case "ArrowDown":
+          nextIndex = Math.min(shops.length - 1, currentIndex + 1);
+          break;
+        case "ArrowLeft":
+        case "ArrowUp":
+          nextIndex = Math.max(0, currentIndex - 1);
+          break;
+        case "Home":
+          nextIndex = 0;
+          break;
+        case "End":
+          nextIndex = shops.length - 1;
+          break;
+        default: {
+          // 1–8 jump keys
+          const n = Number.parseInt(e.key, 10);
+          if (Number.isFinite(n) && n >= 1 && n <= shops.length) {
+            nextIndex = n - 1;
+          } else {
+            consumed = false;
+          }
+        }
+      }
+      if (consumed) {
+        e.preventDefault();
+        const next = shops[nextIndex];
+        if (next && next.id !== selectedId) {
+          handleSelect(next.id);
+        }
+      }
+    },
+    [shops, selectedId, handleSelect]
+  );
 
+  /* ── Derived selected shop ─────────────── */
   const selected = useMemo(
     () => shops.find((s) => s.id === selectedId) ?? shops[0],
     [shops, selectedId]
   );
-  const agentRoleLabel = AGENT_ROLE_LABELS[selected.agentRole];
-
-  /* ── 2D fallback renderer (shared by every non-globe path) ─── */
-
-  const mapStage = <TownMapStage shops={shops} selectedId={selected.id} />;
 
   return (
-    <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-4">
-      {/* ── Left: compact 8-service index (desktop) ─────────────
-          This is the PRIMARY accessible + SEO interface. It exists in the
-          static HTML and never depends on the canvas. */}
-      <nav
-        aria-label="小镇服务索引"
-        className="hidden shrink-0 overflow-hidden rounded-sm border border-rule bg-paper-pure lg:flex lg:w-[16%] lg:flex-col"
-      >
-        <p className="border-b border-rule px-3 py-2 font-mono text-[0.6rem] uppercase tracking-wider text-muted">
-          01–08 · 服务索引
-        </p>
-        <ul className="divide-y divide-rule" role="list">
-          {shops.map((shop) => {
-            const isSelected = shop.id === selected.id;
-            return (
-              <li key={shop.id} className="relative">
-                <input
-                  type="radio"
-                  name={RADIO_NAME}
-                  id={`town-radio-${shop.id}`}
-                  value={shop.id}
-                  checked={isSelected}
-                  onChange={() => handleSelect(shop.id)}
-                  className="peer sr-only"
-                  aria-label={`选择 ${shop.name}（${shop.number}）：${shop.plainLanguageService}`}
-                />
-                <label
-                  htmlFor={`town-radio-${shop.id}`}
-                  className={[
-                    "flex cursor-pointer items-start gap-2 border-b border-rule px-2.5 py-2 transition-colors",
-                    "hover:bg-paper/60",
-                    "peer-checked:border-l-2 peer-checked:border-l-green peer-checked:bg-paper/80",
-                    "peer-focus-visible:outline peer-focus-visible:outline-1 peer-focus-visible:outline-cinnabar",
-                  ].join(" ")}
-                >
-                  <span
-                    aria-hidden
-                    className={[
-                      "mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border font-mono text-[0.55rem] uppercase tracking-wider",
-                      isSelected
-                        ? "border-green bg-green text-paper"
-                        : "border-rule bg-paper text-muted",
-                    ].join(" ")}
-                  >
-                    {shop.number}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span
-                      className={[
-                        "block truncate font-serif text-[0.8rem]",
-                        isSelected ? "font-semibold text-ink" : "text-ink/90",
-                      ].join(" ")}
-                    >
-                      {shop.name}
-                    </span>
-                    <span className="block truncate font-mono text-[0.6rem] text-muted">
-                      {shop.agent}
-                    </span>
-                  </span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+    <div
+      role="region"
+      aria-label="乐懒成果小镇"
+      className="lelan-town-field relative"
+      onKeyDown={handleKeyDown}
+      data-town-radio-name={RADIO_NAME}
+    >
+      {/* Presentation layer — Town V3 */}
+      <TownV3Presentation
+        shops={shops}
+        selectedId={selected.id}
+        onSelect={handleSelect}
+        statusNote={statusNote}
+      />
 
-      {/* ── Mobile / tablet horizontal index ──────────────────── */}
-      <nav
-        aria-label="小镇服务索引（移动）"
-        className="flex w-full shrink-0 gap-1.5 overflow-x-auto rounded-sm border border-rule bg-paper-pure p-2 lg:hidden"
-      >
-        {shops.map((shop) => {
-          const isSelected = shop.id === selected.id;
-          return (
-            <button
-              key={shop.id}
-              type="button"
-              onClick={() => handleSelect(shop.id)}
-              className={[
-                "shrink-0 rounded-sm border px-2 py-1 font-mono text-[0.65rem] uppercase tracking-wider transition-colors",
-                isSelected
-                  ? "border-green bg-green text-paper"
-                  : "border-rule bg-paper text-muted",
-              ].join(" ")}
-              aria-label={`选择 ${shop.name}`}
-              aria-pressed={isSelected}
-            >
-              {shop.number}
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* ── Centre: the town renderer ───────────────────────────
-          TownGlobe mounts a WebGL canvas only on capable desktops and only
-          once this element nears the viewport; otherwise the 2D map is shown.
-          Both read the same `selectedId` and emit the same `onSelect`.
-
-          Height (Phase 1E.4-B1): the stage is now VIEWPORT-RELATIVE
-          (`min(54vh, 500px)`) rather than a flat 560px. At 1440×900 the section
-          header consumes ~379px, so a 560px stage ran past the fold and cut the
-          sand-table's base off. 54vh/500px leaves the whole model visible with
-          the header in view — Town reads as the spatial climax without the user
-          needing to scroll within the section. Floored at 400px for short
-          viewports so the globe never collapses. */}
-      <div className="relative h-[400px] min-w-0 sm:h-[440px] lg:h-[min(54vh,500px)] lg:flex-1">
-        <TownGlobe
-          shops={shops}
-          selectedId={selected.id}
-          onSelect={handleSelect}
-          fallback={
-            <div className="h-full w-full" aria-hidden="true">
-              {mapStage}
-            </div>
-          }
-        />
-      </div>
-
-      {/* ── Right: selected service panel ───────────────────────
-          Real HTML, never moved into the canvas. The small negative margin on
-          large screens lets it overlap the globe edge for a foreground feel;
-          it can never cross the section's right edge. */}
-      <div className="w-full shrink-0 lg:flex lg:w-[22%] lg:min-w-[15rem] lg:-ml-4 lg:z-10">
-        <TownServiceDrawer shop={selected} agentRoleLabel={agentRoleLabel} />
-      </div>
-
-      {/* ── Announcement for assistive tech ─────────────────────
-          The canvas is aria-hidden, so selection changes are announced here. */}
+      {/* Announcement for assistive tech.
+          Selection changes are announced here so the active service is always
+          conveyed textually. */}
       <p className="sr-only" aria-live="polite" aria-atomic="true">
         已选择 {selected.number} {selected.name} · {selected.agent}
       </p>
-
-      <p className="sr-only">{statusNote}</p>
     </div>
   );
 }

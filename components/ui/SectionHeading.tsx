@@ -41,24 +41,22 @@ export function SectionHeading({
       className={`flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 ${className ?? ""}`.trim()}
     >
       <div className="max-w-3xl">
-        <div className="flex items-baseline gap-3">
-          <span className="font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted">
-            {number}
-          </span>
-          {systemLabel && (
-            <span className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-muted">
-              {systemLabel}
-            </span>
-          )}
+        {/* Phase 1G-R3 — Shared chapter meta row.
+            Number on the spine column, a thin rule connecting to the
+            system label on the right. Both stay on the same baseline. */}
+        <div className="lelan-chapter-meta">
+          <span className="lelan-chapter-number">{number}</span>
+          {systemLabel ? <span className="lelan-chapter-rule" aria-hidden="true" /> : null}
+          {systemLabel ? <span className="lelan-chapter-type">{systemLabel}</span> : null}
         </div>
         <HeadingTag
           {...(id ? { id } : {})}
-          className="lede mt-2 text-2xl font-medium leading-tight text-ink sm:text-3xl md:text-4xl"
+          className="lelan-chapter-title"
         >
           {title}
         </HeadingTag>
         {intro && (
-          <p className="mt-3 max-w-2xl text-sm text-muted sm:text-base">
+          <p className="lelan-chapter-intro">
             {intro}
           </p>
         )}

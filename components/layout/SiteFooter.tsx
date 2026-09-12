@@ -54,7 +54,7 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
   return (
     <footer
-      className="mt-16 border-t border-rule bg-paper-pure text-ink"
+      className="lelan-section lelan-section-footer relative mt-16 text-ink"
       role="contentinfo"
     >
       <Container density="default">
@@ -92,7 +92,7 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 border-t border-rule pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-10 flex flex-col gap-3 border-t border-rule/40 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted">
             © {year} {brandName}. 保留所有权利。
           </p>

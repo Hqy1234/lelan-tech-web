@@ -273,7 +273,7 @@ export function AiWorkflowPreview({ section }: AiWorkflowPreviewProps) {
     <div
       role="region"
       aria-label="乐懒 AI 产品工作台示意"
-      className="lelan-bg-l4-ai rounded-sm border border-rule"
+      className="lelan-bg-l4-ai rounded-sm"
     >
       <div className="lelan-ai-composition px-4 py-5 sm:px-6 sm:py-6">
         {/* Workspace title bar */}

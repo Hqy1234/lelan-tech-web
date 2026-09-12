@@ -22,6 +22,7 @@ import Link from "next/link";
 import { brandName, siteName } from "@/content/site";
 import { Container } from "./Container";
 import { DemoAccountNav } from "./DemoAccountNav";
+import { ThemeToggle } from "./theme/ThemeToggle";
 
 const NAV_ITEMS = [
   { href: "/#hero", label: "首页" },
@@ -73,7 +74,10 @@ export function SiteHeader() {
           </nav>
 
           {/* Demo account / profile nav — client island */}
-          <DemoAccountNav />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+            <DemoAccountNav />
+          </div>
         </div>
 
         {/* Mobile nav: improved readability and touch targets */}

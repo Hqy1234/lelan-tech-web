@@ -77,6 +77,8 @@ export function GuardianSeal({
 
   // Visual tokens
   const stroke = "currentColor";
+  // Cinnabar accent for the "current coordinate point" — themed
+  const cinnabar = "var(--color-cinnabar)";
   const isComplete = state === "complete";
   const isPartial = state === "partial";
 
@@ -224,8 +226,8 @@ export function GuardianSeal({
               cx="50"
               cy="50"
               r={d.ring / 8}
-              fill="#9b3a2f"
-              stroke="#9b3a2f"
+              fill={cinnabar}
+              stroke={cinnabar}
               strokeWidth={d.stroke * 0.5}
             />
           )}

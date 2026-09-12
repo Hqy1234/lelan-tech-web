@@ -11,9 +11,9 @@
  * NOT three equal pillars. The relationship "two systems + one software"
  * is structural, not a third pillar card.
  *
- * Visual: premium editorial with coordinate line + position node +
- * section number + archive corner + small annotation. No large
- * imagery, no 3D, no glow.
+ * Visual: premium editorial with position node + section number + archive corner +
+ * small annotation. No large imagery, no 3D, no glow. Hero intentionally does
+ * NOT use Guardian's coordinate grid language — it is quiet brand opening.
  *
  * Server component.
  */
@@ -34,10 +34,10 @@ export function HomeHero({ section }: HomeHeroProps) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="relative overflow-hidden border-b border-rule bg-paper"
+      className="lelan-section lelan-section-hero relative overflow-hidden"
     >
-      <Container as="div">
-        <div className="grid grid-cols-1 gap-x-10 gap-y-10 py-12 sm:py-16 md:grid-cols-12 md:py-20">
+      <Container as="div" className="lelan-chapter--opening">
+        <div className="grid grid-cols-1 gap-x-10 gap-y-10 md:grid-cols-12">
           {/* ── LEFT: Brand identity ───────────────────────────────── */}
           <div className="md:col-span-7">
             {/* Eyebrow + section number + status */}
@@ -97,9 +97,9 @@ export function HomeHero({ section }: HomeHeroProps) {
             className="relative md:col-span-5"
             aria-label="乐懒科技产品关系"
           >
-            <div className="lelan-perspective flex h-full flex-col gap-5">
-              {/* Coordinate canvas frame */}
-              <div className="lelan-corner lelan-bg-coordinate lelan-contact-shadow-2 relative rounded-sm border border-rule p-5">
+            <div className="flex h-full flex-col gap-5">
+              {/* Right product nodes — quiet paper surface, no grid texture */}
+              <div className="relative rounded-sm border border-rule bg-paper-soft/60 p-5">
                 <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted">
                   02 · 系统坐标
                 </p>
@@ -139,18 +139,6 @@ export function HomeHero({ section }: HomeHeroProps) {
                     </li>
                   ))}
                 </ul>
-
-                {/* Coordinate crosshair hint */}
-                <svg
-                  aria-hidden
-                  focusable="false"
-                  viewBox="0 0 100 100"
-                  className="pointer-events-none absolute right-3 top-3 h-10 w-10 text-rule-strong opacity-50"
-                >
-                  <line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" strokeWidth="0.5" />
-                  <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" strokeWidth="0.5" />
-                  <circle cx="50" cy="50" r="2.5" fill="none" stroke="currentColor" strokeWidth="0.8" />
-                </svg>
               </div>
 
               {/* Software row — separated visually from system pillars */}

@@ -27,6 +27,8 @@
 import Link from "next/link";
 import { Container } from "@/components/layout/Container";
 import { StatusLabel } from "@/components/ui/StatusLabel";
+import { ChapterHeader } from "@/components/home/ChapterHeader";
+import { SpineTransition } from "@/components/home/SpineTransition";
 import {
   getGuardianStageDisplayName,
   guardianMethodSteps,
@@ -53,31 +55,20 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="lelan-section-field lelan-section-field-guardian lelan-divider-coord-fade relative border-b border-rule bg-paper"
+      className="lelan-section lelan-section-guardian lelan-divider-coord-fade relative"
     >
-      <Container as="div">
+      <Container as="div" className="lelan-chapter">
         {/* ── Section header + the single live coordinate surface ───────── */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
           <div className="md:col-span-7">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="flex items-center gap-1.5 font-mono text-[0.7rem] uppercase tracking-[0.25em] text-muted">
-                <span aria-hidden className="inline-block h-px w-4 bg-rule-strong" />
-                {section.number} · LELAN GUARDIAN
-              </span>
-              <StatusLabel tone="concept" label="人生档案" />
-              <StatusLabel tone="preview" label="产品演示" />
-            </div>
-
-            <h2
-              id={`${section.id}-title`}
-              className="lede mt-4 text-[clamp(1.75rem,3.5vw,2.75rem)] font-medium leading-tight text-ink"
-            >
-              {section.title}
-            </h2>
-
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-ink sm:text-xl">
-              {section.intro}
-            </p>
+            <ChapterHeader
+              number={section.number}
+              typeLabel="LELAN GUARDIAN · LIFE ARCHIVE"
+              title={section.title}
+              intro={section.intro}
+              titleId={`${section.id}-title`}
+              bridge="02 · ARCHIVE SPACE →"
+            />
 
             {/* CTA */}
             <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -104,6 +95,14 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
                 登录查看模拟账号
                 <span aria-hidden>→</span>
               </Link>
+            </div>
+
+            {/* Phase 1G-R3 — Status labels now sit below the CTA, no longer
+                inline with the eyebrow, to avoid competing with the chapter
+                meta row. */}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <StatusLabel tone="concept" label="人生档案" />
+              <StatusLabel tone="preview" label="产品演示" />
             </div>
           </div>
 
@@ -157,7 +156,7 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
         {/* ── The archive spread — one open life archive ─────────────────── */}
         <div
           id="guardian-archive"
-          className="lelan-bg-coordinate mt-10 scroll-mt-20 rounded-sm border border-rule px-4 py-6 sm:px-6 sm:py-8"
+          className="lelan-bg-coordinate-localized mt-10 scroll-mt-20 rounded-sm px-4 py-6 sm:px-6 sm:py-8"
         >
           <GuardianArchive />
         </div>
@@ -194,6 +193,17 @@ export function HomeGuardian({ section }: { section: HomeGuardianSection }) {
               </li>
             ))}
           </ol>
+        </div>
+
+        {/* Phase 1G-R3 — Spine transition.
+            The coordinate system from Guardian continues into Town as
+            the Archive Arc's coordinate grid. This thin hairline is the
+            visual hand-off. */}
+        <div className="mt-10">
+          <SpineTransition
+            from="01 · LIFE COORDINATE"
+            to="02 · ARCHIVE SPACE"
+          />
         </div>
       </Container>
     </section>

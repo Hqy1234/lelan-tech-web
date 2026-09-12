@@ -44,37 +44,22 @@ export function HomeTown({ section }: HomeTownProps) {
     <section
       id={section.id}
       aria-labelledby={`${section.id}-title`}
-      className="lelan-section-field lelan-section-field-town relative border-b border-rule"
+      className="lelan-section lelan-section-town relative"
     >
-      <Container as="div">
-        {/* Section header */}
+      <Container as="div" className="lelan-chapter--spatial">
+        {/* Section chapter header — sits on the spine column.
+            The V3 presentation's own internal "town-v3" header
+            is now a sub-header (h3-style) inside the spatial
+            island, so we keep this top-level chapter header. */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
           <SectionHeading
             id={`${section.id}-title`}
             number={section.number}
             title={section.title}
             intro={section.intro}
-            systemLabel="Town · 阳"
+            systemLabel="ARCHIVE · SERVICE SPACE"
           />
           <StatusLabel tone="preview" label="图谱阶段" />
-        </div>
-
-        {/* Capabilities strip — kept compact and factual */}
-        <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs">
-          <span className="font-mono uppercase tracking-wider text-muted">
-            六维能力
-          </span>
-          {section.capabilities.map((cap) => (
-            <span
-              key={cap.id}
-              className="flex items-center gap-1.5 rounded-sm border border-rule bg-paper px-2 py-1 font-mono text-xs text-ink/80"
-            >
-              <span className="shrink-0 rounded-sm bg-green/10 px-1.5 py-0.5 text-xs font-medium text-green">
-                {cap.label}
-              </span>
-              <span className="text-muted">{cap.description}</span>
-            </span>
-          ))}
         </div>
 
         {/* Interactive Town island — spatial composition */}
@@ -82,9 +67,16 @@ export function HomeTown({ section }: HomeTownProps) {
           <HomeTownClient shops={ordered} statusNote={section.statusNote} />
         </div>
 
-        <p className="mt-5 text-xs text-muted sm:text-sm">
-          {section.statusNote}
-        </p>
+        {/* Phase 1G-R3 — Town → AI bridge.
+            Shop 08 is "AI 工具坊", which is the prototype of the
+            next chapter. The hairline + metadata strip tells the
+            reader that this section ends in the same direction
+            the next one begins. */}
+        <div className="mt-10">
+          <p className="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-muted-soft">
+            08 · AI TOOLS ——
+          </p>
+        </div>
       </Container>
     </section>
   );
